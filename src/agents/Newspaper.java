@@ -17,7 +17,6 @@ public class Newspaper {
 
 		JobAdd job_add = null;
 		if (job_adds.size() == 0) {
-            System.out.println("0 job adds");
 			return new JobAdd(null, -1);
 		}
 		double total_wage = 0;

@@ -88,36 +88,52 @@ public class main
 
     public static void run()
     {
-        newspaper_saudi.clear_job_ads();
-        newspaper_expat.clear_job_ads();
-        for (Firm firm: firms)
+        for (int day = 0; day < 1000; day++)
         {
-            firm.set_prices_demand();
-        }
-        for (Firm firm: firms)
-        {
-            firm.advertise();
-        }
-        for (Worker worker: workers)
-        {
-            worker.apply();
-        }
-        for (Firm firm: firms)
-        {
-            firm.hire();
-        }
-        for (Firm firm: firms)
-        {
-            firm.produce();
-        }
-        for (Firm firm: firms)
-        {
-            firm.post_offer();
-        }
-        auctioneer.compute_market();
-        for (Firm firm: firms)
-        {
-            firm.sell();
+            System.out.println(day);
+            newspaper_saudi.clear_job_ads();
+            newspaper_expat.clear_job_ads();
+            for (Firm firm: firms)
+            {
+                firm.set_prices_demand();
+            }
+            for (Firm firm: firms)
+            {
+                firm.advertise();
+            }
+            for (Worker worker: workers)
+            {
+                worker.apply();
+            }
+            for (Firm firm: firms)
+            {
+                firm.hire();
+            }
+            for (Firm firm: firms)
+            {
+                firm.produce();
+            }
+            for (Firm firm: firms)
+            {
+                firm.post_offer();
+            }
+            auctioneer.compute_market();
+            for (Firm firm: firms)
+            {
+                firm.sell();
+            }
+            for (Firm firm: firms)
+            {
+                firm.pay_wage();
+            }
+            for (Firm firm: firms)
+            {
+                firm.distribute_profits();
+            }
+            for (Firm firm: firms)
+            {
+                firm.fire();
+            }
         }
     }
 

@@ -99,8 +99,6 @@ public class Firm {
     }
 
     public void hire() {
-        System.out.print(applications.size());
-        System.out.print(" ");
         cant_decrease_production = 0;
 
         if (planned_production > production && applications.size() == 0) {
@@ -202,7 +200,6 @@ public class Firm {
                 }
             }
             int net_hires = hire_or_fire_staff(team);
-            System.out.println(net_hires);
             recalculate_max_and_average_();
 
             if (planned_production > h_produce(staff, 0)
@@ -247,23 +244,12 @@ public class Firm {
 
     public void post_offer()
     {
-        System.out.print(staff.size());
-        System.out.print(" ");
-        System.out.print(production);
-        System.out.print(" ");
-        System.out.println(price);
-        System.out.print(" ");
         auctioneer.make_final_good_offer(this, price, production);
     }
 
     public void sell()
     {
         profit = min(demand, production) * price;
-        System.out.print(demand);
-        System.out.print(" ");
-        System.out.print(production);
-        System.out.print(" ");
-        System.out.println(price);
     }
 
     public void pay_wage() {

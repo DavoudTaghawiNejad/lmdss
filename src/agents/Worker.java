@@ -7,21 +7,11 @@ public class Worker
 {
     public Citizenship citizenship;
     private Newspaper newspaper;
-
-    public void fire()
-    {
-        status = Status.unemployed;
-        employer = -1;
-    }
-
-    enum Status {employed, unemployed};
-
-    private int employer;
     public double wage;
     public double productivity;
     private Status status = Status.unemployed;
-
-
+    private int employer;
+    private JobAdd job_add;
 
     public Worker(Citizenship citizenship, Newspaper newspaper,double wage, double productivity)
     {
@@ -31,12 +21,24 @@ public class Worker
         this.productivity = productivity;
     }
 
+
+
+    enum Status {employed, unemployed;};
+    public void fire()
+    {
+        status = Status.unemployed;
+        employer = -1;
+    }
+
     public void apply()
     {
         if (status == Status.unemployed)
         {
-            JobAdd job_add =  newspaper.get_add();
-            job_add.firm.add(this);
+            job_add = newspaper.get_add();
+            if (job_add.firm != null)
+            {
+                job_add.firm.add(this);
+            }
         }
     }
 
@@ -44,5 +46,6 @@ public class Worker
     {
         employer = firm.id;
         status = Status.employed;
+        wage = job_add.wage;
     }
 }
