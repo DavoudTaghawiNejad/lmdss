@@ -1,6 +1,7 @@
 package agents;
 
 import definitions.Citizenship;
+import definitions.Status;
 import messages.JobAdd;
 
 public class Worker
@@ -9,7 +10,7 @@ public class Worker
     private Newspaper newspaper;
     public double wage;
     public double productivity;
-    private Status status = Status.unemployed;
+    public Status status = Status.unemployed;
     private int employer;
     private JobAdd job_add;
 
@@ -21,9 +22,6 @@ public class Worker
         this.productivity = productivity;
     }
 
-
-
-    enum Status {employed, unemployed;};
     public void fire()
     {
         status = Status.unemployed;
