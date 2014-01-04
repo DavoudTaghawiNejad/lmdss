@@ -2,12 +2,10 @@ package agents;
 import messages.FirmQuantity;
 
 public class Auctioneer {
-	public double l; // Love for variety
-
-	public int message_count;
-	public double q;
+	public double love_for_variety = 0.5;
+    public double q;
 	public double total_value_sold;
-	public double income;
+	public double income = 100000;
 	public double market_price;
 	public double total_deliverable_demand;
 	public double total_capacity;
@@ -64,8 +62,7 @@ public class Auctioneer {
 
 		prices.clear();
 		quantities.clear();
-		message_count = 0;
-	}
+    }
 
 	public void new_round() {
 		prices.clear();
@@ -76,7 +73,7 @@ public class Auctioneer {
 	double demand_schedule(double pi) {
 
 		return ((income / market_price) / q)
-				* Math.pow((q / pi), (1 / (1 - l)));
+				* Math.pow((q / pi), (1 / (1 - love_for_variety)));
 
 	}
 
@@ -84,16 +81,15 @@ public class Auctioneer {
 
 		q = 0;
 		for (Firm c : prices.keySet()) {
-			q += Math.pow(prices.get(c), (l / (l - 1)));
+			q += Math.pow(prices.get(c), (love_for_variety / (love_for_variety - 1)));
 		}
-		q = Math.pow(q, ((l - 1) / l));
+		q = Math.pow(q, ((love_for_variety - 1) / love_for_variety));
 
 	}
 
 	public void make_final_good_offer(Firm firm, double price, double quantity) {
 		prices.put(firm, price);
 		quantities.put(firm, quantity);
-		message_count++;
 	}
 
 }
