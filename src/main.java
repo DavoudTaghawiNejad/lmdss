@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import agents.Auctioneer;
 import agents.Firm;
 import agents.Newspaper;
 import agents.Worker;
@@ -16,6 +17,7 @@ public class main
     private static Newspaper newspaper_saudi;
     private static Newspaper newspaper_expat;
     private static List<Worker> workers;
+    private static Auctioneer auctioneer;
 
     public static void initialisation()
     {
@@ -24,8 +26,14 @@ public class main
         final double sauditization_percentage = 0;
         final int num_saudis = 3800;
         final int num_expats = 7000;
+        final double productivity_mean_saudi = 6854.24 / 30;
+        final double wage_mean_saudi = 3137.39 / 30;
+        final double productivity_mean_expat = 6854.24 / 30;
+        final double wage_mean_expat = 764.77 / 30;
 
         Random seed_generator = new Random();
+
+        auctioneer = new Auctioneer();
 
         newspaper_saudi = new Newspaper(seed_generator.nextLong());
         newspaper_expat = new Newspaper(seed_generator.nextLong());
@@ -35,11 +43,25 @@ public class main
         Random rnd = new Random(seed_generator.nextLong());
         for (int i = 0; i < num_saudis; i++)
         {
-            workers.add(new Worker(Citizenship.SAUDI, newspaper_saudi));
+            workers.add(
+                    new Worker(
+                            Citizenship.SAUDI,
+                            newspaper_saudi,
+                            rnd.nextGaussian() * wage_mean_saudi + wage_mean_saudi,
+                            rnd.nextGaussian() * productivity_mean_saudi + productivity_mean_saudi
+                     )
+            );
         }
         for (int i = 0; i < num_expats; i++)
         {
-            workers.add(new Worker(Citizenship.EXPAT, newspaper_expat));
+            workers.add(
+                    new Worker(
+                            Citizenship.EXPAT,
+                            newspaper_saudi,
+                            rnd.nextGaussian() * wage_mean_expat + wage_mean_saudi,
+                            rnd.nextGaussian() * productivity_mean_expat + productivity_mean_expat
+                     )
+            );
         }
 
         apply_to_firm = new ArrayList<List<Worker>>();
@@ -58,11 +80,10 @@ public class main
                             applications,
                             newspaper_saudi,
                             newspaper_expat,
+                            auctioneer,
                             sauditization_percentage)
             );
         }
-
-
     }
 
     public static void run()
@@ -85,10 +106,20 @@ public class main
         {
             firm.hire();
         }
+        for (Firm firm: firms)
+        {
+            firm.produce();
+        }
+        for (Firm firm: firms)
+        {
+            firm.post_offer();
+        }
+        auctioneer.compute_market();
+        for (Firm firm: firms)
+        {
+            firm.sell();
+        }
     }
-
-
-
 
     public static void main(String [] args)
     {
@@ -96,6 +127,4 @@ public class main
         run();
         System.out.print("end");
     }
-
-
 }

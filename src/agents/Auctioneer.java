@@ -1,0 +1,99 @@
+package agents;
+import messages.FirmQuantity;
+
+public class Auctioneer {
+	public double l; // Love for variety
+
+	public int message_count;
+	public double q;
+	public double total_value_sold;
+	public double income;
+	public double market_price;
+	public double total_deliverable_demand;
+	public double total_capacity;
+	public double average_price;
+	public double total_demand;
+
+	public java.util.LinkedHashMap<Firm, Double> prices = new java.util.LinkedHashMap<Firm, Double>();
+	public java.util.LinkedHashMap<Firm, Double> quantities = new java.util.LinkedHashMap<Firm, Double>();
+	public java.util.ArrayList<FirmQuantity> demand_list = new java.util.ArrayList<FirmQuantity>();
+
+	public void compute_market() {
+		calc_q();
+		double demand = 0;
+		double deliverable_demand = 0;
+		double capacity = 0;
+		total_capacity = 0;
+		double weighted_prices = 0;
+		double price;
+		total_deliverable_demand = 0;
+		average_price = 0;
+		demand_list.clear();
+		total_value_sold = 0;
+		total_demand = 0;
+
+		for (Firm firm : prices.keySet()) {
+			price = prices.get(firm);
+			capacity = quantities.get(firm);
+			demand = demand_schedule(price);
+			demand_list.add(new FirmQuantity(firm, demand));
+			deliverable_demand = Math.min(capacity, demand);
+			weighted_prices += deliverable_demand * price;
+			average_price += price;
+			total_deliverable_demand += deliverable_demand;
+			total_capacity += capacity;
+			total_demand += demand;
+			total_value_sold += price * deliverable_demand;
+		}
+		average_price = average_price / prices.size();
+
+		if (!Double.isNaN(weighted_prices / total_deliverable_demand)) {
+			market_price = weighted_prices / total_deliverable_demand;
+		} else {
+			market_price = 0;
+			for (Firm firm : prices.keySet()) {
+				if (prices.get(firm) > market_price)
+					market_price = prices.get(firm);
+			}
+		}
+
+		for (FirmQuantity item : demand_list)
+        {
+            item.firm.send_market_price_individual_demand(market_price, item.quantity);
+		}
+
+		prices.clear();
+		quantities.clear();
+		message_count = 0;
+	}
+
+	public void new_round() {
+		prices.clear();
+		quantities.clear();
+		demand_list.clear();
+	}
+
+	double demand_schedule(double pi) {
+
+		return ((income / market_price) / q)
+				* Math.pow((q / pi), (1 / (1 - l)));
+
+	}
+
+	void calc_q() {
+
+		q = 0;
+		for (Firm c : prices.keySet()) {
+			q += Math.pow(prices.get(c), (l / (l - 1)));
+		}
+		q = Math.pow(q, ((l - 1) / l));
+
+	}
+
+	public void make_final_good_offer(Firm firm, double price, double quantity) {
+		prices.put(firm, price);
+		quantities.put(firm, quantity);
+		message_count++;
+	}
+
+}

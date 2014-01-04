@@ -25,9 +25,9 @@ public class Firm {
     public int id;
     public double net_worth;
     public double profit;
-    public double price;
+    public double price = 3;
     public double demand = 1;
-    public double market_price;
+    public double market_price = 3;
     public double production = 0;
     public double planned_production = 400;
     public double offer_wage_saudis = 10;
@@ -53,6 +53,7 @@ public class Firm {
     private double parameter_planned_production_if_fireing_is_impossible = 0.1;
 
     private double sauditization_percentage;
+    private Auctioneer auctioneer;
 
     public void setSauditization_percentage(double sauditization_percentage) {
         this.sauditization_percentage = sauditization_percentage;
@@ -98,6 +99,8 @@ public class Firm {
     }
 
     public void hire() {
+        System.out.print(applications.size());
+        System.out.print(" ");
         cant_decrease_production = 0;
 
         if (planned_production > production && applications.size() == 0) {
@@ -199,6 +202,7 @@ public class Firm {
                 }
             }
             int net_hires = hire_or_fire_staff(team);
+            System.out.println(net_hires);
             recalculate_max_and_average_();
 
             if (planned_production > h_produce(staff, 0)
@@ -241,14 +245,25 @@ public class Firm {
         production = Math.pow(production, 1);
     }
 
-    public void post_offer() {
-        assert false;
-        //send(new FinalGoodOffer(this, price, production),
-        //		this.get_Main().auctioneers.get(0));
+    public void post_offer()
+    {
+        System.out.print(staff.size());
+        System.out.print(" ");
+        System.out.print(production);
+        System.out.print(" ");
+        System.out.println(price);
+        System.out.print(" ");
+        auctioneer.make_final_good_offer(this, price, production);
     }
 
-    public void sell() {
+    public void sell()
+    {
         profit = min(demand, production) * price;
+        System.out.print(demand);
+        System.out.print(" ");
+        System.out.print(production);
+        System.out.print(" ");
+        System.out.println(price);
     }
 
     public void pay_wage() {
@@ -499,8 +514,7 @@ public class Firm {
                 assert (!applications.contains(worker));
                 assert (!can_be_fired.contains(worker));
                 staff.add(worker);
-                assert false;
-                //send(new Hire(this, worker), worker);
+                worker.employ(this);
             }
         }
 
@@ -537,14 +551,21 @@ public class Firm {
             List<Worker> post_box_applications,
             Newspaper newspaper_saudis,
             Newspaper newspaper_expats,
-            double sauditization_percentage
+            Auctioneer auctioneer, double sauditization_percentage
     )
     {
         this.id = id;
         this.applications = post_box_applications;
         this.newspaper_saudis = newspaper_saudis;
         this.newspaper_expats = newspaper_expats;
+        this.auctioneer = auctioneer;
         this.sauditization_percentage = sauditization_percentage;
         this.rnd = new Rnd(seed);
+    }
+
+    public void send_market_price_individual_demand(double market_price, double demand)
+    {
+        this.market_price = market_price;
+        this.demand = demand;
     }
 }

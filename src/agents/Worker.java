@@ -16,14 +16,19 @@ public class Worker
 
     enum Status {employed, unemployed};
 
-    public int employer;
+    private int employer;
     public double wage;
     public double productivity;
-    public Status status = Status.unemployed;
+    private Status status = Status.unemployed;
 
-    public Worker(Citizenship citizenship, Newspaper newspaper) {
+
+
+    public Worker(Citizenship citizenship, Newspaper newspaper,double wage, double productivity)
+    {
         this.citizenship = citizenship;
         this.newspaper = newspaper;
+        this.wage = wage;
+        this.productivity = productivity;
     }
 
     public void apply()
@@ -35,5 +40,9 @@ public class Worker
         }
     }
 
-
+    public void employ(Firm firm)
+    {
+        employer = firm.id;
+        status = Status.employed;
+    }
 }
