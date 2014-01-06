@@ -7,6 +7,7 @@ import agents.Firm;
 import agents.Newspaper;
 import agents.Worker;
 import definitions.Citizenship;
+import definitions.Status;
 
 
 public class main
@@ -90,13 +91,12 @@ public class main
     {
         for (int day = 0; day < 1000; day++)
         {
-            System.out.println(day);
-            newspaper_saudi.clear_job_ads();
-            newspaper_expat.clear_job_ads();
             for (Firm firm: firms)
             {
                 firm.set_prices_demand();
             }
+            newspaper_saudi.clear_job_ads();
+            newspaper_expat.clear_job_ads();
             for (Firm firm: firms)
             {
                 firm.advertise();
@@ -133,6 +133,24 @@ public class main
             for (Firm firm: firms)
             {
                 firm.fire();
+            }
+            if (day % 10 == 0)
+            {
+                int employed = 0;
+
+                System.out.print(day);
+                System.out.print(", ");
+
+
+                for (Worker w: workers)
+                {
+                    if (w.status == Status.employed)
+                    {
+                    employed++;
+                    }
+                }
+               System.out.println(employed);
+
             }
         }
     }

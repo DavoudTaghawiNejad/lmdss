@@ -18,7 +18,7 @@ public class Firm {
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
     public boolean no_fake_probation;
-    public double wage_bill;
+    public double wage_bill = 0;
     public int num_expats;
     public int num_saudis;
     public double cant_decrease_production;
@@ -36,22 +36,22 @@ public class Firm {
     public double max_wage_saudis;
     public double max_wage_expats;
     public double average_wage_saudis;
+
+
     public double average_wage_expats;
-
-
     private java.util.List<Worker> applications;
     public java.util.LinkedList<Worker> staff = new java.util.LinkedList<Worker>();
+
+
     private java.util.ArrayList<Worker> can_be_fired = new java.util.ArrayList<Worker>();
-
-
     private double parameter_planned_production = 400;
     private double parameter_price = 0.1;
     private double parameter_wage = 0.1;
     private double parameter_price_if_wage_is_altered = 0.1;
     private double parameter_planned_production_if_wage_is_altered = 0.1;
     private double parameter_price_if_fireing_is_impossible = 0.1;
-    private double parameter_planned_production_if_fireing_is_impossible = 0.1;
 
+    private double parameter_planned_production_if_fireing_is_impossible = 0.1;
     private double sauditization_percentage;
     private Auctioneer auctioneer;
 
@@ -233,13 +233,7 @@ public class Firm {
     }
 
     public void produce() {
-        wage_bill = 0;
-        production = 0;
-        for (Worker worker : staff) {
-            wage_bill += worker.wage;
-            production += worker.productivity;
-        }
-        production = Math.pow(production, 1);
+
     }
 
     public void post_offer()
@@ -352,8 +346,10 @@ public class Firm {
         for (Worker worker : layoffs) {
             if (staff.contains(worker)) {
                 staff.remove(worker);
-                assert false;
                 //send(new Fire(this, worker), worker);
+                wage_bill -= worker.wage;
+                production -= worker.productivity;
+                worker.fire();
             }
         }
     }
@@ -500,7 +496,10 @@ public class Firm {
                 assert (!applications.contains(worker));
                 assert (!can_be_fired.contains(worker));
                 staff.add(worker);
+                
                 worker.employ(this);
+                wage_bill += worker.wage;
+                production += worker.productivity;
             }
         }
 
