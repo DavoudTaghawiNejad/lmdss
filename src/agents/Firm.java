@@ -33,10 +33,8 @@ public class Firm {
     public double offer_wage_saudis = 10;
     public double offer_wage_expats = 10;
     public double distributed_profits;
-    public double average_wage_saudis;
-
-
-    public double average_wage_expats;
+    public double wage_saudis;
+    public double wage_expats;
     private java.util.List<Worker> applications;
     public java.util.LinkedList<Worker> staff = new java.util.LinkedList<Worker>();
 
@@ -329,9 +327,9 @@ public class Firm {
         recalculate_max_and_average_();
     }
 
-    double h_produce(List<Worker> team, double addititonal) {
+    double h_produce(List<Worker> team, double additional) {
 
-        double p = addititonal;
+        double p = additional;
         for (Worker worker : team) {
             p += worker.productivity;
         }
@@ -344,7 +342,6 @@ public class Firm {
         for (Worker worker : layoffs) {
             if (staff.contains(worker)) {
                 staff.remove(worker);
-                //send(new Fire(this, worker), worker);
                 wage_bill -= worker.wage;
                 production -= worker.productivity;
                 worker.fire();
@@ -454,41 +451,30 @@ public class Firm {
 
         num_saudis = 0;
         num_expats = 0;
-        average_wage_saudis = 0;
-        average_wage_expats = 0;
+        wage_saudis = 0;
+        wage_expats = 0;
 
         for (Worker worker : staff) {
             if (worker.citizenship == Citizenship.SAUDI) {
-                average_wage_saudis += worker.wage;
+                wage_saudis += worker.wage;
                 num_saudis++;
             } else {
-                average_wage_expats += worker.wage;
+                wage_expats += worker.wage;
                 num_expats++;
             }
         }
-        if (num_saudis > 0)
-            average_wage_saudis /= num_saudis;
-        else
-            average_wage_saudis = 0;
-        if (num_expats > 0)
-            average_wage_expats /= num_expats;
-        else
-            average_wage_expats = 0;
     }
 
     int hire_or_fire_staff(ArrayList<Worker> team) {
 
         int initial_staff = staff.size();
 
+
         for (Worker worker : team) {
             if (staff.contains(worker)) {
                 can_be_fired.remove(worker);
-                assert (!applications.contains(worker));
             } else {
-                assert applications.contains(worker);
                 applications.remove(worker);
-                assert (!applications.contains(worker));
-                assert (!can_be_fired.contains(worker));
                 staff.add(worker);
                 
                 worker.employ(this);
@@ -530,7 +516,8 @@ public class Firm {
             List<Worker> post_box_applications,
             Newspaper newspaper_saudis,
             Newspaper newspaper_expats,
-            Auctioneer auctioneer, double sauditization_percentage
+            Auctioneer auctioneer,
+            double sauditization_percentage
     )
     {
         this.id = id;

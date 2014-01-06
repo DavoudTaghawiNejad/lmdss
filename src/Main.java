@@ -2,15 +2,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import agents.Auctioneer;
-import agents.Firm;
-import agents.Newspaper;
-import agents.Worker;
+import agents.*;
 import definitions.Citizenship;
-import definitions.Status;
+import definitions.WorkerStatistics;
 
 
-public class main
+public class Main
 {
     private static double sauditization_percentage;
     private static List<List<Worker>> apply_to_firm;
@@ -19,6 +16,7 @@ public class main
     private static Newspaper newspaper_expat;
     private static List<Worker> workers;
     private static Auctioneer auctioneer;
+    private static FirmStats statistics_firms;
 
     public static void initialisation()
     {
@@ -33,6 +31,8 @@ public class main
         final double wage_mean_expat = 764.77 / 30;
 
         Random seed_generator = new Random();
+
+        statistics_firms = new FirmStats();
 
         auctioneer = new Auctioneer();
 
@@ -136,29 +136,30 @@ public class main
             }
             if (day % 10 == 0)
             {
-                int employed = 0;
-
                 System.out.print(day);
                 System.out.print(", ");
-
-
-                for (Worker w: workers)
-                {
-                    if (w.status == Status.employed)
-                    {
-                    employed++;
-                    }
-                }
-               System.out.println(employed);
-
+                updateFirmStatistics();
+                statistics_firms.printcsv();
+                System.out.println("");
             }
+        }
+    }
+
+    private static void updateFirmStatistics() {
+        statistics_firms.reset();
+        for (Firm firm: firms)
+        {
+            statistics_firms.update(firm);
         }
     }
 
     public static void main(String [] args)
     {
+        long started = System.currentTimeMillis();
         initialisation();
         run();
         System.out.print("end");
+        System.out.print(System.currentTimeMillis() - started);
+
     }
 }
