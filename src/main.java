@@ -58,8 +58,8 @@ public class main
             workers.add(
                     new Worker(
                             Citizenship.EXPAT,
-                            newspaper_saudi,
-                            rnd.nextGaussian() * wage_mean_expat + wage_mean_saudi,
+                            newspaper_expat,
+                            rnd.nextGaussian() * wage_mean_expat + wage_mean_expat,
                             rnd.nextGaussian() * productivity_mean_expat + productivity_mean_expat
                      )
             );
