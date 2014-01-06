@@ -13,7 +13,7 @@ import static java.lang.Math.*;
 import messages.*;
 import tools.Rnd;
 
-public class Firm {
+public class FirmStats {
     private final Rnd rnd;
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
@@ -33,15 +33,17 @@ public class Firm {
     public double offer_wage_saudis = 10;
     public double offer_wage_expats = 10;
     public double distributed_profits;
+    public double max_wage_saudis;
+    public double max_wage_expats;
     public double average_wage_saudis;
 
 
     public double average_wage_expats;
-    private java.util.List<Worker> applications;
+    private List<Worker> applications;
     public java.util.LinkedList<Worker> staff = new java.util.LinkedList<Worker>();
 
 
-    private java.util.ArrayList<Worker> can_be_fired = new java.util.ArrayList<Worker>();
+    private ArrayList<Worker> can_be_fired = new ArrayList<Worker>();
     private double parameter_planned_production = 400;
     private double parameter_price = 0.1;
     private double parameter_wage = 0.1;
@@ -454,14 +456,18 @@ public class Firm {
 
         num_saudis = 0;
         num_expats = 0;
+        max_wage_saudis = 0;
+        max_wage_expats = 0;
         average_wage_saudis = 0;
         average_wage_expats = 0;
 
         for (Worker worker : staff) {
             if (worker.citizenship == Citizenship.SAUDI) {
+                max_wage_saudis = max(max_wage_saudis, worker.wage);
                 average_wage_saudis += worker.wage;
                 num_saudis++;
             } else {
+                max_wage_expats = max(max_wage_expats, worker.wage);
                 average_wage_expats += worker.wage;
                 num_expats++;
             }
@@ -490,7 +496,7 @@ public class Firm {
                 assert (!applications.contains(worker));
                 assert (!can_be_fired.contains(worker));
                 staff.add(worker);
-                
+
                 worker.employ(this);
                 wage_bill += worker.wage;
                 production += worker.productivity;
@@ -524,7 +530,7 @@ public class Firm {
         return productivity / staff.size();
     }
 
-    public Firm(
+    public FirmStats(
             int id,
             long seed,
             List<Worker> post_box_applications,
