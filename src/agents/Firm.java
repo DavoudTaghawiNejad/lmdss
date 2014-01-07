@@ -37,9 +37,8 @@ public class Firm {
     public double wage_expats;
     private java.util.List<Worker> applications;
     public java.util.LinkedList<Worker> staff = new java.util.LinkedList<Worker>();
-
-
     private java.util.ArrayList<Worker> can_be_fired = new java.util.ArrayList<Worker>();
+
     private double parameter_planned_production = 400;
     private double parameter_price = 0.1;
     private double parameter_wage = 0.1;
@@ -196,7 +195,6 @@ public class Firm {
                 }
             }
             int net_hires = hire_or_fire_staff(team);
-            recalculate_max_and_average_();
 
             if (planned_production > h_produce(staff, 0)
                     + average_productivity()
@@ -324,7 +322,6 @@ public class Firm {
             blue_list.removeAll(team);
             fire_staff(blue_list);
         }
-        recalculate_max_and_average_();
     }
 
     double h_produce(List<Worker> team, double additional) {
@@ -341,10 +338,7 @@ public class Firm {
 
         for (Worker worker : layoffs) {
             if (staff.contains(worker)) {
-                staff.remove(worker);
-                wage_bill -= worker.wage;
-                production -= worker.productivity;
-                worker.fire();
+                fire(worker);
             }
         }
     }
@@ -447,24 +441,37 @@ public class Firm {
 
     }
 
-    void recalculate_max_and_average_() {
+    void hire(Worker worker)
+    {
+        staff.add(worker);
+        worker.employ(this);
+        wage_bill += worker.wage;
+        production += worker.productivity;
 
-        num_saudis = 0;
-        num_expats = 0;
-        wage_saudis = 0;
-        wage_expats = 0;
-
-        for (Worker worker : staff) {
-            if (worker.citizenship == Citizenship.SAUDI) {
-                wage_saudis += worker.wage;
-                num_saudis++;
-            } else {
-                wage_expats += worker.wage;
-                num_expats++;
-            }
+        if (worker.citizenship == Citizenship.SAUDI) {
+            wage_saudis += worker.wage;
+            num_saudis++;
+        } else {
+            wage_expats += worker.wage;
+            num_expats++;
         }
     }
 
+    void fire(Worker worker)
+    {
+        staff.remove(worker);
+        worker.fire();
+        wage_bill -= worker.wage;
+        production -= worker.productivity;
+
+        if (worker.citizenship == Citizenship.SAUDI) {
+            wage_saudis -= worker.wage;
+            num_saudis--;
+        } else {
+            wage_expats -= worker.wage;
+            num_expats--;
+        }
+    }
     int hire_or_fire_staff(ArrayList<Worker> team) {
 
         int initial_staff = staff.size();
@@ -475,11 +482,7 @@ public class Firm {
                 can_be_fired.remove(worker);
             } else {
                 applications.remove(worker);
-                staff.add(worker);
-                
-                worker.employ(this);
-                wage_bill += worker.wage;
-                production += worker.productivity;
+                hire(worker);
             }
         }
 
@@ -491,9 +494,7 @@ public class Firm {
         applications.clear();
 
         for (Worker worker : can_be_fired) {
-            assert staff.contains(worker);
-            staff.remove(worker);
-            worker.fire();
+            fire(worker);
         }
         can_be_fired.clear();
 
