@@ -22,6 +22,8 @@ public class Main
     private static int setup_period;
     private static int num_firms;
     private static Random seed_generator;
+    private static int simulation_length;
+    private static int policy_change_time;
 
     public static void initialisation()
     {
@@ -36,6 +38,8 @@ public class Main
         final double wage_mean_expat = 764.77 / 30;
 
         setup_period = 500;
+        simulation_length = 2000;
+        policy_change_time = 1500;
         setup_workers = (int) Math.ceil((double)(num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) num_firms / setup_period);
 
@@ -103,7 +107,7 @@ public class Main
 
     public static void run()
     {
-        for (int day = 0; day < 2000; day++)
+        for (int day = 0; day < simulation_length; day++)
         {
             if (day < setup_period)
             {
@@ -169,15 +173,16 @@ public class Main
                 System.out.print(day);
                 System.out.print("\t");
                 updateFirmStatistics();
-                statistics_firms.printcsv();
                 System.out.println("");
             }
-            if (day == 1500)
+            if (day == policy_change_time)
             {
+                WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
                 auctioneer.income *= 10;
             }
         }
-        WorkerStatistics.net_contribution(workers, auctioneer.market_price);
+        WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
+
     }
 
     private static void updateFirmStatistics() {
@@ -186,6 +191,7 @@ public class Main
         {
             statistics_firms.update(firm);
         }
+        statistics_firms.printcsv();
     }
 
     public static void main(String [] args)
