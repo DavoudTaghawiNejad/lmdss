@@ -9,41 +9,97 @@ public class Worker
     public Citizenship citizenship;
     private Newspaper newspaper;
     public double wage;
+    public double satisficing_wage;
     public double productivity;
-    public Status status = Status.unemployed;
-    private int employer;
+    public double wage_floor;
+    private Firm employer = null;
     private JobAdd job_add;
-
-    public Worker(Citizenship citizenship, Newspaper newspaper,double wage, double productivity)
+    public Auctioneer auctioneer;
+    public Worker(Citizenship citizenship, Newspaper newspaper,double satisficing_wage, double productivity, double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head, Auctioneer auctioneer)
     {
         this.citizenship = citizenship;
         this.newspaper = newspaper;
-        this.wage = wage;
+        this.auctioneer = auctioneer;
+        this.satisficing_wage = satisficing_wage;
         this.productivity = productivity;
+        re_calculate_wage(expat_minimum_wage ,saudi_minimum_wage, expat_tax_percentage, expat_tax_per_head);
     }
-
-    public void fire()
+    
+    public boolean isEmployed () {
+    	return employer != null;
+    }
+    
+    
+    public void re_calculate_wage (double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head)
+      //calculate the wage floor, it depends on the workers' satisficing_wage, minimum wage, and taxation (if any..)
     {
-        status = Status.unemployed;
-        employer = -1;
+    	if (citizenship == Citizenship.EXPAT)
+    	{
+    		wage_floor = Math.max(
+    				satisficing_wage,
+    				expat_minimum_wage
+    		);
+    		wage *= (1 + expat_tax_percentage);
+    		wage += expat_tax_per_head;
+    	} else if (citizenship == Citizenship.SAUDI)
+    	{
+    		wage_floor = Math.max(
+    				satisficing_wage,
+    				saudi_minimum_wage
+    				
+    		);
+    	} 		
+    }
+    public void fire()
+      
+    {
+        employer = null;
     }
 
     public void apply()
     {
-        if (status == Status.unemployed)
+    	if (!this.isEmployed())
         {
-            job_add = newspaper.get_add();
-            if (job_add.firm != null)
+    		job_add = newspaper.get_add();
+            if (
+            		job_add.firm != null
+            		&&
+            		(job_add.wage/auctioneer.market_price) > wage_floor //adjust wage floor to inflation..
+                )
             {
                 job_add.firm.add(this);
             }
+        }
+    	else if (this.isEmployed() && citizenship == Citizenship.SAUDI)
+    	{
+    		job_add = newspaper.get_add();
+            if (
+            		job_add.firm != null
+            		&&
+            		job_add.wage > wage
+            		&&
+            		job_add.firm != employer
+                )
+            {
+                job_add.firm.add(this);
+	        }
         }
     }
 
     public void employ(Firm firm)
     {
-        employer = firm.id;
-        status = Status.employed;
-        wage = job_add.wage;
+    	if (employer == null)
+    	{
+    		employer = firm;
+    		wage = job_add.wage;
+    	}
+    	else
+    	{
+    		//System.out.println("Worker got a better offer...Nationality = "+citizenship+" old wage = "+wage+" new wage = "+job_add.wage);
+    		employer.quitWorker(this);
+    		employer = firm;
+    		wage = job_add.wage;
+    	}
     }
+    
 }
