@@ -12,7 +12,6 @@ public class Worker
     public double satisficing_wage;
     public double productivity;
     public double wage_floor;
-    public Status status = Status.unemployed;
     private Firm employer = null;
     private JobAdd job_add;
     public Auctioneer auctioneer;
@@ -26,8 +25,13 @@ public class Worker
         re_calculate_wage(expat_minimum_wage ,saudi_minimum_wage, expat_tax_percentage, expat_tax_per_head);
     }
     
+    public boolean isEmployed () {
+    	return employer != null;
+    }
+    
     
     public void re_calculate_wage (double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head)
+      //calculate the wage floor, it depends on the workers' satisficing_wage, minimum wage, and taxation (if any..)
     {
     	if (citizenship == Citizenship.EXPAT)
     	{
@@ -47,14 +51,14 @@ public class Worker
     	} 		
     }
     public void fire()
+      
     {
-        status = Status.unemployed;
         employer = null;
     }
 
     public void apply()
     {
-    	if (status == Status.unemployed)
+    	if (!this.isEmployed())
         {
     		job_add = newspaper.get_add();
             if (
@@ -66,7 +70,7 @@ public class Worker
                 job_add.firm.add(this);
             }
         }
-    	else if (status == Status.employed && citizenship == Citizenship.SAUDI)
+    	else if (this.isEmployed() && citizenship == Citizenship.SAUDI)
     	{
     		job_add = newspaper.get_add();
             if (
@@ -87,7 +91,6 @@ public class Worker
     	if (employer == null)
     	{
     		employer = firm;
-    		status = Status.employed;
     		wage = job_add.wage;
     	}
     	else
@@ -95,7 +98,6 @@ public class Worker
     		//System.out.println("Worker got a better offer...Nationality = "+citizenship+" old wage = "+wage+" new wage = "+job_add.wage);
     		employer.quitWorker(this);
     		employer = firm;
-    		status = Status.employed;
     		wage = job_add.wage;
     	}
     }

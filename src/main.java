@@ -16,14 +16,14 @@ import definitions.Status;
 public class main
 {
 
-	public static long initialTime;
-	public static double sauditization_percentage;
-    public static List<List<Worker>> apply_to_firm;
-    public static List<Firm> firms;
-    public static Newspaper newspaper_saudi;
-    public static Newspaper newspaper_expat;
-    public static List<Worker> workers;
-    public static Auctioneer auctioneer;
+	private static long initialTime;
+	private static double sauditization_percentage;
+	private static List<List<Worker>> apply_to_firm;
+	private static List<Firm> firms;
+	private static Newspaper newspaper_saudi;
+	private static Newspaper newspaper_expat;
+	private static List<Worker> workers;
+	private static Auctioneer auctioneer;
 
     public static void initialisation()
     {
@@ -37,10 +37,10 @@ public class main
         final double wage_mean_saudi = 3137.39 / 30;
         final double productivity_mean_expat = 6854.24 / 30;
         final double wage_mean_expat = 764.77 / 30;
-        double expat_minimum_wage = 0;
-        double saudi_minimum_wage = 0;
-        double expat_tax_percentage = 0;
-        double expat_tax_per_head = 0;
+        final double expat_minimum_wage = 0;
+        final double saudi_minimum_wage = 0;
+        final double expat_tax_percentage = 0;
+        final double expat_tax_per_head = 0;
 
         Random seed_generator = new Random();
 
@@ -166,7 +166,7 @@ public class main
 
                 for (Worker w: workers)
                 {
-                    if (w.status == Status.employed)
+                    if (w.isEmployed())
                     {
                     employed++;
                     }
