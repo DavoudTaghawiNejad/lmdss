@@ -1,4 +1,5 @@
 
+
 import java.util.*;
 import java.util.List;
 
@@ -10,10 +11,6 @@ import definitions.WorkerStatistics;
 public class Main
 {
     private static double sauditization_percentage;
-    private static List<List<Worker>> apply_to_firm;
-    private static List<Firm> firms;
-    private static Newspaper newspaper_saudi;
-    private static Newspaper newspaper_expat;
     private static List<Worker> workers;
     private static Auctioneer auctioneer;
     private static FirmStats statistics_firms;
@@ -24,10 +21,13 @@ public class Main
     private static Random seed_generator;
     private static int simulation_length;
     private static int policy_change_time;
+	private static List<List<Worker>> apply_to_firm;
+	private static List<Firm> firms;
+	private static Newspaper newspaper_saudi;
+	private static Newspaper newspaper_expat;
 
     public static void initialisation()
     {
-
         num_firms = 100;
         final double sauditization_percentage = 0;
         final int num_saudis = 3800;
@@ -36,6 +36,10 @@ public class Main
         final double wage_mean_saudi = 3137.39 / 30;
         final double productivity_mean_expat = 6854.24 / 30;
         final double wage_mean_expat = 764.77 / 30;
+        final double expat_minimum_wage = 0;
+        final double saudi_minimum_wage = 0;
+        final double expat_tax_percentage = 0;
+        final double expat_tax_per_head = 0;
 
         setup_period = 500;
         simulation_length = 2000;
@@ -63,7 +67,12 @@ public class Main
                             Citizenship.SAUDI,
                             newspaper_saudi,
                             rnd.nextGaussian() * wage_mean_saudi + wage_mean_saudi,
-                            rnd.nextGaussian() * productivity_mean_saudi + productivity_mean_saudi
+                            rnd.nextGaussian() * productivity_mean_saudi + productivity_mean_saudi,
+                            expat_minimum_wage,
+                            saudi_minimum_wage,
+                            expat_tax_percentage,
+                            expat_tax_per_head,
+                            auctioneer
                      )
             );
         }
@@ -72,9 +81,15 @@ public class Main
             workers.add(
                     new Worker(
                             Citizenship.EXPAT,
-                            newspaper_expat,
+
+                            newspaper_saudi,
                             rnd.nextGaussian() * wage_mean_expat + wage_mean_expat,
-                            rnd.nextGaussian() * productivity_mean_expat + productivity_mean_expat
+                            rnd.nextGaussian() * productivity_mean_expat + productivity_mean_expat,
+                            expat_minimum_wage,
+                            saudi_minimum_wage,
+                            expat_tax_percentage,
+                            expat_tax_per_head,
+                            auctioneer
                      )
             );
         }
@@ -184,6 +199,7 @@ public class Main
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
 
     }
+
 
     private static void updateFirmStatistics() {
         statistics_firms.reset();
