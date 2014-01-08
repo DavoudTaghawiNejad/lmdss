@@ -1,7 +1,6 @@
 package agents;
 
 import definitions.Citizenship;
-import definitions.Status;
 import messages.JobAdd;
 
 public class Worker
@@ -50,7 +49,7 @@ public class Worker
     		);
     	} 		
     }
-    public void fire()
+    public void sendFire()
       
     {
         employer = null;
@@ -86,7 +85,7 @@ public class Worker
         }
     }
 
-    public void employ(Firm firm)
+    public void sendEmploy(Firm firm)
     {
     	if (employer == null)
     	{
@@ -96,7 +95,7 @@ public class Worker
     	else
     	{
     		//System.out.println("Worker got a better offer...Nationality = "+citizenship+" old wage = "+wage+" new wage = "+job_add.wage);
-    		employer.quitWorker(this);
+    		employer.sendQuit(this);
     		employer = firm;
     		wage = job_add.wage;
     	}
