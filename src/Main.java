@@ -32,7 +32,7 @@ public class Main
 
         Random seed_generator = new Random();
 
-        statistics_firms = new FirmStats();
+        statistics_firms = new FirmStats(num_firms);
 
         auctioneer = new Auctioneer();
 
