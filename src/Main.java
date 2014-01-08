@@ -138,6 +138,8 @@ public class Main
             {
                 firm.advertise();
             }
+            newspaper_saudi.calculate_average_wage_offer();
+            newspaper_expat.calculate_average_wage_offer();
             int i = 0;
             for (Worker worker: workers)
             {

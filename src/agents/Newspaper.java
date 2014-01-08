@@ -39,7 +39,7 @@ public class Newspaper {
 
 	}
 
-	void calculate_average_wage_offer() {
+	public void calculate_average_wage_offer() {
 
 		double wage_offer = 0;
         for (JobAdd c : job_adds)
