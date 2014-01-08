@@ -1,3 +1,6 @@
+
+
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -12,17 +15,20 @@ import definitions.Status;
 
 public class main
 {
-    private static double sauditization_percentage;
-    private static List<List<Worker>> apply_to_firm;
-    private static List<Firm> firms;
-    private static Newspaper newspaper_saudi;
-    private static Newspaper newspaper_expat;
-    private static List<Worker> workers;
-    private static Auctioneer auctioneer;
+
+	public static long initialTime;
+	public static double sauditization_percentage;
+    public static List<List<Worker>> apply_to_firm;
+    public static List<Firm> firms;
+    public static Newspaper newspaper_saudi;
+    public static Newspaper newspaper_expat;
+    public static List<Worker> workers;
+    public static Auctioneer auctioneer;
 
     public static void initialisation()
     {
 
+		initialTime = System.currentTimeMillis();
         final int num_firms = 100;
         final double sauditization_percentage = 0;
         final int num_saudis = 3800;
@@ -31,6 +37,10 @@ public class main
         final double wage_mean_saudi = 3137.39 / 30;
         final double productivity_mean_expat = 6854.24 / 30;
         final double wage_mean_expat = 764.77 / 30;
+        double expat_minimum_wage = 0;
+        double saudi_minimum_wage = 0;
+        double expat_tax_percentage = 0;
+        double expat_tax_per_head = 0;
 
         Random seed_generator = new Random();
 
@@ -49,7 +59,12 @@ public class main
                             Citizenship.SAUDI,
                             newspaper_saudi,
                             rnd.nextGaussian() * wage_mean_saudi + wage_mean_saudi,
-                            rnd.nextGaussian() * productivity_mean_saudi + productivity_mean_saudi
+                            rnd.nextGaussian() * productivity_mean_saudi + productivity_mean_saudi,
+                            expat_minimum_wage,
+                            saudi_minimum_wage,
+                            expat_tax_percentage,
+                            expat_tax_per_head,
+                            auctioneer
                      )
             );
         }
@@ -60,7 +75,13 @@ public class main
                             Citizenship.EXPAT,
                             newspaper_saudi,
                             rnd.nextGaussian() * wage_mean_expat + wage_mean_saudi,
-                            rnd.nextGaussian() * productivity_mean_expat + productivity_mean_expat
+                            rnd.nextGaussian() * productivity_mean_expat + productivity_mean_expat,
+                            expat_minimum_wage,
+                            saudi_minimum_wage,
+                            expat_tax_percentage,
+                            expat_tax_per_head,
+                            auctioneer
+                            
                      )
             );
         }
@@ -138,8 +159,9 @@ public class main
             {
                 int employed = 0;
 
-                System.out.print(day);
-                System.out.print(", ");
+                System.out.print(" day" + day);
+            	System.out.print(" time "+ (System.currentTimeMillis() - initialTime));
+            	System.out.print(" employed ");
 
 
                 for (Worker w: workers)

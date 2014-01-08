@@ -37,6 +37,9 @@ public class Firm {
     public double max_wage_expats;
     public double average_wage_saudis;
 
+    public void quitWorker(Worker w)
+    {
+    }
 
     public double average_wage_expats;
     private java.util.List<Worker> applications;
