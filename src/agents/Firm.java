@@ -34,6 +34,7 @@ public class Firm {
     public double distributed_profits;
     public double wage_saudis;
     public double wage_expats;
+
     private java.util.List<Worker> applications;
     public java.util.LinkedList<Worker> staff = new java.util.LinkedList<Worker>();
     private java.util.ArrayList<Worker> can_be_fired = new java.util.ArrayList<Worker>();
@@ -43,8 +44,8 @@ public class Firm {
     private double parameter_wage = 0.1;
     private double parameter_price_if_wage_is_altered = 0.1;
     private double parameter_planned_production_if_wage_is_altered = 0.1;
-    private double parameter_price_if_fireing_is_impossible = 0.1;
-    private double parameter_planned_production_if_fireing_is_impossible = 0.1;
+    private double parameter_price_if_firing_is_impossible = 0.1;
+    private double parameter_planned_production_if_firing_is_impossible = 0.1;
     public boolean no_fake_probation;
 
     private double sauditization_percentage;
@@ -57,10 +58,6 @@ public class Firm {
 
 
     public void set_prices_demand() {
-                /*
-				 * if (profit_1 > profit) { price = price_1; } profit_1 =
-				 * profit; price_1 = price;
-				 */
         if (demand > planned_production) {
             if (price > market_price) {
                 planned_production = Math.min(demand, planned_production
@@ -94,7 +91,6 @@ public class Firm {
 			newspaper_saudis.place_add(new JobAdd(applications, offer_wage_saudis));
             newspaper_expats.place_add(new JobAdd(applications, offer_wage_expats));
         }
-        //System.out.println(offer_wage_expats);
     }
 
     public void hiring()
@@ -121,9 +117,9 @@ public class Firm {
         if (production - average_productivity() > planned_production
                 && can_be_fired.size() == 0)
         {
-            price = price * (1 - rnd.uniform(parameter_price_if_fireing_is_impossible));
+            price = price * (1 - rnd.uniform(parameter_price_if_firing_is_impossible));
             planned_production = min(demand, planned_production
-                    * (1 + rnd.uniform(parameter_planned_production_if_fireing_is_impossible)));
+                    * (1 + rnd.uniform(parameter_planned_production_if_firing_is_impossible)));
         }
 
         if (applications.size() > 0 || can_be_fired.size() > 0) {
@@ -449,7 +445,7 @@ public class Firm {
     void hire(Worker worker)
     {
         staff.add(worker);
-        worker.employ(this);
+        worker.sendEmploy(this);
         wage_bill += worker.wage;
         production += worker.productivity;
 
@@ -464,8 +460,13 @@ public class Firm {
 
     void fire(Worker worker)
     {
+        worker.sendFire();
+        disemploy(worker);
+    }
+
+    void disemploy(Worker worker)
+    {
         staff.remove(worker);
-        worker.fire();
         wage_bill -= worker.wage;
         production -= worker.productivity;
 
@@ -477,6 +478,13 @@ public class Firm {
             num_expats--;
         }
     }
+
+    public void sendQuit(Worker worker)
+    {
+        disemploy(worker);
+    }
+
+
     int hire_or_fire_staff(ArrayList<Worker> team) {
 
         int initial_staff = staff.size();
@@ -491,11 +499,6 @@ public class Firm {
             }
         }
 
-        /*
-        for (Worker worker : applications) {
-            //send(new Rejection(this), worker);
-        }
-        */
         applications.clear();
 
         for (Worker worker : can_be_fired) {

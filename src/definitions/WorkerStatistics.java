@@ -17,11 +17,11 @@ public class WorkerStatistics
 {
     final static class Emp {
         private final double  profit;
-        private final Status status;
+        private final boolean employed;
 
         public Emp(Worker w, double price)
         {
-            this.status = w.status;
+            this.employed = w.isEmployed();
             this.profit = w.productivity * price - w.wage;
         }
     }
@@ -67,7 +67,7 @@ public class WorkerStatistics
         for (int i = 0; i < saudi_profitability.size(); i++)
         {
                 net = saudi_profitability.get(i).profit;
-                if  (saudi_profitability.get(i).status == Status.employed)
+                if  (saudi_profitability.get(i).employed)
                 {
                     saudi_profitability_employed[i] = net;
                 } else {
@@ -78,7 +78,7 @@ public class WorkerStatistics
         for (int i = 0; i < expat_profitability.size(); i++)
         {
             net = expat_profitability.get(i).profit;
-            if  (expat_profitability.get(i).status == Status.employed)
+            if  (expat_profitability.get(i).employed)
             {
                 expat_profitability_employed[i] = net;
             } else {
