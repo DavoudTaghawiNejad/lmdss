@@ -22,7 +22,14 @@ public class WorkerStatistics
         public Emp(Worker w, double price)
         {
             this.employed = w.isEmployed();
-            this.profit = w.productivity * price - w.wage;
+            if (this.employed)
+            {
+                this.profit = w.getProductivity() * price - w.getWage();
+                //System.out.println(w.wage);
+            } else {
+                this.profit = w.getProductivity() * price - w.getMarket_price();
+            }
+
         }
     }
 
