@@ -347,7 +347,7 @@ public class Firm {
         Worker best = get_best(team, to_evaluate);
         to_evaluate.remove(best);
         return best;
-
+:
     }
 
     Worker get_best(List<Worker> team, List<Worker> to_evaluate) {
@@ -395,9 +395,9 @@ public class Firm {
         {
             if (w.isEmployee(this))
             {
-                total_wage += w.wage;
+                total_wage += w.getWage();
             } else {
-                total_wage += w.job_add.wage;
+                total_wage += w.getAdvertisedWage();
             }
         }
         return total_wage;
@@ -407,7 +407,7 @@ public class Firm {
     {
         return price
                 * (min(planned_production, h_produce(team, worker.getProductivity())) - min(
-                planned_production, h_produce(team, 0))) - worker.job_add.wage;        //return price * worker.getProductivity()- worker.job_add.wage;
+                planned_production, h_produce(team, 0))) - worker.getAdvertisedWage();        //return price * worker.getProductivity()- worker.job_add.wage;
 
     }
 
@@ -451,14 +451,14 @@ public class Firm {
     {
         staff.add(worker);
         worker.sendEmploy(this);
-        wage_bill += worker.job_add.wage;
+        wage_bill += worker.getAdvertisedWage();
         production += worker.getProductivity();
 
         if (worker.citizenship == Citizenship.SAUDI) {
-            wage_saudis += worker.job_add.wage;
+            wage_saudis += worker.getAdvertisedWage();
             num_saudis++;
         } else {
-            wage_expats += worker.job_add.wage;
+            wage_expats += worker.getAdvertisedWage();
             num_expats++;
         }
     }

@@ -7,20 +7,25 @@ public class Worker
 {
     public Citizenship citizenship;
     private Newspaper newspaper;
-    public double wage;
+    private double wage;
     private double satisficing_wage;
     private double productivity;
     private double wage_floor;
     private Firm employer = null;
-    public JobAdd job_add;
-    public Auctioneer auctioneer;
+    private JobAdd job_add;
+    private Auctioneer auctioneer;
+
+
     public double getWage() {
+        assert wage > -0.01: wage;
         return wage;
     }
 
-    public double getSatisficing_wage() {
-        return satisficing_wage;
+    public double getAdvertisedWage() {
+        assert job_add.getWage() > -0.01: job_add.getWage();
+        return job_add.getWage();
     }
+
     public Worker(Citizenship citizenship, Newspaper newspaper,double satisficing_wage, double productivity, double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head, Auctioneer auctioneer)
     {
         this.citizenship = citizenship;
@@ -65,7 +70,7 @@ public class Worker
       
     {
         employer = null;
-        wage = Double.POSITIVE_INFINITY;
+        wage = - Double.POSITIVE_INFINITY;
     }
 
     public void apply()
@@ -73,29 +78,31 @@ public class Worker
     	if (!this.isEmployed())
         {
     		job_add = newspaper.get_add();
+
             if (
-            		job_add.firm != null
+            		job_add.getFirm() != null  // no adds in the newspaper
             		&&
-            		(job_add.wage/auctioneer.market_price) > wage_floor //adjust wage floor to inflation..
+            		(job_add.getWage()/auctioneer.market_price) > wage_floor //adjust wage floor to inflation..
                 )
             {
-                job_add.firm.add(this);
+                job_add.getFirm().add(this);
             }
         }
     	else if (this.isEmployed() && citizenship == Citizenship.SAUDI)
     	{
     		job_add = newspaper.get_add();
             if (
-            		job_add.firm != null
+            		job_add.getFirm() != null // no adds in the newspaper
             		&&
-            		job_add.wage > wage
+            		job_add.getWage() > wage
             		&&
-            		job_add.firm != employer
+            		job_add.getFirm() != employer
                 )
             {
-                job_add.firm.add(this);
+                job_add.getFirm().add(this);
 	        }
         }
+        assert job_add.getWage() > -2: job_add.getWage();
     }
 
     public void sendEmploy(Firm firm)
@@ -103,15 +110,15 @@ public class Worker
     	if (employer == null)
     	{
     		employer = firm;
-    		wage = job_add.wage;
+    		wage = job_add.getWage();
     	}
     	else
     	{
-    		//System.out.println("Worker got a better offer...Nationality = "+citizenship+" old wage = "+wage+" new wage = "+job_add.wage);
-    		employer.sendQuit(this);
-    		employer = firm;
-    		wage = job_add.wage;
-    	}
+            employer.sendQuit(this);
+            employer = firm;
+            wage = job_add.getWage();
+        }
+
     }
 
     public double getProductivity() {

@@ -65,7 +65,7 @@ public class FirmStats {
         System.out.print("\t");
         System.out.print(this.offer_wage_expats / num_firms);
         System.out.print("\t");
-        System.out.print(this.distributed_profits);
+        System.out.print(this.distributed_profits / num_firms);
         System.out.print("\t");
         System.out.print(this.wage_saudis);
         System.out.print("\t");
