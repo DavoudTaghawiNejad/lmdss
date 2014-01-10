@@ -88,7 +88,7 @@ public class Firm {
     {
         if (planned_production > production)
         {
-			newspaper_saudis.place_add(new JobAdd(applications, offer_wage_saudis));
+            newspaper_saudis.place_add(new JobAdd(applications, offer_wage_saudis));
             newspaper_expats.place_add(new JobAdd(applications, offer_wage_expats));
         }
     }
