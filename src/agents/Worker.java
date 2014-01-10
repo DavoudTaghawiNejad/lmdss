@@ -117,4 +117,9 @@ public class Worker
     public double getProductivity() {
         return productivity;
     }
+
+    public boolean isEmployee(Firm firm)
+    {
+        return employer == firm;
+    }
 }

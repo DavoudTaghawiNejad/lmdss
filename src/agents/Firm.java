@@ -40,7 +40,7 @@ public class Firm {
     private java.util.ArrayList<Worker> can_be_fired = new java.util.ArrayList<Worker>();
     private double parameter_planned_production = 400;
 
-    private double parameter_price = 0.1;
+    private double parameter_price = 0.025;
     private double parameter_wage = 0.1;
     private double parameter_price_if_wage_is_altered = 0.1;
     private double parameter_planned_production_if_wage_is_altered = 0.1;
@@ -391,17 +391,24 @@ public class Firm {
 
         double total_wage = 0;
 
-        for (Worker w : team) {
-            total_wage += w.wage;
+        for (Worker w : team)
+        {
+            if (w.isEmployee(this))
+            {
+                total_wage += w.wage;
+            } else {
+                total_wage += w.job_add.wage;
+            }
         }
         return total_wage;
     }
 
-    double worker_net_benefit(List<Worker> team, Worker worker) {
-
+    double worker_net_benefit(List<Worker> team, Worker worker)
+    {
         return price
                 * (min(planned_production, h_produce(team, worker.getProductivity())) - min(
-                planned_production, h_produce(team, 0))) - worker.wage;
+                planned_production, h_produce(team, 0))) - worker.job_add.wage;        //return price * worker.getProductivity()- worker.job_add.wage;
+
     }
 
 
