@@ -95,10 +95,7 @@ public class Firm {
 
     public void hiring()
     {
-        if (planned_production > production)
-        {
 
-        }
         if (planned_production > production && applications.size() == 0) {
             if (offer_wage_saudis <= newspaper_saudis.getAverage_wage_offer())
             {
@@ -166,6 +163,7 @@ public class Firm {
                         to_consider.remove(best);
                     }
                 }
+                //System.out.println(worker_net_benefit(team, best));
 
                 if (!is_admissible(potential_team, best)) {
                     if (worker_net_benefit(team, best) > 0) {
@@ -329,7 +327,7 @@ public class Firm {
 
         double p = additional;
         for (Worker worker : team) {
-            p += worker.productivity;
+            p += worker.getProductivity();
         }
         return Math.pow(p, 1);
 
@@ -402,7 +400,7 @@ public class Firm {
     double worker_net_benefit(List<Worker> team, Worker worker) {
 
         return price
-                * (min(planned_production, h_produce(team, worker.productivity)) - min(
+                * (min(planned_production, h_produce(team, worker.getProductivity())) - min(
                 planned_production, h_produce(team, 0))) - worker.wage;
     }
 
@@ -446,14 +444,14 @@ public class Firm {
     {
         staff.add(worker);
         worker.sendEmploy(this);
-        wage_bill += worker.wage;
-        production += worker.productivity;
+        wage_bill += worker.job_add.wage;
+        production += worker.getProductivity();
 
         if (worker.citizenship == Citizenship.SAUDI) {
-            wage_saudis += worker.wage;
+            wage_saudis += worker.job_add.wage;
             num_saudis++;
         } else {
-            wage_expats += worker.wage;
+            wage_expats += worker.job_add.wage;
             num_expats++;
         }
     }
@@ -467,14 +465,14 @@ public class Firm {
     void disemploy(Worker worker)
     {
         staff.remove(worker);
-        wage_bill -= worker.wage;
-        production -= worker.productivity;
+        wage_bill -= worker.getWage();
+        production -= worker.getProductivity();
 
         if (worker.citizenship == Citizenship.SAUDI) {
-            wage_saudis -= worker.wage;
+            wage_saudis -= worker.getWage();
             num_saudis--;
         } else {
-            wage_expats -= worker.wage;
+            wage_expats -= worker.getWage();
             num_expats--;
         }
     }
@@ -514,7 +512,7 @@ public class Firm {
         double productivity = 0;
 
         for (Worker w : staff) {
-            productivity += w.productivity;
+            productivity += w.getProductivity();
         }
         return productivity / staff.size();
     }

@@ -8,12 +8,19 @@ public class Worker
     public Citizenship citizenship;
     private Newspaper newspaper;
     public double wage;
-    public double satisficing_wage;
-    public double productivity;
-    public double wage_floor;
+    private double satisficing_wage;
+    private double productivity;
+    private double wage_floor;
     private Firm employer = null;
-    private JobAdd job_add;
+    public JobAdd job_add;
     public Auctioneer auctioneer;
+    public double getWage() {
+        return wage;
+    }
+
+    public double getSatisficing_wage() {
+        return satisficing_wage;
+    }
     public Worker(Citizenship citizenship, Newspaper newspaper,double satisficing_wage, double productivity, double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head, Auctioneer auctioneer)
     {
         this.citizenship = citizenship;
@@ -26,6 +33,11 @@ public class Worker
     
     public boolean isEmployed () {
     	return employer != null;
+    }
+
+    public double getMarket_price()
+    {
+        return newspaper.getAverage_wage_offer();
     }
     
     
@@ -53,6 +65,7 @@ public class Worker
       
     {
         employer = null;
+        wage = Double.POSITIVE_INFINITY;
     }
 
     public void apply()
@@ -100,5 +113,8 @@ public class Worker
     		wage = job_add.wage;
     	}
     }
-    
+
+    public double getProductivity() {
+        return productivity;
+    }
 }
