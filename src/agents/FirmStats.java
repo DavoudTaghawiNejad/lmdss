@@ -96,12 +96,12 @@ public class FirmStats {
     public void update(Firm firm) {
         this.num_saudis += firm.num_saudis;
         this.num_expats += firm.num_expats;
-        this.wage_bill += firm.wage_bill;
+        this.wage_bill += firm.staff.getWage();
         this.net_worth += firm.net_worth;
         this.profit += firm.profit;
         this.price += firm.price;
         this.demand += firm.demand;
-        this.production += firm.production;
+        this.production += firm.staff.getProductivity();
         this.planned_production += firm.planned_production;
         this.offer_wage_saudis += firm.offer_wage_saudis;
         this.offer_wage_expats += firm.offer_wage_expats;

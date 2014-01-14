@@ -12,13 +12,13 @@ import static java.lang.Math.*;
 
 import messages.*;
 import tools.Rnd;
+import tools.Team;
 
 public class Firm {
     private final Rnd rnd;
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
 
-    public double wage_bill = 0;
     public int num_expats;
     public int num_saudis;
     public int id;
@@ -27,16 +27,15 @@ public class Firm {
     public double price = 3;
     public double demand = 1;
     public double market_price = 3;
-    public double production = 0;
     public double planned_production = 400;
     public double offer_wage_saudis = 10;
     public double offer_wage_expats = 10;
     public double distributed_profits;
-    public double wage_saudis;
-    public double wage_expats;
+    public double wage_saudis = 0;
+    public double wage_expats = 0;
 
     private java.util.List<Worker> applications;
-    public java.util.LinkedList<Worker> staff = new java.util.LinkedList<Worker>();
+    public Team<Worker> staff = new Team<Worker>(this);
     private java.util.ArrayList<Worker> can_be_fired = new java.util.ArrayList<Worker>();
     private double parameter_planned_production = 400;
 
@@ -62,7 +61,7 @@ public class Firm {
             if (price > market_price) {
                 planned_production = Math.min(demand, planned_production
                         * (1 + rnd.uniform(parameter_planned_production)));
-            } else if (demand > production) {
+            } else if (demand > staff.getProductivity()) {
                 price = price * (1 + rnd.uniform(parameter_price));
             }
         } else if (demand < planned_production) {
@@ -70,10 +69,10 @@ public class Firm {
                 planned_production = max(demand, planned_production
                         * (1 - rnd.uniform(parameter_planned_production)));
             else {
-                if (demand < production) {
+                if (demand < staff.getProductivity()) {
                     double rand;
                     rand = rnd.uniform(parameter_price);
-                    if (price * (1 - rand) > (wage_bill / production) * 1.1) {
+                    if (price * (1 - rand) > (staff.getWage() / staff.getProductivity()) * 1.1) {
                         price = price * (1 - rand);
                     } else {
                         planned_production = Math.max(demand, planned_production
@@ -86,7 +85,7 @@ public class Firm {
 
     public void advertise()
     {
-        if (planned_production > production)
+        if (planned_production > staff.getProductivity())
         {
             newspaper_saudis.place_add(new JobAdd(applications, offer_wage_saudis));
             newspaper_expats.place_add(new JobAdd(applications, offer_wage_expats));
@@ -96,7 +95,7 @@ public class Firm {
     public void hiring()
     {
 
-        if (planned_production > production && applications.size() == 0) {
+        if (planned_production > staff.getProductivity() && applications.size() == 0) {
             if (offer_wage_saudis <= newspaper_saudis.getAverage_wage_offer())
             {
                 offer_wage_saudis = offer_wage_saudis * (1 + rnd.uniform(parameter_wage));
@@ -107,11 +106,11 @@ public class Firm {
 
             }
             price = price * (1 + rnd.uniform(parameter_price_if_wage_is_altered));
-            planned_production = max(production, planned_production
+            planned_production = max(staff.getProductivity(), planned_production
                     * (1 - rnd.uniform(parameter_planned_production_if_wage_is_altered)));
         }
 
-        if (production - average_productivity() > planned_production
+        if (staff.getProductivity() - average_productivity() > planned_production
                 && can_be_fired.size() == 0)
         {
             price = price * (1 - rnd.uniform(parameter_price_if_firing_is_impossible));
@@ -124,10 +123,9 @@ public class Firm {
                     applications);
             to_consider.addAll(can_be_fired);
             ArrayList<Worker> set_aside = new ArrayList<Worker>();
-            ArrayList<Worker> team = new ArrayList<Worker>(staff);
+            Team team = new Team(staff, this);
             team.removeAll(can_be_fired);
-            ArrayList<Worker> potential_team = new ArrayList<Worker>(
-                    team);
+            Team potential_team = new Team(team, this);
             Worker best = null;
             Worker best_aside = null;
             Worker best_apps = null;
@@ -163,7 +161,6 @@ public class Firm {
                         to_consider.remove(best);
                     }
                 }
-                //System.out.println(worker_net_benefit(team, best));
 
                 if (!is_admissible(potential_team, best)) {
                     if (worker_net_benefit(team, best) > 0) {
@@ -231,16 +228,16 @@ public class Firm {
 
     public void post_offer()
     {
-        auctioneer.make_final_good_offer(this, price, production);
+        auctioneer.make_final_good_offer(this, price, staff.getProductivity());
     }
 
     public void sell()
     {
-        profit = min(demand, production) * price;
+        profit = min(demand, staff.getProductivity()) * price;
     }
 
     public void pay_wage() {
-        profit -= wage_bill;
+        profit -= staff.getWage();
     }
 
     public void distribute_profits() {
@@ -262,9 +259,9 @@ public class Firm {
             ArrayList<Worker> to_consider = new ArrayList<Worker>(staff);
 
             ArrayList<Worker> set_aside = new ArrayList<Worker>();
-            ArrayList<Worker> team = new ArrayList<Worker>();
+            Team team = new Team(this);
 
-            ArrayList<Worker> potential_team = new ArrayList<Worker>();
+            Team potential_team = new Team(this);
 
             Worker best = null;
             Worker best_aside = null;
@@ -323,12 +320,10 @@ public class Firm {
         }
     }
 
-    double h_produce(List<Worker> team, double additional) {
+    double h_produce(Team team, double additional) {
 
         double p = additional;
-        for (Worker worker : team) {
-            p += worker.getProductivity();
-        }
+        p = team.getProductivity();
         return Math.pow(p, 1);
 
     }
@@ -336,21 +331,19 @@ public class Firm {
     void fire_staff(List<Worker> layoffs) {
 
         for (Worker worker : layoffs) {
-            if (staff.contains(worker)) {
-                fire(worker);
-            }
+            assert staff.contains(worker);
+            fire(worker);
         }
     }
 
-    Worker pop_best(List<Worker> team, List<Worker> to_evaluate) {
+    Worker pop_best(Team team, List<Worker> to_evaluate) {
 
         Worker best = get_best(team, to_evaluate);
         to_evaluate.remove(best);
         return best;
-:
     }
 
-    Worker get_best(List<Worker> team, List<Worker> to_evaluate) {
+    Worker get_best(Team team, List<Worker> to_evaluate) {
 
         double max = 0;
         double current;
@@ -387,23 +380,7 @@ public class Firm {
 
     }
 
-    double total_wage(List<Worker> team) {
-
-        double total_wage = 0;
-
-        for (Worker w : team)
-        {
-            if (w.isEmployee(this))
-            {
-                total_wage += w.getWage();
-            } else {
-                total_wage += w.getAdvertisedWage();
-            }
-        }
-        return total_wage;
-    }
-
-    double worker_net_benefit(List<Worker> team, Worker worker)
+    double worker_net_benefit(Team team, Worker worker)
     {
         return price
                 * (min(planned_production, h_produce(team, worker.getProductivity())) - min(
@@ -427,12 +404,12 @@ public class Firm {
 
     }
 
-    boolean team_net_benefit(List<Worker> team, List<Worker> potential_team) {
+    boolean team_net_benefit(Team team, Team potential_team) {
 
         return price
                 * (min(planned_production, h_produce(potential_team, 0)) - min(
-                planned_production, h_produce(team, 0))) > total_wage(potential_team)
-                - total_wage(team);
+                planned_production, h_produce(team, 0))) > potential_team.getWage()
+                - team.getWage();
     }
 
     int count_applicants(Citizenship citizenship) {
@@ -450,9 +427,6 @@ public class Firm {
     void hire(Worker worker)
     {
         staff.add(worker);
-        worker.sendEmploy(this);
-        wage_bill += worker.getAdvertisedWage();
-        production += worker.getProductivity();
 
         if (worker.citizenship == Citizenship.SAUDI) {
             wage_saudis += worker.getAdvertisedWage();
@@ -461,19 +435,18 @@ public class Firm {
             wage_expats += worker.getAdvertisedWage();
             num_expats++;
         }
+        worker.sendEmploy(this);
     }
 
     void fire(Worker worker)
     {
-        worker.sendFire();
         disemploy(worker);
+        worker.sendFire();
     }
 
     void disemploy(Worker worker)
     {
         staff.remove(worker);
-        wage_bill -= worker.getWage();
-        production -= worker.getProductivity();
 
         if (worker.citizenship == Citizenship.SAUDI) {
             wage_saudis -= worker.getWage();
