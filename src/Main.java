@@ -44,8 +44,8 @@ public class Main
         final double expat_tax_per_head = 0;
 
         setup_period = 500;
-        simulation_length = 20000;
-        policy_change_time = 15000;
+        simulation_length = 2000;
+        policy_change_time = 1500;
         setup_workers = (int) Math.ceil((double)(num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) num_firms / setup_period);
 

@@ -330,7 +330,7 @@ public class Firm {
     double h_produce(Team team, double additional) {
 
         double p = additional;
-        p = team.getProductivity();
+        p += team.getProductivity();
         return Math.pow(p, 1);
 
     }
