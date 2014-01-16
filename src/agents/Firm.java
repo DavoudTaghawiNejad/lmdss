@@ -1,8 +1,8 @@
 package agents;
 
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 import definitions.Citizenship;
@@ -18,9 +18,8 @@ public class Firm {
     private final Rnd rnd;
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
+    private Map<Integer, ArrayList<Worker>> visastack = new HashMap<Integer, ArrayList<Worker>>();
 
-    public int num_expats;
-    public int num_saudis;
     public int id;
     public double net_worth;
     public double profit;
@@ -34,9 +33,9 @@ public class Firm {
     public double wage_saudis = 0;
     public double wage_expats = 0;
 
-    private java.util.List<Worker> applications;
+    private List<Worker> applications;
     public Team<Worker> staff = new Team<Worker>(this);
-    private java.util.ArrayList<Worker> can_be_fired = new java.util.ArrayList<Worker>();
+
     private double parameter_planned_production = 400;
 
     private double parameter_price = 0.025;
@@ -50,6 +49,7 @@ public class Firm {
     private double sauditization_percentage;
     private Auctioneer auctioneer;
     public int net_hires = 0;
+    private AtomicInteger day;
 
     public void setSauditization_percentage(double sauditization_percentage) {
         this.sauditization_percentage = sauditization_percentage;
@@ -94,6 +94,12 @@ public class Firm {
 
     public void hiring()
     {
+        ArrayList<Worker> can_be_fired;
+        can_be_fired = visastack.remove(day.get());
+        if (can_be_fired == null)
+        {
+            can_be_fired = new ArrayList<Worker>();
+        }
 
         if (planned_production > staff.getProductivity() && applications.size() == 0) {
             if (offer_wage_saudis <= newspaper_saudis.getAverage_wage_offer())
@@ -152,7 +158,7 @@ public class Firm {
                     best_aside = get_best(team, set_aside);
                     best_apps = get_best(team, to_consider);
                     if (is_admissible(potential_team, best_aside)
-                            && worker_net_benefit(team, best_aside) > worker_net_benefit(
+                            && net_benefit(team, best_aside) > net_benefit(
                             team, best_apps)) {
                         best = best_aside;
                         set_aside.remove(best);
@@ -163,18 +169,18 @@ public class Firm {
                 }
 
                 if (!is_admissible(potential_team, best)) {
-                    if (worker_net_benefit(team, best) > 0) {
+                    if (net_benefit(team, best) > 0) {
                         set_aside.add(best);
                     }
                     continue;
                 }
                 if ((is_admissible(team, best))
-                        && (worker_net_benefit(team, best) > 0)) {
+                        && (net_benefit(team, best) > 0)) {
                     team.add(best);
                     potential_team.add(best);
                 } else {
                     potential_team.add(best);
-                    if (team_net_benefit(team, potential_team)) {
+                    if (net_benefit(team, potential_team)) {
                         team.addAll(potential_team);
                     }
                 }
@@ -185,14 +191,14 @@ public class Firm {
                         can_be_fired);
                 force_keeps.removeAll(team);
                 while (force_keeps.size() > 0
-                        && !is_team_admissible(team)) {
+                        && !is_admissible(team)) {
                     best = pop_best(team, force_keeps);
                     if (best.citizenship == Citizenship.SAUDI) {
                         team.add(best);
                     }
                 }
             }
-            net_hires = hire_or_fire_staff(team);
+            net_hires = hire_or_fire_staff(team, can_be_fired);
 
             if (planned_production > h_produce(staff, 0)
                     + average_productivity()
@@ -207,14 +213,15 @@ public class Firm {
                                 * (1 - rnd.uniform(parameter_wage));
                     }
                 } else {
-                    if (count_applicants(Citizenship.SAUDI) == 0) {
+                    if (count_citizenship(applications, Citizenship.SAUDI) == 0) {
                         if (offer_wage_saudis <= newspaper_saudis.getAverage_wage_offer()) {
                             offer_wage_saudis = offer_wage_saudis * (1 + rnd.uniform(parameter_wage));
                         }
-                    } else {
+                    }
+                    if (count_citizenship(applications, Citizenship.EXPAT) == 0) {
                         if (offer_wage_saudis >= newspaper_saudis.getAverage_wage_offer()) {
                             offer_wage_saudis = offer_wage_saudis * (1 - rnd.uniform(parameter_wage));
-                        } // or foreigners
+                        }
                     }
                 }
                 price = price * (1 + rnd.uniform(parameter_price_if_wage_is_altered));
@@ -288,7 +295,7 @@ public class Firm {
                     best_aside = get_best(team, set_aside);
                     best_apps = get_best(team, to_consider);
                     if (is_admissible(potential_team, best_aside)
-                            && worker_net_benefit(team, best_aside) > worker_net_benefit(
+                            && net_benefit(team, best_aside) > net_benefit(
                             team, best_apps)) {
                         best = best_aside;
                         set_aside.remove(best);
@@ -304,12 +311,12 @@ public class Firm {
                     continue;
                 }
                 if ((is_admissible(team, best))
-                        && (worker_net_benefit(team, best) > 0)) {
+                        && (net_benefit(team, best) > 0)) {
                     team.add(best);
                     potential_team.add(best);
                 } else {
                     potential_team.add(best);
-                    if (team_net_benefit(team, potential_team)) {
+                    if (net_benefit(team, potential_team)) {
                         team.addAll(potential_team);
                     }
                 }
@@ -350,10 +357,10 @@ public class Firm {
         if (to_evaluate.size() == 0)
             return null;
         Worker best = to_evaluate.get(0);
-        for (Worker w : to_evaluate) {
-            current = worker_net_benefit(team, w);
+        for (Worker worker : to_evaluate) {
+            current = net_benefit(team, worker);
             if (current > max) {
-                best = w;
+                best = worker;
                 max = current;
             }
         }
@@ -361,17 +368,10 @@ public class Firm {
 
     }
 
-    boolean is_admissible(List<Worker> team, Worker to_evaluate) {
+    boolean is_admissible(Team team, Worker to_evaluate) {
 
-        double saudi = 0;
-        double expat = 0;
-
-        for (Worker w : team) {
-            if (w.citizenship == Citizenship.SAUDI)
-                saudi++;
-            else
-                expat++;
-        }
+        double saudi = team.getSaudis();
+        double expat = team.getExpats();
         if (to_evaluate.citizenship == Citizenship.SAUDI)
             saudi++;
         else
@@ -380,7 +380,15 @@ public class Firm {
 
     }
 
-    double worker_net_benefit(Team team, Worker worker)
+    boolean is_admissible(Team team) {
+        double saudi = team.getSaudis();
+        double expat = team.getExpats();
+        return (saudi / (saudi + expat) >= sauditization_percentage);
+
+    }
+
+
+    double net_benefit(Team team, Worker worker)
     {
         return price
                 * (min(planned_production, h_produce(team, worker.getProductivity())) - min(
@@ -388,23 +396,7 @@ public class Firm {
 
     }
 
-
-    boolean is_team_admissible(List<Worker> team) {
-
-        double saudi = 0;
-        double expat = 0;
-
-        for (Worker w : team) {
-            if (w.citizenship == Citizenship.SAUDI)
-                saudi++;
-            else
-                expat++;
-        }
-        return (saudi / (saudi + expat) >= sauditization_percentage);
-
-    }
-
-    boolean team_net_benefit(Team team, Team potential_team) {
+    boolean net_benefit(Team team, Team potential_team) {
 
         return price
                 * (min(planned_production, h_produce(potential_team, 0)) - min(
@@ -412,11 +404,11 @@ public class Firm {
                 - team.getWage();
     }
 
-    int count_applicants(Citizenship citizenship) {
+    int count_citizenship(List<Worker> team, Citizenship citizenship) {
 
         int counter = 0;
-        for (Worker w : staff) {
-            if (w.citizenship == citizenship) {
+        for (Worker worker : team) {
+            if (worker.citizenship == citizenship) {
                 counter += 1;
             }
         }
@@ -426,35 +418,37 @@ public class Firm {
 
     void hire(Worker worker)
     {
+        
         staff.add(worker);
-
         if (worker.citizenship == Citizenship.SAUDI) {
             wage_saudis += worker.getAdvertisedWage();
-            num_saudis++;
         } else {
             wage_expats += worker.getAdvertisedWage();
-            num_expats++;
+            addVisa(worker);
         }
         worker.sendEmploy(this);
+        
     }
 
     void fire(Worker worker)
     {
+        
         disemploy(worker);
         worker.sendFire();
+        
     }
 
     void disemploy(Worker worker)
     {
+        
         staff.remove(worker);
 
         if (worker.citizenship == Citizenship.SAUDI) {
             wage_saudis -= worker.getWage();
-            num_saudis--;
         } else {
             wage_expats -= worker.getWage();
-            num_expats--;
         }
+        
     }
 
     public void sendQuit(Worker worker)
@@ -463,7 +457,7 @@ public class Firm {
     }
 
 
-    int hire_or_fire_staff(ArrayList<Worker> team) {
+    int hire_or_fire_staff(ArrayList<Worker> team, ArrayList<Worker> can_be_fired) {
 
         int initial_staff = staff.size();
 
@@ -504,8 +498,8 @@ public class Firm {
             Newspaper newspaper_saudis,
             Newspaper newspaper_expats,
             Auctioneer auctioneer,
-            double sauditization_percentage
-    )
+            double sauditization_percentage,
+            AtomicInteger day)
     {
         this.id = id;
         this.applications = post_box_applications;
@@ -513,6 +507,7 @@ public class Firm {
         this.newspaper_expats = newspaper_expats;
         this.auctioneer = auctioneer;
         this.sauditization_percentage = sauditization_percentage;
+        this.day = day;
         this.rnd = new Rnd(seed);
     }
 
@@ -524,6 +519,20 @@ public class Firm {
 
     public boolean out_of_business()
     {
+
         return (net_worth < 0);
+    }
+
+    private void addVisa(Worker worker)
+    {
+        final int visa_length = 365;
+        Integer visa_date = day.get() + visa_length;
+        ArrayList<Worker> day_list = visastack.get(visa_date);
+        if (day_list == null)
+        {
+            day_list = new ArrayList<Worker>();
+            visastack.put(visa_date, day_list);
+        }
+        day_list.add(worker);
     }
 }

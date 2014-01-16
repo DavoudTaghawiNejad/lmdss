@@ -19,6 +19,7 @@ public class FirmStats {
     public double wage_expats = 0;
     public int net_hires = 0;
     public int num_firms;
+    private int max_hires = 0;
 
     public FirmStats(int num_firms) {
         this.num_firms = num_firms;
@@ -38,6 +39,7 @@ public class FirmStats {
         System.out.print("wage_saudis\t");
         System.out.print("wage_expats\t");
         System.out.print("net_hires\t");
+        System.out.print("max_hires\t");
         System.out.println("");
 
     }  
@@ -53,7 +55,7 @@ public class FirmStats {
         System.out.print("\t");
         System.out.print(this.profit / num_firms);
         System.out.print("\t");
-        System.out.print(this.price / num_firms);
+        System.out.print(this.price / demand);
         System.out.print("\t");
         System.out.print(this.demand);
         System.out.print("\t");
@@ -67,11 +69,13 @@ public class FirmStats {
         System.out.print("\t");
         System.out.print(this.distributed_profits / num_firms);
         System.out.print("\t");
-        System.out.print(this.wage_saudis);
+        System.out.print(this.wage_saudis / num_saudis);
         System.out.print("\t");
-        System.out.print(this.wage_expats);
+        System.out.print(this.wage_expats / num_expats);
         System.out.print("\t");
         System.out.print(this.net_hires);
+        System.out.print("\t");
+        System.out.print(this.max_hires);
 
     }
 
@@ -91,15 +95,16 @@ public class FirmStats {
         this.wage_saudis = 0;
         this.wage_expats = 0;
         this.net_hires = 0;
+        this.max_hires = 0;
     }
 
     public void update(Firm firm) {
-        this.num_saudis += firm.num_saudis;
-        this.num_expats += firm.num_expats;
+        this.num_saudis += firm.staff.getSaudis();
+        this.num_expats += firm.staff.getExpats();
         this.wage_bill += firm.staff.getWage();
         this.net_worth += firm.net_worth;
         this.profit += firm.profit;
-        this.price += firm.price;
+        this.price += firm.price * firm.demand;
         this.demand += firm.demand;
         this.production += firm.staff.getProductivity();
         this.planned_production += firm.planned_production;
@@ -109,6 +114,6 @@ public class FirmStats {
         this.wage_saudis += firm.wage_saudis;
         this.wage_expats += firm.wage_expats;
         this.net_hires += firm.net_hires;
-        firm.net_hires = 0;
+        this.max_hires = Math.max(this.max_hires, firm.net_hires);
     }
 }

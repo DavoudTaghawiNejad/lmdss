@@ -2,6 +2,7 @@
 
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import agents.*;
 import definitions.Citizenship;
@@ -25,6 +26,7 @@ public class Main
 	private static List<Firm> firms;
 	private static Newspaper newspaper_saudi;
 	private static Newspaper newspaper_expat;
+    private static AtomicInteger day = new AtomicInteger();
 
     public static void initialisation()
     {
@@ -42,8 +44,8 @@ public class Main
         final double expat_tax_per_head = 0;
 
         setup_period = 500;
-        simulation_length = 2000;
-        policy_change_time = 1500;
+        simulation_length = 20000;
+        policy_change_time = 15000;
         setup_workers = (int) Math.ceil((double)(num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) num_firms / setup_period);
 
@@ -115,16 +117,19 @@ public class Main
                             newspaper_saudi,
                             newspaper_expat,
                             auctioneer,
-                            sauditization_percentage)
+                            sauditization_percentage,
+                            day)
             );
         }
     }
 
     public static void run()
     {
-        for (int day = 0; day < simulation_length; day++)
+
+        for (int iday = 0; iday < simulation_length; iday++)
         {
-            if (day < setup_period)
+            day.set(iday);
+            if (iday < setup_period)
             {
                 create_firms(Math.min(setup_firms, num_firms - firms.size()));
             }
@@ -145,7 +150,7 @@ public class Main
             {
                 worker.apply();
                 i++;
-                if (i > setup_workers * day)
+                if (i > setup_workers * iday)
                 {
                     break;
                 }
@@ -185,14 +190,14 @@ public class Main
                     firms.remove(h);
                 }
             }
-            if (day % 10 == 0)
+            if (iday % 10 == 0)
             {
-                System.out.print(day);
+                System.out.print(iday);
                 System.out.print("\t");
                 updateFirmStatistics();
                 System.out.println("");
             }
-            if (day == policy_change_time)
+            if (iday == policy_change_time)
             {
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
                 auctioneer.income *= 10;

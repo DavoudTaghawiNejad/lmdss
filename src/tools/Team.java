@@ -2,12 +2,11 @@ package tools;
 
 import agents.Firm;
 import agents.Worker;
-import com.sun.xml.internal.ws.api.pipe.FiberContextSwitchInterceptor;
+import definitions.Citizenship;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -16,7 +15,17 @@ import java.util.List;
 public class Team<E> extends ArrayList<E> {
     private double productivity = 0;
     private double wage = 0;
+    private int saudis = 0;
+    private int expats = 0;
     private Firm employer;
+
+    public int getSaudis() {
+        return saudis;
+    }
+
+    public int getExpats() {
+        return expats;
+    }
 
     public double getProductivity() {
         return productivity;
@@ -49,12 +58,19 @@ public class Team<E> extends ArrayList<E> {
             } else {
                 wage += worker.getAdvertisedWage();
             }
+            if (worker.citizenship == Citizenship.SAUDI) {
+                saudis++;
+            } else {
+                expats++;
+            }
         }
     }
 
     public boolean addAll(Team to_add) {
             productivity += to_add.getProductivity();
             wage += to_add.getWage();
+            saudis += to_add.getSaudis();
+            expats += to_add.getExpats();
         return super.addAll((List<E>)to_add);
     }
 
@@ -68,6 +84,11 @@ public class Team<E> extends ArrayList<E> {
             wage += ((Worker)worker).getAdvertisedWage();
         }
         productivity += ((Worker)worker).getProductivity();
+        if (((Worker)worker).citizenship == Citizenship.SAUDI) {
+            saudis++;
+        } else {
+            expats++;
+        }
         return super.add(worker);
     }
 
@@ -75,6 +96,11 @@ public class Team<E> extends ArrayList<E> {
     {
         wage -= worker.getWage();
         productivity -= worker.getProductivity();
+        if (worker.citizenship == Citizenship.SAUDI) {
+            saudis--;
+        } else {
+            expats--;
+        }
         return super.remove(worker);
     }
 
@@ -84,6 +110,11 @@ public class Team<E> extends ArrayList<E> {
         {
             wage -= worker.getWage();
             productivity -= worker.getProductivity();
+            if (worker.citizenship == Citizenship.SAUDI) {
+                saudis--;
+            } else {
+                expats--;
+            }
         }
         return super.removeAll(to_remove);
     }
