@@ -1,24 +1,23 @@
 package agents;
 
 
+import messages.*;
+import tools.*;
+import definitions.Citizenship;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
-
-import definitions.Citizenship;
-
 import static java.lang.Math.*;
 
 
-import messages.*;
-import tools.Rnd;
-import tools.Team;
+
+
+
 
 public class Firm {
     private final Rnd rnd;
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
-    private Map<Integer, ArrayList<Worker>> visastack = new HashMap<Integer, ArrayList<Worker>>();
+    private Map<Integer, Staff<Worker>> visastack = new HashMap<Integer, Staff<Worker>>();
 
     public int id;
     public double net_worth;
@@ -34,7 +33,7 @@ public class Firm {
     public double wage_expats = 0;
 
     private List<Worker> applications;
-    public Team<Worker> staff = new Team<Worker>(this);
+    public Staff<Worker> staff = new Staff<Worker>(this);
 
     private double parameter_planned_production = 400;
 
@@ -94,11 +93,11 @@ public class Firm {
 
     public void hiring()
     {
-        ArrayList<Worker> can_be_fired;
+        Staff<Worker> can_be_fired;
         can_be_fired = visastack.remove(day.get());
         if (can_be_fired == null)
         {
-            can_be_fired = new ArrayList<Worker>();
+            can_be_fired = new Staff<Worker>(this);
         }
 
         if (planned_production > staff.getProductivity() && applications.size() == 0) {
@@ -125,8 +124,7 @@ public class Firm {
         }
 
         if (applications.size() > 0 || can_be_fired.size() > 0) {
-            ArrayList<Worker> to_consider = new ArrayList<Worker>(
-                    applications);
+            ArrayList<Worker> to_consider = new ArrayList<Worker>(applications);
             to_consider.addAll(can_be_fired);
             ArrayList<Worker> set_aside = new ArrayList<Worker>();
             Team team = new Team(staff, this);
@@ -327,7 +325,7 @@ public class Firm {
         }
     }
 
-    double h_produce(Team team, double additional) {
+    double h_produce(Group team, double additional) {
 
         double p = additional;
         p += team.getProductivity();
@@ -340,6 +338,7 @@ public class Firm {
         for (Worker worker : layoffs) {
             assert staff.contains(worker);
             fire(worker);
+            net_hires--;
         }
     }
 
@@ -457,7 +456,7 @@ public class Firm {
     }
 
 
-    int hire_or_fire_staff(ArrayList<Worker> team, ArrayList<Worker> can_be_fired) {
+    int hire_or_fire_staff(Team<Worker> team, ArrayList<Worker> can_be_fired) {
 
         int initial_staff = staff.size();
 
@@ -527,10 +526,10 @@ public class Firm {
     {
         final int visa_length = 365;
         Integer visa_date = day.get() + visa_length;
-        ArrayList<Worker> day_list = visastack.get(visa_date);
+        Staff<Worker> day_list = visastack.get(visa_date);
         if (day_list == null)
         {
-            day_list = new ArrayList<Worker>();
+            day_list = new Staff<Worker>(this);
             visastack.put(visa_date, day_list);
         }
         day_list.add(worker);
