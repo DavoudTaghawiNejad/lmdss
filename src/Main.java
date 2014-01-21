@@ -1,8 +1,8 @@
 
 
 import java.util.*;
-import java.util.List;
 
+import tools.DBConnection;
 import agents.*;
 import definitions.Citizenship;
 import definitions.WorkerStatistics;
@@ -10,6 +10,8 @@ import definitions.WorkerStatistics;
 
 public class Main
 {
+	private static long initialTime;
+	private static DBConnection DB;
     private static double sauditization_percentage;
     private static List<Worker> workers;
     private static Auctioneer auctioneer;
@@ -28,6 +30,7 @@ public class Main
 
     public static void initialisation()
     {
+    	initialTime = System.currentTimeMillis();
         num_firms = 100;
         final double sauditization_percentage = 0;
         final int num_saudis = 3800;
@@ -47,6 +50,8 @@ public class Main
         setup_workers = (int) Math.ceil((double)(num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) num_firms / setup_period);
 
+        DB = new DBConnection();
+        
         seed_generator = new Random();
 
         statistics_firms = new FirmStats(num_firms);
@@ -183,6 +188,9 @@ public class Main
                     firms.remove(h);
                 }
             }
+            
+            
+            
             if (day % 10 == 0)
             {
                 System.out.print(day);
@@ -195,9 +203,13 @@ public class Main
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
                 auctioneer.income *= 10;
             }
+            DB.insertFirms(firms, initialTime, day);
         }
+        System.out.print("Finished simulation , time spent is (seconds): ");
+        System.out.println(((double)System.currentTimeMillis() - initialTime)/1000);
+        
+        DB.executeBatch();
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
-
     }
 
 
@@ -215,8 +227,8 @@ public class Main
         long started = System.currentTimeMillis();
         initialisation();
         run();
-        System.out.print("end");
-        System.out.print(System.currentTimeMillis() - started);
+        System.out.print("end, time spent is (seconds): ");
+        System.out.print(((double)System.currentTimeMillis() - started)/1000);
 
     }
 }
