@@ -190,25 +190,29 @@ public class Main
             }
             
             
-            
+           
             if (day % 10 == 0)
             {
+            	/*
                 System.out.print(day);
                 System.out.print("\t");
                 updateFirmStatistics();
                 System.out.println("");
+                */
+                DB.SQLiteStatistics(firms, initialTime, day,  num_firms);
             }
+            
             if (day == policy_change_time)
             {
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
                 auctioneer.income *= 10;
             }
-            DB.insertFirms(firms, initialTime, day);
+            //DB.insertFirms(firms, initialTime, day);
+
+            DB.SQLite(firms, initialTime, day);
         }
-        System.out.print("Finished simulation , time spent is (seconds): ");
-        System.out.println(((double)System.currentTimeMillis() - initialTime)/1000);
-        
-        DB.executeBatch();
+        DB.closeSQLite();
+        //DB.executeBatch();
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
     }
 
