@@ -6,9 +6,9 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Collection;
 
-public class Team<E> extends Group<E> {
+public class Team extends Group {
 
-    public Team(Group<E> staff, Firm employer) {
+    public Team(Group staff, Firm employer) {
         super(staff, employer);
     }
 
@@ -26,10 +26,5 @@ public class Team<E> extends Group<E> {
         Worker w = (Worker)worker;
         assert (!w.isEmployee(super.employer));
         return super.remove(w);
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        throw new NotImplementedException();
     }
 }

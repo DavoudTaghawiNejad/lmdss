@@ -7,26 +7,32 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 
-public class Group<E> extends ArrayList<E> {
+public class Group 
+{
     private double productivity = 0;
     private double wage = 0;
     private int saudis = 0;
     private int expats = 0;
+    protected ArrayList<Worker> worker_list;
     protected Firm employer;
 
+    public ArrayList<Worker> getWorker_list() {
+        return worker_list;
+    }
 
     protected double wage(Worker worker)
     {
         throw new NotImplementedException();
     }
 
-    public Group(Group<E> staff, Group<Worker> can_be_fired, Firm employer)
+    public Group(Group staff, Group can_be_fired, Firm employer)
     {
-        super(staff);
-        super.removeAll(can_be_fired);
+        worker_list = new ArrayList<Worker>(staff.getWorker_list());
+        worker_list.removeAll(can_be_fired.getWorker_list());
         this.employer = employer;
         productivity = staff.getProductivity() - can_be_fired.getProductivity();
         wage = staff.getWage() - can_be_fired.getWage();
@@ -52,17 +58,17 @@ public class Group<E> extends ArrayList<E> {
     }
 
     public Group(int initialCapacity, Firm employer) {
-        super(initialCapacity);
+        worker_list = new ArrayList<Worker>(initialCapacity);
         this.employer = employer;
     }
 
     public Group(Firm employer) {
-        super();
+        worker_list = new ArrayList<Worker>();
         this.employer = employer;
     }
 
-    public Group(Group<E> team, Firm employer) {
-        super(team);
+    public Group(Group team, Firm employer) {
+        worker_list = new ArrayList<Worker>(team.getWorker_list());
         this.employer = employer;
         productivity = team.getProductivity();
         wage = team.getWage();
@@ -70,11 +76,11 @@ public class Group<E> extends ArrayList<E> {
         expats = getExpats();
     }
 
-    public Group(List<E> team, Firm employer) {
-        super(team);
+    public Group(List<Worker> team, Firm employer) {
+        worker_list = new ArrayList<Worker>(team);
         this.employer = employer;
 
-        for(Worker worker: ((List<Worker>)team))
+        for(Worker worker: (team))
         {
             productivity += worker.getProductivity();
             wage += wage(worker);
@@ -91,47 +97,45 @@ public class Group<E> extends ArrayList<E> {
         wage += to_add.getWage();
         saudis += to_add.getSaudis();
         expats += to_add.getExpats();
-        return super.addAll((List<E>)to_add);
+        return worker_list.addAll((List<Worker>)to_add);
     }
-    @Override
-    public boolean add(E worker)
+
+    public boolean add(Worker worker)
     {
-        Worker w = (Worker)worker;
-        if (w.isEmployee(employer))
+        if (worker.isEmployee(employer))
         {
-            wage += w.getWage();
+            wage += worker.getWage();
         } else {
-            wage += w.getAdvertisedWage();
+            wage += worker.getAdvertisedWage();
         }
-        productivity += ((Worker)w).getProductivity();
-        if (((Worker)w).citizenship == Citizenship.SAUDI) {
+        productivity += ((Worker) worker).getProductivity();
+        if (((Worker) worker).citizenship == Citizenship.SAUDI) {
             saudis++;
         } else {
             expats++;
         }
-        return super.add((E)w);
+        return worker_list.add(worker);
     }
 
     public boolean remove(Object worker)
     {
-        Worker w = (Worker)worker;
-        wage -= wage(w);
-        productivity -= w.getProductivity();
-        if (w.citizenship == Citizenship.SAUDI) {
+        wage -= wage((Worker)worker);
+        productivity -= ((Worker)worker).getProductivity();
+        if (((Worker)worker).citizenship == Citizenship.SAUDI) {
             saudis--;
         } else {
             expats--;
         }
-        return super.remove(w);
+        return worker_list.remove((Worker)worker);
     }
 
-    public boolean removeAll(Group<Worker> to_remove)
+    public boolean removeAll(Group to_remove)
     {
         wage -= to_remove.getWage();
         productivity -= to_remove.getProductivity();
         saudis -= getSaudis();
         expats -= getExpats();
-        return super.removeAll(to_remove);
+        return worker_list.removeAll(to_remove.getWorker_list());
     }
 
     public Group()
@@ -139,21 +143,24 @@ public class Group<E> extends ArrayList<E> {
         throw new NotImplementedException();
     }
 
-
-    @Override
-    public boolean removeAll(Collection<?> c)
+    public int size()
     {
-        throw new NotImplementedException();
+        return worker_list.size();
+    }
+    
+    public boolean contains(Worker worker)
+    {
+        return worker_list.contains(worker);
     }
 
-
-    @Override
-    public boolean addAll(Collection<? extends E> c) {
-        throw new NotImplementedException();
+    public int count(Worker worker)
+    {
+        return Collections.frequency(worker_list, worker);
     }
 
-    @Override
-    public boolean addAll(int index, Collection<? extends E> c) {
-        throw new NotImplementedException();
+    public void clear()
+    {
+        worker_list.clear();
     }
+
 }

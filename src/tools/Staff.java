@@ -4,7 +4,7 @@ import agents.Firm;
 import agents.Worker;
 
 
-public class Staff<E> extends Group<E> {
+public class Staff extends Group {
 
     @Override
     protected double wage(Worker worker)
@@ -16,11 +16,19 @@ public class Staff<E> extends Group<E> {
         super(employer);
     }
 
-    @Override
-    public boolean remove(Object worker)
+    public boolean remove(Worker worker)
     {
-        Worker w = (Worker)worker;
-        assert (w.isEmployee(super.employer));
-        return super.remove(w);
+        assert (worker.isEmployee(super.employer)): worker_list.contains(worker);
+        return super.remove(worker);
+    }
+
+    public void consistency()
+    {
+        double wage = 0;
+        for (Worker worker: super.getWorker_list())
+        {
+            wage += worker.getWage();
+        }
+        assert (wage < super.getWage() + 0.000001 && wage > super.getWage() - 0.000001) : wage - super.getWage();
     }
 }
