@@ -2,6 +2,7 @@ package agents;
 
 import definitions.Citizenship;
 import messages.JobAdd;
+import tools.Rnd;
 
 public class Worker
 {
@@ -14,7 +15,8 @@ public class Worker
     private Firm employer = null;
     private JobAdd job_add;
     private Auctioneer auctioneer;
-
+    private final Rnd rnd;
+    private double reapplication_probability;
 
     public double getWage() {
         assert wage > -0.01: wage;
@@ -26,8 +28,10 @@ public class Worker
         return job_add.getWage();
     }
 
-    public Worker(Citizenship citizenship, Newspaper newspaper,double satisficing_wage, double productivity, double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head, Auctioneer auctioneer)
+    public Worker(long seed, Citizenship citizenship, Newspaper newspaper, double satisficing_wage, double productivity, double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head, double reapplication_probability, Auctioneer auctioneer)
     {
+        this.reapplication_probability = reapplication_probability;
+        this.rnd = new Rnd(seed);
         this.citizenship = citizenship;
         this.newspaper = newspaper;
         this.auctioneer = auctioneer;
@@ -90,17 +94,20 @@ public class Worker
         }
     	else if (this.isEmployed() && citizenship == Citizenship.SAUDI)
     	{
-    		job_add = newspaper.get_add();
-            if (
-            		job_add.getFirm() != null // no adds in the newspaper
-            		&&
-            		job_add.getWage() > wage
-            		&&
-            		job_add.getFirm() != employer
-                )
+            if (rnd.nextDouble() < reapplication_probability)
             {
-                job_add.getFirm().add(this);
-	        }
+                job_add = newspaper.get_add();
+                if (
+                        job_add.getFirm() != null // no adds in the newspaper
+                        &&
+                        job_add.getWage() > wage
+                        &&
+                        job_add.getFirm() != employer
+                    )
+                {
+                    job_add.getFirm().add(this);
+                }
+            }
         }
         assert job_add.getWage() > -2: job_add.getWage();
     }

@@ -42,6 +42,7 @@ public class Main
         final double saudi_minimum_wage = 0;
         final double expat_tax_percentage = 0;
         final double expat_tax_per_head = 0;
+        final double reapplication_probability = 0.03 / 356;
 
         setup_period = 500;
         simulation_length = 2000;
@@ -66,6 +67,7 @@ public class Main
         {
             workers.add(
                     new Worker(
+                            seed_generator.nextLong(),
                             Citizenship.SAUDI,
                             newspaper_saudi,
                             rnd.nextGaussian() * wage_mean_saudi + wage_mean_saudi,
@@ -74,7 +76,7 @@ public class Main
                             saudi_minimum_wage,
                             expat_tax_percentage,
                             expat_tax_per_head,
-                            auctioneer
+                            reapplication_probability, auctioneer
                      )
             );
         }
@@ -82,8 +84,8 @@ public class Main
         {
             workers.add(
                     new Worker(
+                            seed_generator.nextLong(),
                             Citizenship.EXPAT,
-
                             newspaper_saudi,
                             rnd.nextGaussian() * wage_mean_expat + wage_mean_expat,
                             rnd.nextGaussian() * productivity_mean_expat + productivity_mean_expat,
@@ -91,7 +93,7 @@ public class Main
                             saudi_minimum_wage,
                             expat_tax_percentage,
                             expat_tax_per_head,
-                            auctioneer
+                            reapplication_probability, auctioneer
                      )
             );
         }
