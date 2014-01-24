@@ -5,16 +5,19 @@ import java.util.Random;
 /**
  * Created by davoud on 1/3/14.
  */
-public class Rnd {
-    private final Random generator;
-
+public class Rnd extends Random
+{
     public Rnd(long seed)
     {
-        generator = new Random(seed);
+        super(seed);
+    }
+
+    public Rnd() {
+        assert false: "all random numbers must be seeded by the generator_seed!";
     }
 
     public double uniform(double stretch)
     {
-        return generator.nextDouble() * stretch;
+        return super.nextDouble() * stretch;
     }
 }

@@ -9,9 +9,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static definitions.Citizenship.EXPAT;
-import static definitions.Citizenship.SAUDI;
-
 
 public class WorkerStatistics
 {

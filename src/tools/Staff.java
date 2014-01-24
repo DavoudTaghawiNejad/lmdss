@@ -3,7 +3,6 @@ package tools;
 import agents.Firm;
 import agents.Worker;
 
-import java.util.Objects;
 
 public class Staff<E> extends Group<E> {
 

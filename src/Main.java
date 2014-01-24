@@ -50,7 +50,10 @@ public class Main
         setup_workers = (int) Math.ceil((double)(num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) num_firms / setup_period);
 
-        seed_generator = new Random();
+        final long seed = (new Random().nextLong());
+        //final long seed = -3818020006778535911L;
+        System.out.println(seed);
+        seed_generator = new Random(seed);
 
         statistics_firms = new FirmStats(num_firms);
 
@@ -97,7 +100,7 @@ public class Main
                      )
             );
         }
-        Collections.shuffle(workers);
+        Collections.shuffle(workers, new Random(seed_generator.nextLong()));
 
         apply_to_firm = new ArrayList<List<Worker>>();
 
