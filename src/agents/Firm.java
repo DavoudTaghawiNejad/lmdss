@@ -33,6 +33,9 @@ public class Firm {
     public double wage_expats = 0;
 
     private List<Worker> applications;
+    public int this_round_hire = 0;
+    public int this_round_fire = 0;
+
     public Staff staff = new Staff(this);
 
     private double parameter_planned_production = 400;
@@ -49,6 +52,11 @@ public class Firm {
     private Auctioneer auctioneer;
     public int net_hires = 0;
     private AtomicInteger day;
+    public double increase_price_wage_no_reduction_possible = 0;
+    public double decrease_price_bounded = 0;
+    public double decrease_prices_no_firing = 0;
+    public double increase_price = 0;
+    public double increase_price_wage_altered = 0;
 
     public void setSauditization_percentage(double sauditization_percentage) {
         this.sauditization_percentage = sauditization_percentage;
@@ -58,28 +66,54 @@ public class Firm {
     public void set_prices_demand() {
         if (demand > planned_production) {
             if (price > market_price) {
-                planned_production = Math.min(demand, planned_production
-                        * (1 + rnd.uniform(parameter_planned_production)));
+                increase_planned_production();
             } else if (demand > staff.getProductivity()) {
-                price = price * (1 + rnd.uniform(parameter_price));
+                increase_price();
             }
         } else if (demand < planned_production) {
             if (price <= market_price)
-                planned_production = max(demand, planned_production
-                        * (1 - rnd.uniform(parameter_planned_production)));
-            else {
-                if (demand < staff.getProductivity()) {
-                    double rand;
-                    rand = rnd.uniform(parameter_price);
-                    if (price * (1 - rand) > (staff.getWage() / staff.getProductivity()) * 1.1) {
-                        price = price * (1 - rand);
+                decrease_planned_production();
+            else if (staff.size() > 0 )
+            {
+                if (demand < staff.getProductivity() ) {
+                    decrease_price_bounded();
                     } else {
-                        planned_production = Math.max(demand, planned_production
-                                * (1 - rnd.uniform(parameter_planned_production)));
+                        decrease_planned_production();
                     }
                 }
             }
         }
+
+
+    private void decrease_price_bounded()
+    {
+        double before = price;
+        double rand;
+        rand = rnd.uniform(parameter_price);
+        if (price * (1 - rand) > (staff.getWage() / staff.getProductivity()) * 1.1) {
+            price = price * (1 - rand);
+        }
+        decrease_price_bounded = price - before;
+
+    }
+
+    private void decrease_planned_production() {
+
+        planned_production = max(demand, planned_production
+                * (1 - rnd.uniform(parameter_planned_production)));
+
+     }
+
+    private void increase_price()
+    {
+        double before = price;
+        price = price * (1 + rnd.uniform(parameter_price));
+        increase_price = price - before;
+    }
+
+    private void increase_planned_production() {
+        planned_production = Math.min(demand, planned_production
+                * (1 + rnd.uniform(parameter_planned_production)));
     }
 
     public void advertise()
@@ -120,7 +154,7 @@ public class Firm {
                 offer_wage_expats = offer_wage_expats * (1 + rnd.uniform(parameter_wage));
 
             }
-            price = price * (1 + rnd.uniform(parameter_price_if_wage_is_altered));
+            increase_price_wage_altered();
             planned_production = max(staff.getProductivity(), planned_production
                     * (1 - rnd.uniform(parameter_planned_production_if_wage_is_altered)));
         }
@@ -128,7 +162,7 @@ public class Firm {
         if (staff.getProductivity() - average_productivity() > planned_production
                 && can_be_fired.size() == 0)
         {
-            price = price * (1 - rnd.uniform(parameter_price_if_firing_is_impossible));
+            decrease_prices_no_firing();
             planned_production = min(demand, planned_production
                     * (1 + rnd.uniform(parameter_planned_production_if_firing_is_impossible)));
         }
@@ -232,9 +266,27 @@ public class Firm {
                         }
                     }
                 }
-                price = price * (1 + rnd.uniform(parameter_price_if_wage_is_altered));
+                increase_price_wage_no_reduction_possible();
             }
         }
+    }
+
+    private void increase_price_wage_no_reduction_possible() {
+        double before = price;
+        price = price * (1 + rnd.uniform(parameter_price_if_wage_is_altered));
+        increase_price_wage_no_reduction_possible = price - before;
+    }
+
+    private void increase_price_wage_altered() {
+        double before = price;
+        price = price * (1 + rnd.uniform(parameter_price_if_wage_is_altered));
+        increase_price_wage_altered = price - before;
+    }
+
+    private void decrease_prices_no_firing() {
+        double before = price;
+        price = price * (1 - rnd.uniform(parameter_price_if_firing_is_impossible));
+        decrease_prices_no_firing = price - before;
     }
 
     public void produce() {
@@ -404,6 +456,7 @@ public class Firm {
                 planned_production, h_produce(team, 0))) - worker.getAdvertisedWage();        //return price * worker.getProductivity()- worker.job_add.wage;
 
     }
+
 
     boolean net_benefit(Team team, Team potential_team) {
 
