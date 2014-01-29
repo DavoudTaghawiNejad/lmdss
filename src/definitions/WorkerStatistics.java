@@ -21,7 +21,7 @@ public class WorkerStatistics
             this.employed = w.isEmployed();
             if (this.employed)
             {
-                this.profit = w.getProductivity() * price - w.getWage();
+                this.profit = w.getProductivity() * price - w.getWagePrivate();
                 //System.out.println(w.wage);
             } else {
                 this.profit = w.getProductivity() * price - w.getMarket_price();
@@ -39,7 +39,7 @@ public class WorkerStatistics
         for (Worker w:workers)
         {
 
-            if (w.citizenship == Citizenship.SAUDI) {
+            if (w.getCitizenship() == Citizenship.SAUDI) {
                 saudi_profitability.add(new Emp(w, price));
             }
             else {

@@ -17,7 +17,7 @@ public class Firm {
     private final Rnd rnd;
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
-    private Map<Integer, Staff> visastack = new HashMap<Integer, Staff>();
+    private Map<Integer, Group> visastack = new HashMap<Integer, Group>();
 
     public int id;
     public double net_worth;
@@ -36,7 +36,7 @@ public class Firm {
     public int this_round_hire = 0;
     public int this_round_fire = 0;
 
-    public Staff staff = new Staff(this);
+    public Group staff = new Group(this);
 
     private double parameter_planned_production = 400;
 
@@ -118,7 +118,7 @@ public class Firm {
 
     public void advertise()
     {
-        staff.consistency();
+        //staff.consistency();
         if (planned_production > staff.getProductivity())
         {
             newspaper_saudis.place_add(new JobAdd(applications, offer_wage_saudis));
@@ -128,18 +128,15 @@ public class Firm {
 
     public void hiring()
     {
-        Staff can_be_fired;
-        can_be_fired = visastack.remove(day.get());
-        if (can_be_fired == null)
+        Group can_be_fired;
+        can_be_fired = new Group(this);
+        if (visastack.get(day.get()) != null)
         {
-            can_be_fired = new Staff(this);
-        } else
-        {
-            for (Worker worker: can_be_fired.getWorker_list())
+            for (WorkerRecord worker: visastack.remove(day.get()).getWorker_list())
             {
-                if (!staff.contains(worker))
+                if (staff.contains(worker))
                 {
-                    can_be_fired.remove(worker);
+                    can_be_fired.add(worker);
                 }
             }
         }
@@ -168,15 +165,15 @@ public class Firm {
         }
 
         if (applications.size() > 0 || can_be_fired.size() > 0) {
-            ArrayList<Worker> to_consider = new ArrayList<Worker>(applications);
+            ArrayList<WorkerRecord> to_consider = new ArrayList<WorkerRecord>(WorkerArray.convert(applications, day.get()));
             to_consider.addAll(can_be_fired.getWorker_list());
-            ArrayList<Worker> set_aside = new ArrayList<Worker>();
-            Team team = new Team(staff, this);
+            ArrayList<WorkerRecord> set_aside = new ArrayList<WorkerRecord>();
+            Group team = new Group(staff, this);
             team.removeAll(can_be_fired);
-            Team potential_team = new Team(team, this);
-            Worker best = null;
-            Worker best_aside = null;
-            Worker best_apps = null;
+            Group potential_team = new Group(team, this);
+            WorkerRecord best = null;
+            WorkerRecord best_aside = null;
+            WorkerRecord best_apps = null;
             int last_set_aside_size = to_consider.size();
 
             while (planned_production > h_produce(team, 0)) {
@@ -229,12 +226,12 @@ public class Firm {
             }
 
             if ((no_fake_probation) && (team.size() > 0)) {
-                ArrayList<Worker> force_keeps = new ArrayList<Worker>(can_be_fired.getWorker_list());
+                ArrayList<WorkerRecord> force_keeps = new ArrayList<WorkerRecord>(can_be_fired.getWorker_list());
                 force_keeps.removeAll(team.getWorker_list());
                 while (force_keeps.size() > 0
                         && !is_admissible(team)) {
                     best = pop_best(team, force_keeps);
-                    if (best.citizenship == Citizenship.SAUDI) {
+                    if (best.getCitizenship() == Citizenship.SAUDI) {
                         team.add(best);
                     }
                 }
@@ -274,18 +271,21 @@ public class Firm {
     private void increase_price_wage_no_reduction_possible() {
         double before = price;
         price = price * (1 + rnd.uniform(parameter_price_if_wage_is_altered));
+        assert price > before;
         increase_price_wage_no_reduction_possible = price - before;
     }
 
     private void increase_price_wage_altered() {
         double before = price;
         price = price * (1 + rnd.uniform(parameter_price_if_wage_is_altered));
+        assert price > before;
         increase_price_wage_altered = price - before;
     }
 
     private void decrease_prices_no_firing() {
         double before = price;
         price = price * (1 - rnd.uniform(parameter_price_if_firing_is_impossible));
+        assert price < before;
         decrease_prices_no_firing = price - before;
     }
 
@@ -323,16 +323,16 @@ public class Firm {
     public void firing() {
         if ((profit < 0) && (staff.size() > 0)) {
 
-            ArrayList<Worker> to_consider = new ArrayList<Worker>(staff.getWorker_list());
+            ArrayList<WorkerRecord> to_consider = new ArrayList<WorkerRecord>(staff.getWorker_list());
 
-            ArrayList<Worker> set_aside = new ArrayList<Worker>();
-            Team team = new Team(this);
+            ArrayList<WorkerRecord> set_aside = new ArrayList<WorkerRecord>();
+            Group team = new Group(this);
 
-            Team potential_team = new Team(this);
+            Group potential_team = new Group(this);
 
-            Worker best = null;
-            Worker best_aside = null;
-            Worker best_apps = null;
+            WorkerRecord best = null;
+            WorkerRecord best_aside = null;
+            WorkerRecord best_apps = null;
             int last_set_aside_size = to_consider.size();
 
             while (planned_production > h_produce(team, 0)) {
@@ -381,7 +381,7 @@ public class Firm {
                     }
                 }
             }
-            List<Worker> blue_list = new ArrayList<Worker>(staff.getWorker_list());
+            List<WorkerRecord> blue_list = new ArrayList<WorkerRecord>(staff.getWorker_list());
             blue_list.removeAll(team.getWorker_list());
             fire_staff(blue_list);
         }
@@ -395,30 +395,30 @@ public class Firm {
 
     }
 
-    void fire_staff(List<Worker> layoffs) {
+    void fire_staff(List<WorkerRecord> layoffs) {
 
-        for (Worker worker : layoffs) {
+        for (WorkerRecord worker : layoffs) {
             assert staff.contains(worker);
             fire(worker);
             net_hires--;
         }
     }
 
-    Worker pop_best(Team team, List<Worker> to_evaluate) {
+    WorkerRecord pop_best(Group team, List<WorkerRecord> to_evaluate) {
 
-        Worker best = get_best(team, to_evaluate);
+        WorkerRecord best = get_best(team, to_evaluate);
         to_evaluate.remove(best);
         return best;
     }
 
-    Worker get_best(Team team, List<Worker> to_evaluate) {
+    WorkerRecord get_best(Group team, List<WorkerRecord> to_evaluate) {
 
         double max = 0;
         double current;
         if (to_evaluate.size() == 0)
             return null;
-        Worker best = to_evaluate.get(0);
-        for (Worker worker : to_evaluate) {
+        WorkerRecord best = to_evaluate.get(0);
+        for (WorkerRecord worker : to_evaluate) {
             current = net_benefit(team, worker);
             if (current > max) {
                 best = worker;
@@ -429,11 +429,11 @@ public class Firm {
 
     }
 
-    boolean is_admissible(Team team, Worker to_evaluate) {
+    boolean is_admissible(Group team, WorkerRecord to_evaluate) {
 
         double saudi = team.getSaudis();
         double expat = team.getExpats();
-        if (to_evaluate.citizenship == Citizenship.SAUDI)
+        if (to_evaluate.getCitizenship() == Citizenship.SAUDI)
             saudi++;
         else
             expat++;
@@ -441,7 +441,7 @@ public class Firm {
 
     }
 
-    boolean is_admissible(Team team) {
+    boolean is_admissible(Group team) {
         double saudi = team.getSaudis();
         double expat = team.getExpats();
         return (saudi / (saudi + expat) >= sauditization_percentage);
@@ -449,16 +449,16 @@ public class Firm {
     }
 
 
-    double net_benefit(Team team, Worker worker)
+    double net_benefit(Group team, WorkerRecord worker)
     {
         return price
                 * (min(planned_production, h_produce(team, worker.getProductivity())) - min(
-                planned_production, h_produce(team, 0))) - worker.getAdvertisedWage();        //return price * worker.getProductivity()- worker.job_add.wage;
+                planned_production, h_produce(team, 0))) - worker.getWage();        //return price * worker.getProductivity()- worker.job_add.wage;
 
     }
 
 
-    boolean net_benefit(Team team, Team potential_team) {
+    boolean net_benefit(Group team, Group potential_team) {
 
         return price
                 * (min(planned_production, h_produce(potential_team, 0)) - min(
@@ -470,42 +470,41 @@ public class Firm {
 
         int counter = 0;
         for (Worker worker : team) {
-            if (worker.citizenship == citizenship) {
+            if (worker.getCitizenship() == citizenship) {
                 counter += 1;
             }
         }
         return counter;
 
     }
-
-    void hire(Worker worker)
+    void hire(WorkerRecord worker)
     {
         
         staff.add(worker);
-        if (worker.citizenship == Citizenship.SAUDI) {
-            wage_saudis += worker.getAdvertisedWage();
+        if (worker.getCitizenship() == Citizenship.SAUDI) {
+            wage_saudis += worker.getWage();
         } else {
-            wage_expats += worker.getAdvertisedWage();
+            wage_expats += worker.getWage();
             addVisa(worker);
         }
-        worker.sendEmploy(this);
+        worker.getAddress().sendEmploy(this, worker);
         
     }
 
-    void fire(Worker worker)
+    void fire(WorkerRecord worker)
     {
         
         disemploy(worker);
-        worker.sendFire();
+        worker.getAddress().sendFire();
         
     }
 
-    void disemploy(Worker worker)
+    void disemploy(WorkerRecord worker)
     {
         
         staff.remove(worker);
 
-        if (worker.citizenship == Citizenship.SAUDI) {
+        if (worker.getCitizenship() == Citizenship.SAUDI) {
             wage_saudis -= worker.getWage();
         } else {
             wage_expats -= worker.getWage();
@@ -513,18 +512,18 @@ public class Firm {
         
     }
 
-    public void sendQuit(Worker worker)
+    public void sendQuit(WorkerRecord worker)
     {
         disemploy(worker);
     }
 
 
-    int hire_or_fire_staff(Team team, Staff can_be_fired) {
+    int hire_or_fire_staff(Group team, Group can_be_fired) {
 
         int initial_staff = staff.size();
 
 
-        for (Worker worker : team.getWorker_list()) {
+        for (WorkerRecord worker : team.getWorker_list()) {
             if (staff.contains(worker)) {
                 can_be_fired.remove(worker);
                 addVisa(worker);
@@ -536,7 +535,7 @@ public class Firm {
 
         applications.clear();
 
-        for (Worker worker : can_be_fired.getWorker_list()) {
+        for (WorkerRecord worker : can_be_fired.getWorker_list()) {
             assert can_be_fired.count(worker) == 1;
 
             fire(worker);
@@ -583,14 +582,14 @@ public class Firm {
         return (net_worth < 0);
     }
 
-    private void addVisa(Worker worker)
+    private void addVisa(WorkerRecord worker)
     {
         final int visa_length = 365;
         Integer visa_date = day.get() + visa_length;
-        Staff day_list = visastack.get(visa_date);
+        Group day_list = visastack.get(visa_date);
         if (day_list == null)
         {
-            day_list = new Staff(this);
+            day_list = new Group(this);
             visastack.put(visa_date, day_list);
         }
         day_list.add(worker);

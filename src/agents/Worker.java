@@ -3,10 +3,11 @@ package agents;
 import definitions.Citizenship;
 import messages.JobAdd;
 import tools.Rnd;
+import tools.WorkerRecord;
 
 public class Worker
 {
-    public Citizenship citizenship;
+    private Citizenship citizenship;
     private Newspaper newspaper;
     private double wage;
     private double satisficing_wage;
@@ -17,8 +18,13 @@ public class Worker
     private Auctioneer auctioneer;
     private final Rnd rnd;
     private double reapplication_probability;
+    private WorkerRecord worker_record;
 
-    public double getWage() {
+    public Citizenship getCitizenship() {
+        return citizenship;
+    }
+
+    public double getWagePrivate() {
         assert wage > -0.01: wage;
         return wage;
     }
@@ -74,6 +80,7 @@ public class Worker
       
     {
         employer = null;
+        worker_record = null;
         wage = - Double.POSITIVE_INFINITY;
     }
 
@@ -112,20 +119,15 @@ public class Worker
         assert job_add.getWage() > -2: job_add.getWage();
     }
 
-    public void sendEmploy(Firm firm)
+    public void sendEmploy(Firm firm, WorkerRecord new_worker_record)
     {
-    	if (employer == null)
-    	{
-    		employer = firm;
-    		wage = job_add.getWage();
-    	}
-    	else
-    	{
-            employer.sendQuit(this);
-            employer = firm;
-            wage = job_add.getWage();
+        if (employer != null)
+        {
+            employer.sendQuit(worker_record);
         }
-
+        employer = firm;
+        worker_record = new_worker_record;
+        wage = job_add.getWage();
     }
 
     public double getProductivity() {

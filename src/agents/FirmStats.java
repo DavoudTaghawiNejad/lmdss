@@ -146,13 +146,15 @@ public class FirmStats {
         this.staff += firm.staff.size();
         this.hires += firm.this_round_hire;
         this.fires -= firm.this_round_fire;
+        this.increase_price_wage_no_reduction_possible += firm.increase_price_wage_no_reduction_possible;
+        this.decrease_price_bounded += firm.decrease_price_bounded;
+        this.decrease_prices_no_firing += firm.decrease_prices_no_firing;
+        this.increase_price += firm.increase_price;
+        this.increase_price_wage_altered += firm.increase_price_wage_altered;
+
+
         firm.this_round_hire = 0;
         firm.this_round_fire = 0;
-        this.increase_price_wage_no_reduction_possible = firm.increase_price_wage_no_reduction_possible;
-        this.decrease_price_bounded = firm.decrease_price_bounded;
-        this.decrease_prices_no_firing = firm.decrease_prices_no_firing;
-        this.increase_price = firm.increase_price;
-        this.increase_price_wage_altered = firm.increase_price_wage_altered;
         firm.increase_price_wage_no_reduction_possible= 0;
         firm.decrease_price_bounded= 0;
         firm.decrease_prices_no_firing= 0;

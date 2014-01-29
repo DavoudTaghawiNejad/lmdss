@@ -17,21 +17,16 @@ public class Group
     private double wage = 0;
     private int saudis = 0;
     private int expats = 0;
-    protected ArrayList<Worker> worker_list;
+    protected ArrayList<WorkerRecord> worker_list;
     protected Firm employer;
 
-    public ArrayList<Worker> getWorker_list() {
+    public ArrayList<WorkerRecord> getWorker_list() {
         return worker_list;
-    }
-
-    protected double wage(Worker worker)
-    {
-        throw new NotImplementedException();
     }
 
     public Group(Group staff, Group can_be_fired, Firm employer)
     {
-        worker_list = new ArrayList<Worker>(staff.getWorker_list());
+        worker_list = new ArrayList<WorkerRecord>(staff.getWorker_list());
         worker_list.removeAll(can_be_fired.getWorker_list());
         this.employer = employer;
         productivity = staff.getProductivity() - can_be_fired.getProductivity();
@@ -58,17 +53,17 @@ public class Group
     }
 
     public Group(int initialCapacity, Firm employer) {
-        worker_list = new ArrayList<Worker>(initialCapacity);
+        worker_list = new ArrayList<WorkerRecord>(initialCapacity);
         this.employer = employer;
     }
 
     public Group(Firm employer) {
-        worker_list = new ArrayList<Worker>();
+        worker_list = new ArrayList<WorkerRecord>();
         this.employer = employer;
     }
 
     public Group(Group team, Firm employer) {
-        worker_list = new ArrayList<Worker>(team.getWorker_list());
+        worker_list = new ArrayList<WorkerRecord>(team.getWorker_list());
         this.employer = employer;
         productivity = team.getProductivity();
         wage = team.getWage();
@@ -76,15 +71,15 @@ public class Group
         expats = getExpats();
     }
 
-    public Group(List<Worker> team, Firm employer) {
-        worker_list = new ArrayList<Worker>(team);
+    public Group(List<WorkerRecord> team, Firm employer) {
+        worker_list = new ArrayList<WorkerRecord>(team);
         this.employer = employer;
 
-        for(Worker worker: (team))
+        for(WorkerRecord worker: (team))
         {
             productivity += worker.getProductivity();
-            wage += wage(worker);
-            if (worker.citizenship == Citizenship.SAUDI) {
+            wage += worker.getWage();
+            if (worker.getCitizenship() == Citizenship.SAUDI) {
                 saudis++;
             } else {
                 expats++;
@@ -97,10 +92,10 @@ public class Group
         wage += to_add.getWage();
         saudis += to_add.getSaudis();
         expats += to_add.getExpats();
-        return worker_list.addAll((List<Worker>)to_add);
+        return worker_list.addAll((List<WorkerRecord>)to_add);
     }
 
-    public boolean add(Worker worker)
+    public boolean add(WorkerRecord worker)
     {
         if (worker.isEmployee(employer))
         {
@@ -108,8 +103,8 @@ public class Group
         } else {
             wage += worker.getAdvertisedWage();
         }
-        productivity += ((Worker) worker).getProductivity();
-        if (((Worker) worker).citizenship == Citizenship.SAUDI) {
+        productivity += worker.getProductivity();
+        if (worker.getCitizenship() == Citizenship.SAUDI) {
             saudis++;
         } else {
             expats++;
@@ -117,16 +112,16 @@ public class Group
         return worker_list.add(worker);
     }
 
-    public boolean remove(Object worker)
+    public boolean remove(WorkerRecord worker)
     {
-        wage -= wage((Worker)worker);
-        productivity -= ((Worker)worker).getProductivity();
-        if (((Worker)worker).citizenship == Citizenship.SAUDI) {
+        wage -= worker.getWage();
+        productivity -= worker.getProductivity();
+        if (worker.getCitizenship() == Citizenship.SAUDI) {
             saudis--;
         } else {
             expats--;
         }
-        return worker_list.remove((Worker)worker);
+        return worker_list.remove(worker);
     }
 
     public boolean removeAll(Group to_remove)
@@ -138,22 +133,17 @@ public class Group
         return worker_list.removeAll(to_remove.getWorker_list());
     }
 
-    public Group()
-    {
-        throw new NotImplementedException();
-    }
-
     public int size()
     {
         return worker_list.size();
     }
     
-    public boolean contains(Worker worker)
+    public boolean contains(WorkerRecord worker)
     {
         return worker_list.contains(worker);
     }
 
-    public int count(Worker worker)
+    public int count(WorkerRecord worker)
     {
         return Collections.frequency(worker_list, worker);
     }
