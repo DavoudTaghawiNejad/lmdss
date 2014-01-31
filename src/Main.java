@@ -134,6 +134,7 @@ public class Main
         for (int iday = 0; iday < simulation_length; iday++)
         {
             day.set(iday);
+            auctioneer.new_round();
             if (iday < setup_period)
             {
                 create_firms(Math.min(setup_firms, num_firms - firms.size()));
