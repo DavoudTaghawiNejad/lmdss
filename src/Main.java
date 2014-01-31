@@ -139,10 +139,6 @@ public class Main
             {
                 create_firms(Math.min(setup_firms, num_firms - firms.size()));
             }
-            for (Firm firm: firms)
-            {
-                firm.set_prices_demand();
-            }
             newspaper_saudi.clear_job_ads();
             newspaper_expat.clear_job_ads();
             for (Firm firm: firms)
@@ -202,6 +198,10 @@ public class Main
             {
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
                 auctioneer.income *= 10;
+
+            for (Firm firm: firms)
+            {
+                firm.set_prices_demand();
             }
         }
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
