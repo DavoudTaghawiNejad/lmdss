@@ -188,6 +188,10 @@ public class Main
             {
                 //firm.firing();
             }
+            for (Firm firm : firms)
+            {
+                firm.set_prices_demand();
+            }
             for (int h = firms.size() - 1; h >= 0; h--)
             {
                 if (firms.get(h).out_of_business())
@@ -204,16 +208,13 @@ public class Main
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
                 auctioneer.income *= 10;
 
-                for (Firm firm : firms)
-                {
-                    firm.set_prices_demand();
-                }
+
             }
         }
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
     }
 
-    private static void statistics(double iday) {
+    private static void statistics(int iday) {
         if (
             iday >= 500
             && iday % 10 == 0
