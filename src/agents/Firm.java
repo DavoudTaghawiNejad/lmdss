@@ -159,8 +159,8 @@ public class Firm {
 
             }
             increase_price_wage_altered();
-            planned_production = max(staff.getProductivity(), planned_production
-                    * (1 - rnd.uniform(parameter_planned_production_if_wage_is_altered)));
+            //planned_production = max(staff.getProductivity(), planned_production
+            //        * (1 - rnd.uniform(parameter_planned_production_if_wage_is_altered)));
         }
 
         if (staff.getProductivity() - average_productivity() > planned_production
