@@ -20,7 +20,7 @@ public class Firm {
     private Map<Integer, Group> visastack = new HashMap<Integer, Group>();
 
     public int id;
-    public double net_worth;
+    public double net_worth = 1000;
     public double profit;
     public double price = 3;
     public double demand = 1;
