@@ -27,6 +27,7 @@ public class Main
 	private static Newspaper newspaper_saudi;
 	private static Newspaper newspaper_expat;
     private static AtomicInteger day = new AtomicInteger();
+    private static double wage_std;
 
     public static void initialisation()
     {
@@ -47,6 +48,7 @@ public class Main
         setup_period = 500;
         simulation_length = 1600;
         policy_change_time = 1100;
+        wage_std = 764.77 / 30;
         setup_workers = (int) Math.ceil((double)(num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) num_firms / setup_period);
 
@@ -123,13 +125,13 @@ public class Main
                             newspaper_expat,
                             auctioneer,
                             sauditization_percentage,
-                            day)
+                            day,
+                            wage_std)
             );
         }
     }
 
-    public static void run()
-    {
+    public static void run() {
 
         for (int iday = 0; iday < simulation_length; iday++)
         {
@@ -141,14 +143,14 @@ public class Main
             }
             newspaper_saudi.clear_job_ads();
             newspaper_expat.clear_job_ads();
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.advertise();
             }
             newspaper_saudi.calculate_average_wage_offer();
             newspaper_expat.calculate_average_wage_offer();
             int i = 0;
-            for (Worker worker: workers)
+            for (Worker worker : workers)
             {
                 worker.apply();
                 i++;
@@ -157,38 +159,41 @@ public class Main
                     break;
                 }
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.hiring();
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.produce();
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.post_offer();
             }
             auctioneer.compute_market();
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.sell();
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.pay_wage();
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.distribute_profits();
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 //firm.firing();
             }
-            for (int h = firms.size()-1; h >= 0; h--) {
+            for (int h = firms.size() - 1; h >= 0; h--)
+            {
                 if (firms.get(h).out_of_business())
                 {
+                    System.out.println();
+                    System.out.println(firms.get(h));
                     firms.remove(h);
                 }
             }
@@ -199,13 +204,13 @@ public class Main
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
                 auctioneer.income *= 10;
 
-            for (Firm firm: firms)
-            {
-                firm.set_prices_demand();
+                for (Firm firm : firms)
+                {
+                    firm.set_prices_demand();
+                }
             }
         }
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
-
     }
 
     private static void statistics(double iday) {
@@ -243,6 +248,5 @@ public class Main
         run();
         System.out.print("end");
         System.out.print(System.currentTimeMillis() - started);
-
     }
 }

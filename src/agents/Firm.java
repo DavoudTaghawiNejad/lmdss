@@ -58,6 +58,7 @@ public class Firm {
     public double increase_price = 0;
     public double increase_price_wage_altered = 0;
     public int num_applications;
+    private double wage_std;
 
     public void setSauditization_percentage(double sauditization_percentage) {
         this.sauditization_percentage = sauditization_percentage;
@@ -125,8 +126,17 @@ public class Firm {
             || visastack.getOrDefault(day.get(), new Group(this)).size() > 0
            )
         {
-            newspaper_saudis.place_add(new JobAdd(applications, offer_wage_saudis));
-            newspaper_expats.place_add(new JobAdd(applications, offer_wage_expats));
+            double add_wage_saudis;
+            do {
+                add_wage_saudis = rnd.nextGaussian() * wage_std + offer_wage_saudis;
+            } while (add_wage_saudis <= 0);
+            double add_wage_expats;
+            do {
+                add_wage_expats = rnd.nextGaussian() * wage_std + offer_wage_expats;
+            } while (add_wage_expats <= 0);
+
+            newspaper_saudis.place_add(new JobAdd(applications, add_wage_saudis));
+            newspaper_expats.place_add(new JobAdd(applications, add_wage_expats));
         }
     }
 
@@ -566,7 +576,7 @@ public class Firm {
             Newspaper newspaper_expats,
             Auctioneer auctioneer,
             double sauditization_percentage,
-            AtomicInteger day)
+            AtomicInteger day, double wage_std)
     {
         this.id = id;
         this.applications = post_box_applications;
@@ -575,6 +585,7 @@ public class Firm {
         this.auctioneer = auctioneer;
         this.sauditization_percentage = sauditization_percentage;
         this.day = day;
+        this.wage_std = wage_std;
         this.rnd = new Rnd(seed);
     }
 
