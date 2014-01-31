@@ -310,6 +310,7 @@ public class Firm {
     }
 
     public void distribute_profits() {
+        distributed_profits = 0;
         net_worth += profit;
         if (profit < 0.1 * net_worth) {
             distributed_profits = net_worth - 0.9 * profit;
