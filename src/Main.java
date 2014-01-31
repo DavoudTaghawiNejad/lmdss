@@ -57,7 +57,7 @@ public class Main
 
         statistics_firms = new FirmStats(num_firms);
 
-        auctioneer = new Auctioneer();
+        auctioneer = new Auctioneer(0.5, 100000000);
 
         newspaper_saudi = new Newspaper(seed_generator.nextLong());
         newspaper_expat = new Newspaper(seed_generator.nextLong());
