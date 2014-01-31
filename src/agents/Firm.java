@@ -120,7 +120,9 @@ public class Firm {
     public void advertise()
     {
         //staff.consistency();
-        if (planned_production > staff.getProductivity())
+        if (planned_production > staff.getProductivity()
+            || visastack.getOrDefault(day.get(), new Group(this)).size() > 0
+           )
         {
             newspaper_saudis.place_add(new JobAdd(applications, offer_wage_saudis));
             newspaper_expats.place_add(new JobAdd(applications, offer_wage_expats));
