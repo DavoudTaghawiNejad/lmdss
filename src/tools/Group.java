@@ -92,7 +92,7 @@ public class Group
         wage += to_add.getWage();
         saudis += to_add.getSaudis();
         expats += to_add.getExpats();
-        return worker_list.addAll((List<WorkerRecord>)to_add);
+        return worker_list.addAll(to_add.getWorker_list());
     }
 
     public boolean add(WorkerRecord worker)
