@@ -79,10 +79,8 @@ public class Firm {
                 decrease_planned_production();
             else if (staff.size() > 0 )
             {
-                if (demand < staff.getProductivity() ) {
-                    decrease_price_bounded();
-                    } else {
-                        decrease_planned_production();
+                if (demand >= staff.getProductivity() ) {
+                    decrease_planned_production();
                     }
                 }
             }
