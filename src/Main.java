@@ -184,7 +184,7 @@ public class Main
             }
             for (Firm firm: firms)
             {
-                firm.firing();
+                //firm.firing();
             }
             for (int h = firms.size()-1; h >= 0; h--) {
                 if (firms.get(h).out_of_business())
