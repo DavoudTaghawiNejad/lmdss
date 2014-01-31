@@ -57,6 +57,7 @@ public class Firm {
     public double decrease_prices_no_firing = 0;
     public double increase_price = 0;
     public double increase_price_wage_altered = 0;
+    public int num_applications;
 
     public void setSauditization_percentage(double sauditization_percentage) {
         this.sauditization_percentage = sauditization_percentage;
@@ -128,6 +129,7 @@ public class Firm {
 
     public void hiring()
     {
+        num_applications = applications.size();
         Group can_be_fired;
         can_be_fired = new Group(this);
         if (visastack.get(day.get()) != null)
@@ -488,7 +490,7 @@ public class Firm {
             addVisa(worker);
         }
         worker.getAddress().sendEmploy(this, worker);
-        
+        this_round_hire++;
     }
 
     void fire(WorkerRecord worker)
@@ -496,7 +498,7 @@ public class Firm {
         
         disemploy(worker);
         worker.getAddress().sendFire();
-        
+        this_round_fire++;
     }
 
     void disemploy(WorkerRecord worker)
