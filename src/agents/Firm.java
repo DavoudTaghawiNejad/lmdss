@@ -66,10 +66,13 @@ public class Firm {
 
     public void set_prices_demand() {
         if (demand > planned_production) {
-            if (price > market_price) {
+            if (price > market_price)
+            {
                 increase_planned_production();
-            } else if (demand > staff.getProductivity()) {
-                increase_price();
+            }
+            else
+            {
+                    increase_price();
             }
         } else if (demand < planned_production) {
             if (price <= market_price)
