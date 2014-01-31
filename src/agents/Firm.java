@@ -181,7 +181,9 @@ public class Firm {
             WorkerRecord best_apps = null;
             int last_set_aside_size = to_consider.size();
 
-            while (planned_production > h_produce(team, 0)) {
+            while (planned_production > h_produce(team, 0)
+                    && team.getWage() * 30 < net_worth
+                    ) {
 
                 if ((to_consider.size() > 0) && (set_aside.size() == 0)) {
                     best = pop_best(team, to_consider);
