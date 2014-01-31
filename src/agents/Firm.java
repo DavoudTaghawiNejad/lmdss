@@ -38,7 +38,7 @@ public class Firm {
 
     public Group staff = new Group(this);
 
-    private double parameter_planned_production = 400;
+    private double parameter_planned_production = 0.1;
 
     private double parameter_price = 0.025;
     private double parameter_wage = 0.1;
