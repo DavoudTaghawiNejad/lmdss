@@ -45,13 +45,13 @@ public class Main
         final double reapplication_probability = 0.03 / 356;
 
         setup_period = 500;
-        simulation_length = 2000;
-        policy_change_time = 1500;
+        simulation_length = 1600;
+        policy_change_time = 1100;
         setup_workers = (int) Math.ceil((double)(num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) num_firms / setup_period);
 
-        final long seed = (new Random().nextLong());
-        //final long seed = -3818020006778535911L;
+        //final long seed = (new Random().nextLong());
+        final long seed = 5302877246224082029L;
         System.out.println(seed);
         seed_generator = new Random(seed);
 
@@ -195,13 +195,8 @@ public class Main
                     firms.remove(h);
                 }
             }
-            if (iday % 10 == 0)
-            {
-                System.out.print(iday);
-                System.out.print("\t");
-                updateFirmStatistics();
-                System.out.println("");
-            }
+            statistics(iday);
+
             if (iday == policy_change_time)
             {
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
@@ -210,6 +205,24 @@ public class Main
         }
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
 
+    }
+
+    private static void statistics(double iday) {
+        if (
+            iday >= 500
+            && iday % 10 == 0
+           )
+        {
+            System.out.print(iday);
+            System.out.print("\t");
+            updateFirmStatistics();
+            System.out.println("");
+
+        }
+        if (iday == 1200)
+        {
+            WorkerStatistics.net_contribution(workers, auctioneer.market_price, "1200");
+        }
     }
 
 
