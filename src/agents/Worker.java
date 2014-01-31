@@ -43,14 +43,14 @@ public class Worker
         this.auctioneer = auctioneer;
         this.satisficing_wage = satisficing_wage;
         this.productivity = productivity;
-        re_calculate_wage(expat_minimum_wage ,saudi_minimum_wage, expat_tax_percentage, expat_tax_per_head);
+        re_calculate_wage(expat_minimum_wage, saudi_minimum_wage, expat_tax_percentage, expat_tax_per_head);
     }
     
     public boolean isEmployed () {
     	return employer != null;
     }
 
-    public double getMarket_price()
+    public double getMarket_wage()
     {
         return newspaper.getAverage_wage_offer();
     }
@@ -74,7 +74,7 @@ public class Worker
     				saudi_minimum_wage
     				
     		);
-    	} 		
+    	}
     }
     public void sendFire()
       
@@ -93,11 +93,12 @@ public class Worker
             if (
             		job_add.getFirm() != null  // no adds in the newspaper
             		&&
-            		(job_add.getWage()/auctioneer.market_price) > wage_floor //adjust wage floor to inflation..
+            		(job_add.getWage() / auctioneer.market_price) > wage_floor // adjust wage floor to inflation..
                 )
             {
                 job_add.getFirm().add(this);
             }
+
         }
     	else if (this.isEmployed() && citizenship == Citizenship.SAUDI)
     	{

@@ -22,9 +22,10 @@ public class WorkerStatistics
             if (this.employed)
             {
                 this.profit = w.getProductivity() * price - w.getWagePrivate();
+                //assert this.profit != Double.NaN;
                 //System.out.println(w.wage);
             } else {
-                this.profit = w.getProductivity() * price - w.getMarket_price();
+                this.profit = w.getProductivity() * price - w.getMarket_wage();
             }
 
         }
