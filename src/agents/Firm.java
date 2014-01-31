@@ -570,6 +570,8 @@ public class Firm {
         this.rnd = new Rnd(seed);
     }
 
+
+
     public void send_market_price_individual_demand(double market_price, double demand)
     {
         this.market_price = market_price;
@@ -578,8 +580,15 @@ public class Firm {
 
     public boolean out_of_business()
     {
-
-        return (net_worth < 0);
+        if (net_worth < 0)
+        {
+            fire_staff(staff.getWorker_list());
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     private void addVisa(WorkerRecord worker)
