@@ -27,6 +27,7 @@ public class FirmStats {
     public double decrease_prices_no_firing = 0;
     public double increase_price = 0;
     public double increase_price_wage_altered = 0;
+    private int num_applications;
 
     public FirmStats(int num_firms) {
         this.num_firms = num_firms;
@@ -38,7 +39,7 @@ public class FirmStats {
         System.out.print("profit\t");
         System.out.print("price\t");
         System.out.print("demand\t");
-        System.out.print("production\t");
+        System.out.print("production_capacity\t");
         System.out.print("planned_production\t");
         System.out.print("offer_wage_saudi\t");
         System.out.print("offer_wage_expats\t");
@@ -48,6 +49,7 @@ public class FirmStats {
         System.out.print("staff\t");
         System.out.print("hires\t");
         System.out.print("fires\t");
+        System.out.print("applications\t");
         System.out.print("increase_price_wage_no_reduction_possible\t");
         System.out.print("decrease_price_bounded\t");
         System.out.print("decrease_prices_no_firing\t");
@@ -56,7 +58,7 @@ public class FirmStats {
         System.out.println("");
 
     }  
-    public void printcsv()
+    public double printcsv()
     {
         System.out.print(this.num_saudis);
         System.out.print("\t");
@@ -91,6 +93,9 @@ public class FirmStats {
         System.out.print(this.hires);
         System.out.print("\t");
         System.out.print(this.fires);
+        System.out.print("\t");
+        System.out.print(this.num_applications);
+        System.out.print("\t");
         System.out.print(increase_price_wage_no_reduction_possible);
         System.out.print("\t");
         System.out.print(decrease_price_bounded);
@@ -100,6 +105,7 @@ public class FirmStats {
         System.out.print(increase_price);
         System.out.print("\t");
         System.out.print(increase_price_wage_altered);
+        return profit / net_worth;
     }
 
     public void reset() {
@@ -126,6 +132,7 @@ public class FirmStats {
         this.decrease_prices_no_firing = 0;
         this.increase_price = 0;
         this.increase_price_wage_altered = 0;
+        this.num_applications = 0;
     }
 
     public void update(Firm firm) {
@@ -140,12 +147,13 @@ public class FirmStats {
         this.planned_production += firm.planned_production;
         this.offer_wage_saudis += firm.offer_wage_saudis;
         this.offer_wage_expats += firm.offer_wage_expats;
-        this.distributed_profits = firm.distributed_profits;
+        this.distributed_profits += firm.distributed_profits;
         this.wage_saudis += firm.wage_saudis;
         this.wage_expats += firm.wage_expats;
         this.staff += firm.staff.size();
         this.hires += firm.this_round_hire;
         this.fires -= firm.this_round_fire;
+        this.num_applications += firm.num_applications;
         this.increase_price_wage_no_reduction_possible += firm.increase_price_wage_no_reduction_possible;
         this.decrease_price_bounded += firm.decrease_price_bounded;
         this.decrease_prices_no_firing += firm.decrease_prices_no_firing;
