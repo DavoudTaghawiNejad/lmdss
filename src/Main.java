@@ -199,7 +199,7 @@ public class Main
                 updateFirmStatistics();
                 System.out.println("");
                 */
-                DB.SQLiteStatistics(firms, initialTime, day,  num_firms);
+                DB.SQLite_FirmStatistics(firms, initialTime, day,  num_firms);
             }
             
             if (day == policy_change_time)
@@ -207,12 +207,10 @@ public class Main
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
                 auctioneer.income *= 10;
             }
-            //DB.insertFirms(firms, initialTime, day);
 
-            DB.SQLite(firms, initialTime, day);
+            DB.SQLite_insertFirms(firms, initialTime, day);
         }
-        DB.closeSQLite();
-        //DB.executeBatch();
+        DB.SQLite_close();
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
     }
 
