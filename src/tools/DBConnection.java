@@ -8,20 +8,17 @@ import java.util.List;
 
 import agents.Firm;
 
-public class DBConnection {
+public class DBConnection 
+{
 	
 	//database connection setup
-	Connection MySQL_connection = null;
 	Connection SQLite_Connection = null;
 	Statement statement = null;
-	PreparedStatement MySQL_firmPreparedStatement = null;
 	PreparedStatement SQLite_firmPreparedStatement = null;
 	PreparedStatement SQLite_firmStatisticsPreparedStatement = null;
 	String sql = null;
-	
-	
-	
-	// aggrigate parameters to be stored in each iteration (day)
+
+	// Aggregate parameters to be stored in each iteration (day)
     public int num_saudis = 0;
     public int num_expats = 0;
     public double wage_bill = 0;
@@ -38,19 +35,18 @@ public class DBConnection {
     public double wage_expats = 0;
     public int net_hires = 0;
     public int num_firms;
-	
-	
-	
-	
-	
-	public DBConnection (){
-		SQLite_setup();  
 
+
+	public DBConnection ()
+	{
+		SQLite_setup();  
 	}
 	
-	public void SQLite_setup() {
+	public void SQLite_setup() 
+	{
 		Statement stmt = null;
-	    try {
+	    try 
+	    {
 	      Class.forName("org.sqlite.JDBC");
 	      SQLite_Connection = DriverManager.getConnection("jdbc:sqlite:lmdss.db");
 	      SQLite_Connection.prepareStatement("PRAGMA synchronous=OFF;").execute();
@@ -59,7 +55,6 @@ public class DBConnection {
 	      SQLite_Connection.prepareStatement("PRAGMA temp_store=OFF;").execute();
 	      SQLite_Connection.prepareStatement("PRAGMA default_temp_store=OFF;").execute();
 	      SQLite_Connection.setAutoCommit(false);
-	      
 	      
 	      // create the individual firms' database table
 	      stmt = SQLite_Connection.createStatement();
@@ -86,11 +81,8 @@ public class DBConnection {
 	      stmt.executeUpdate(sql);
 	      
 	      sql = "INSERT INTO firms VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-		   SQLite_firmPreparedStatement = SQLite_Connection.prepareStatement(sql);
+		  SQLite_firmPreparedStatement = SQLite_Connection.prepareStatement(sql);
 
-	      
-	      
-	      
 	      //create the aggrigate firms' data table
 	      stmt = SQLite_Connection.createStatement();
 	      sql = "CREATE TABLE IF NOT EXISTS firm_statistics ("+
@@ -118,23 +110,22 @@ public class DBConnection {
 	      sql = "INSERT INTO firm_statistics VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	      SQLite_firmStatisticsPreparedStatement = SQLite_Connection.prepareStatement(sql);
 
-	      
-	      
-	      
 	      stmt.close();
 	      
-	    } catch ( Exception e ) {
+	    }
+	    catch ( Exception e )
+	    {
 		      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 		      e.printStackTrace();
 		      System.exit(0);
-		    }
-
-	      
+		}
 	}
 	
-	public void SQLite_insertFirms(List<Firm> firms, long experamentID,int day) {
-	    try {
-		   for (Firm firm: firms)
+	public void SQLite_insertFirms(List<Firm> firms, long experamentID,int day)
+	{
+	    try 
+	    {
+			for (Firm firm: firms)
 	        {
 				SQLite_firmPreparedStatement.setLong(1, experamentID);
 				SQLite_firmPreparedStatement.setInt(2, day);
@@ -161,18 +152,17 @@ public class DBConnection {
 			SQLite_firmPreparedStatement.executeBatch();
 			SQLite_firmPreparedStatement.clearBatch();
 
-			
-	    } catch ( Exception e ) {
-	      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-	      System.exit(0);
 	    }
-
-
+	    catch ( Exception e )
+	    {
+	    	System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+	    	System.exit(0);
+	    }
 	}
 	
-	
-	
-	public void SQLite_FirmStatistics(List<Firm> firms, long experamentID,int day, int num_firms){
+		
+	public void SQLite_FirmStatistics(List<Firm> firms, long experamentID,int day, int num_firms)
+	{
 		//reset the statistics for each iteration (Day..)
         this.num_saudis = 0;
         this.num_expats = 0;
@@ -196,25 +186,26 @@ public class DBConnection {
         for (Firm firm: firms)
         {
         	this.num_saudis += firm.num_saudis;
-            this.num_expats += firm.num_expats;
-            this.wage_bill += firm.wage_bill;
-            this.net_worth += firm.net_worth;
-            this.profit += firm.profit;
-            this.price += firm.price;
-            this.demand += firm.demand;
-            this.production += firm.production;
-            this.planned_production += firm.planned_production;
-            this.offer_wage_saudis += firm.offer_wage_saudis;
-            this.offer_wage_expats += firm.offer_wage_expats;
-            this.distributed_profits = firm.distributed_profits;
-            this.wage_saudis += firm.wage_saudis;
-            this.wage_expats += firm.wage_expats;
-            this.net_hires += firm.net_hires;
-            firm.net_hires = 0;
+        	this.num_expats += firm.num_expats;
+        	this.wage_bill += firm.wage_bill;
+        	this.net_worth += firm.net_worth;
+        	this.profit += firm.profit;
+        	this.price += firm.price;
+        	this.demand += firm.demand;
+        	this.production += firm.production;
+        	this.planned_production += firm.planned_production;
+        	this.offer_wage_saudis += firm.offer_wage_saudis;
+        	this.offer_wage_expats += firm.offer_wage_expats;
+        	this.distributed_profits = firm.distributed_profits;
+        	this.wage_saudis += firm.wage_saudis;
+        	this.wage_expats += firm.wage_expats;
+        	this.net_hires += firm.net_hires;
+        	firm.net_hires = 0;
         }
         
         //inserting the current iteration (Day..)'s syayistics into the database
-	    try {
+	    try
+	    {
 			   SQLite_firmStatisticsPreparedStatement.setLong(1, experamentID);
 			   SQLite_firmStatisticsPreparedStatement.setInt(2, day);
 			   SQLite_firmStatisticsPreparedStatement.setInt(3, this.num_saudis );
@@ -236,116 +227,31 @@ public class DBConnection {
 			   
 			   
 			   SQLite_firmStatisticsPreparedStatement.addBatch();
-	    } catch ( Exception e ) {
-	      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-	      e.printStackTrace();
-	      System.exit(0);
 	    }
-
-        
-        
-	}
-	
-
-	
-	public void SQLite_close(){
-		try {
-			
-
-	   SQLite_firmStatisticsPreparedStatement.executeBatch();
-	   SQLite_firmStatisticsPreparedStatement.clearBatch();
-
-			
-		SQLite_Connection.commit();
-		SQLite_Connection.close();
-	      
-	    } catch ( Exception e ) {
-	      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-	      System.exit(0);
-	    }
-
-	}
-	
-	
-	
-	
-
-	public void MySQL_setup(){
-		// This will load the MySQL driver, each DB has its own driver
-		
-		try
-		{
-			Class.forName("com.mysql.jdbc.Driver");
-		      // Setup the connection with the DB
-		      MySQL_connection = DriverManager
-		          .getConnection("jdbc:mysql://localhost/saudifirms?"
-		              + "user=root&password=4569515"
-		              + "&rewriteBatchedStatements=true" );
-
-		      //connect.setAutoCommit(false);
-		      //this prepares a query to insert a firm intothe DB
-		      String query = "INSERT INTO `saudiFirms`.`firms` VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-			   MySQL_firmPreparedStatement = MySQL_connection.prepareStatement(query);
+	    catch ( Exception e )
+	    {
+	    	System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+	    	e.printStackTrace();
+	    	System.exit(0);
 		}
-		catch (Exception e)
-		{
-    		System.err.println("Error: " + e.getMessage());
-    		e.printStackTrace();		
-		}		
 	}
-	
-	public void MySQL_insertFirms(List<Firm> firms, long experamentID,int day)
+
+
+	public void SQLite_close()
 	{
-
 		try
 		{
-			for (Firm firm: firms)
-	        {
-				MySQL_firmPreparedStatement.setLong(1, experamentID);
-				MySQL_firmPreparedStatement.setInt(2, day);
-				MySQL_firmPreparedStatement.setDouble(3, firm.wage_bill);
-				MySQL_firmPreparedStatement.setInt(4, firm.num_expats);
-				MySQL_firmPreparedStatement.setInt(5, firm.num_saudis);
-				MySQL_firmPreparedStatement.setInt(6, firm.id);
-				MySQL_firmPreparedStatement.setDouble(7, firm.net_worth);
-				MySQL_firmPreparedStatement.setDouble(8, firm.profit);
-				MySQL_firmPreparedStatement.setDouble(9, firm.price);
-				MySQL_firmPreparedStatement.setDouble(10, firm.demand);
-				MySQL_firmPreparedStatement.setDouble(11, firm.market_price);
-				MySQL_firmPreparedStatement.setDouble(12, firm.production);
-				MySQL_firmPreparedStatement.setDouble(13, firm.planned_production);
-				MySQL_firmPreparedStatement.setDouble(14, firm.offer_wage_saudis);
-				MySQL_firmPreparedStatement.setDouble(15, firm.offer_wage_expats);
-				MySQL_firmPreparedStatement.setDouble(16, firm.distributed_profits);
-				MySQL_firmPreparedStatement.setDouble(17, firm.wage_saudis);
-				MySQL_firmPreparedStatement.setDouble(18, firm.wage_expats);
-				
-				MySQL_firmPreparedStatement.addBatch();             
-	        }
-
-		}
-		catch (Exception e)
+			SQLite_firmStatisticsPreparedStatement.executeBatch();
+			SQLite_firmStatisticsPreparedStatement.clearBatch();
+			
+					
+			SQLite_Connection.commit();
+			SQLite_Connection.close();
+	    }
+		catch ( Exception e )
 		{
-    		System.err.println("Error: " + e.getMessage());
-    		e.printStackTrace();		
-    	}
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.exit(0);
+	    }
 	}
-	
-	public void executeBatch () {
-		
-		try{
-			MySQL_firmPreparedStatement.executeBatch();
-			MySQL_firmPreparedStatement.clearBatch(); 			
-		}
-		catch (Exception e)
-		{
-    		System.err.println("Error: " + e.getMessage());
-    		e.printStackTrace();		
-    	}
-		
-	}
-
-	
-	
-	
 }
