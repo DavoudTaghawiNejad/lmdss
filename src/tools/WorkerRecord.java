@@ -45,10 +45,6 @@ public class WorkerRecord
         return worker.isEmployee(employer);
     }
 
-    public double getAdvertisedWage() {
-        return worker.getAdvertisedWage();
-    }
-
     public Worker getAddress() {
         return worker;
     }

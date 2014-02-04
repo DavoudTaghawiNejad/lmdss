@@ -97,12 +97,7 @@ public class Group
 
     public boolean add(WorkerRecord worker)
     {
-        if (worker.isEmployee(employer))
-        {
-            wage += worker.getWage();
-        } else {
-            wage += worker.getAdvertisedWage();
-        }
+        wage += worker.getWage();
         productivity += worker.getProductivity();
         if (worker.getCitizenship() == Citizenship.SAUDI) {
             saudis++;
