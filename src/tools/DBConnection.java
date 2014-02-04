@@ -53,7 +53,13 @@ public class DBConnection {
 	    try {
 	      Class.forName("org.sqlite.JDBC");
 	      SQLite_Connection = DriverManager.getConnection("jdbc:sqlite:lmdss.db");
+	      SQLite_Connection.prepareStatement("PRAGMA synchronous=OFF;").execute();
+	      SQLite_Connection.prepareStatement("PRAGMA journal_mode=OFF;").execute();
+	      SQLite_Connection.prepareStatement("PRAGMA count_changes=OFF;").execute();
+	      SQLite_Connection.prepareStatement("PRAGMA temp_store=OFF;").execute();
+	      SQLite_Connection.prepareStatement("PRAGMA default_temp_store=OFF;").execute();
 	      SQLite_Connection.setAutoCommit(false);
+	      
 	      
 	      // create the individual firms' database table
 	      stmt = SQLite_Connection.createStatement();
@@ -213,15 +219,15 @@ public class DBConnection {
 			   SQLite_firmStatisticsPreparedStatement.setInt(2, day);
 			   SQLite_firmStatisticsPreparedStatement.setInt(3, this.num_saudis );
 			   SQLite_firmStatisticsPreparedStatement.setInt(4, this.num_expats );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(5, this.wage_bill );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(6, this.net_worth );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(7, this.profit );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(8, this.price );
+			   SQLite_firmStatisticsPreparedStatement.setDouble(5, this.wage_bill / num_firms);
+			   SQLite_firmStatisticsPreparedStatement.setDouble(6, this.net_worth / num_firms);
+			   SQLite_firmStatisticsPreparedStatement.setDouble(7, this.profit / num_firms);
+			   SQLite_firmStatisticsPreparedStatement.setDouble(8, this.price / num_firms);
 			   SQLite_firmStatisticsPreparedStatement.setDouble(9, this.demand );
 			   SQLite_firmStatisticsPreparedStatement.setDouble(10, this.production );
 			   SQLite_firmStatisticsPreparedStatement.setDouble(11, this.planned_production );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(12, this.offer_wage_saudis );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(13, this.offer_wage_expats );
+			   SQLite_firmStatisticsPreparedStatement.setDouble(12, this.offer_wage_saudis / num_firms);
+			   SQLite_firmStatisticsPreparedStatement.setDouble(13, this.offer_wage_expats / num_firms);
 			   SQLite_firmStatisticsPreparedStatement.setDouble(14, this.distributed_profits );
 			   SQLite_firmStatisticsPreparedStatement.setDouble(15, this.wage_saudis );
 			   SQLite_firmStatisticsPreparedStatement.setDouble(16, this.wage_expats );
