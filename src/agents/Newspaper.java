@@ -14,13 +14,13 @@ public class Newspaper {
 	public java.util.List<JobAdd> job_adds = new ArrayList<JobAdd>();
 
     JobAdd get_add() {
-
 		JobAdd job_add = null;
 		if (job_adds.size() == 0) {
-			return new JobAdd(null, -1);
+			return null;
+
 		}
 		double total_wage = 0;
-		double choice = 0;
+		double choice;
 		for (JobAdd add : job_adds)
         {
 			total_wage += add.getWage();
@@ -35,8 +35,8 @@ public class Newspaper {
 				break;
 			}
 		}
+        assert job_add != null: total_wage;
         return job_add;
-
 	}
 
 	public void calculate_average_wage_offer() {

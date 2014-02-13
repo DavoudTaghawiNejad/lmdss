@@ -86,19 +86,18 @@ public class Worker
 
     public void apply()
     {
-    	if (!this.isEmployed())
+        if (!this.isEmployed())
         {
     		job_add = newspaper.get_add();
 
             if (
-            		job_add.getFirm() != null  // no adds in the newspaper
+            		job_add != null  // no adds in the newspaper
             		&&
             		(job_add.getWage() / auctioneer.market_price) > wage_floor // adjust wage floor to inflation..
                 )
             {
                 job_add.getFirm().add(this);
             }
-
         }
     	else if (this.isEmployed() && citizenship == Citizenship.SAUDI)
     	{
@@ -106,7 +105,7 @@ public class Worker
             {
                 job_add = newspaper.get_add();
                 if (
-                        job_add.getFirm() != null // no adds in the newspaper
+                        job_add != null // no adds in the newspaper
                         &&
                         job_add.getWage() > wage
                         &&
@@ -117,7 +116,6 @@ public class Worker
                 }
             }
         }
-        assert job_add.getWage() > -2: job_add.getWage();
     }
 
     public void sendEmploy(Firm firm, WorkerRecord new_worker_record)
