@@ -1,6 +1,7 @@
 package agents;
 import messages.FirmQuantity;
 
+
 public class Auctioneer {
 	public double love_for_variety;
     public double q;
@@ -77,7 +78,7 @@ public class Auctioneer {
 
 	double demand_schedule(double pi) {
 
-		return ((income / market_price) / q)
+		return (income / q)
 				* Math.pow((q / pi), (1 / (1 - love_for_variety)));
 
 	}
