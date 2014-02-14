@@ -22,12 +22,10 @@ public class Firm {
     public int id;
     public double net_worth = 1000;
     public double profit;
-    public double price = 3;
+    public double price = 300;
     public double demand = 1;
-    public double market_price = 3;
+    public double market_price = 300;
     public double planned_production = 400;
-    public double offer_wage_saudis = 10;
-    public double offer_wage_expats = 10;
     public double distributed_profits;
     public double wage_saudis = 0;
     public double wage_expats = 0;
@@ -40,52 +38,48 @@ public class Firm {
 
     private double parameter_planned_production = 0.1;
 
-    private double parameter_price = 0.025;
-    private double parameter_wage = 0.1;
-    private double parameter_price_if_wage_is_altered = 0.1;
-    private double parameter_planned_production_if_wage_is_altered = 0.1;
-    private double parameter_price_if_firing_is_impossible = 0.1;
-    private double parameter_planned_production_if_firing_is_impossible = 0.1;
+    private double parameter_price = 2.0 / 356.0;
     public boolean no_fake_probation;
 
     private double sauditization_percentage;
     private Auctioneer auctioneer;
-    public int net_hires = 0;
     private AtomicInteger day;
-    public double increase_price_wage_no_reduction_possible = 0;
-    public double decrease_price_bounded = 0;
-    public double decrease_prices_no_firing = 0;
-    public double increase_price = 0;
-    public double increase_price_wage_altered = 0;
+    public int net_hires = 0;
+    public double stats_increase_price = 0;
     public int num_applications;
     private double wage_std;
+    public double accepted_wage_expats = 10;
+    public double accepted_wage_saudis = 10;
+    public double stats_decrease_price_bounded;
 
     public void setSauditization_percentage(double sauditization_percentage) {
         this.sauditization_percentage = sauditization_percentage;
     }
 
-
-    public void set_prices_demand() {
-        if (demand > planned_production) {
-            if (price > market_price)
-            {
-                increase_planned_production();
-            }
-            else
-            {
-                    increase_price();
-            }
-        } else if (demand < planned_production) {
-            if (price <= market_price)
-                decrease_planned_production();
-            else if (staff.size() > 0 )
-            {
-                if (demand >= staff.getProductivity() ) {
-                    decrease_planned_production();
-                    }
-                }
-            }
+    /**
+     * adapts prices if production is not in line with planned_production
+     * adapts planned_production, when demand is changed
+     */
+    public void set_prices_demand()
+    {
+        if (staff.getProductivity() > planned_production + average_productivity())
+        {
+                decrease_price_bounded();
         }
+        else if (staff.getProductivity() < planned_production - average_productivity())
+        {
+                increase_price();
+        }
+
+        if (demand > planned_production)
+        {
+            increase_planned_production();
+        }
+        else
+        {
+            decrease_planned_production_bounded();
+        }
+    }
 
 
     private void decrease_price_bounded()
@@ -96,7 +90,7 @@ public class Firm {
         if (price * (1 - rand) > (staff.getWage() / staff.getProductivity()) * 1.1) {
             price = price * (1 - rand);
         }
-        decrease_price_bounded = price - before;
+        stats_decrease_price_bounded = price - before;
 
     }
 
@@ -107,11 +101,27 @@ public class Firm {
 
      }
 
+    /**
+     * Decreases planned_production by a random number; never below demand.
+     * There is no decrease is planned_production, when pp is close to actual production.
+     * (2 times the average production)
+     */
+    private void decrease_planned_production_bounded() {
+        double before  = planned_production;
+        planned_production = max(demand, planned_production
+                * (1 - rnd.uniform(parameter_planned_production)));
+
+        if (planned_production < staff.getProductivity() && planned_production > staff.getProductivity() - 2 * average_productivity())
+        {
+            planned_production = min(before, staff.getProductivity());
+        }
+     }
+
     private void increase_price()
     {
         double before = price;
         price = price * (1 + rnd.uniform(parameter_price));
-        increase_price = price - before;
+        stats_increase_price = price - before;
     }
 
     private void increase_planned_production() {
@@ -119,32 +129,50 @@ public class Firm {
                 * (1 + rnd.uniform(parameter_planned_production)));
     }
 
+    /**
+     * If production should be expanded or people can be fired, Advertisments are set with
+     * the wage is the average wage of workers plus a random term.
+     */
     public void advertise()
     {
-        //staff.consistency();
         if (planned_production > staff.getProductivity()
             || visastack.getOrDefault(day.get(), new Group(this)).size() > 0
            )
         {
             double add_wage_saudis;
-            do {
-                add_wage_saudis = rnd.nextGaussian() * wage_std + offer_wage_saudis;
-            } while (add_wage_saudis <= 0);
             double add_wage_expats;
-            do {
-                add_wage_expats = rnd.nextGaussian() * wage_std + offer_wage_expats;
-            } while (add_wage_expats <= 0);
+
+            if (wage_saudis != 0 &&
+                staff.getSaudis() != 0)
+            {
+                do {
+                    add_wage_saudis = wage_saudis / staff.getSaudis() * (1 + rnd.nextGaussian());
+                } while (add_wage_saudis <= 0);
+            }
+            {
+                add_wage_saudis = 10;
+                //TODO set to average wage
+            }
+            if (wage_expats != 0 &&
+                    staff.getExpats() != 0)
+            {
+                do {
+                    add_wage_expats = wage_expats / staff.getExpats() * (1 + rnd.nextGaussian());
+                } while (add_wage_expats <= 0);
+            }
+            else
+            {
+             add_wage_expats = 10;
+            }
 
             newspaper_saudis.place_add(new JobAdd(applications, add_wage_saudis));
             newspaper_expats.place_add(new JobAdd(applications, add_wage_expats));
         }
     }
-
-    public void hiring()
+    public void hiring_()
     {
         num_applications = applications.size();
-        Group can_be_fired;
-        can_be_fired = new Group(this);
+        Group can_be_fired = new Group(this);
         if (visastack.get(day.get()) != null)
         {
             for (WorkerRecord worker: visastack.remove(day.get()).getWorker_list())
@@ -155,28 +183,34 @@ public class Firm {
                 }
             }
         }
-
-        if (planned_production > staff.getProductivity() && applications.size() == 0) {
-            if (offer_wage_saudis <= newspaper_saudis.getAverage_wage_offer())
-            {
-                offer_wage_saudis = offer_wage_saudis * (1 + rnd.uniform(parameter_wage));
-            }
-            if (offer_wage_expats <= newspaper_expats.getAverage_wage_offer())
-            {
-                offer_wage_expats = offer_wage_expats * (1 + rnd.uniform(parameter_wage));
-
-            }
-            increase_price_wage_altered();
-            //planned_production = max(staff.getProductivity(), planned_production
-            //        * (1 - rnd.uniform(parameter_planned_production_if_wage_is_altered)));
-        }
-
-        if (staff.getProductivity() - average_productivity() > planned_production
-                && can_be_fired.size() == 0)
+        Group team = new Group(staff, this);
+        team.removeAll(can_be_fired);
+        ArrayList<WorkerRecord> to_consider = new ArrayList<WorkerRecord>(WorkerArray.convert(applications, day.get()));
+        WorkerRecord best;
+        while (planned_production > h_produce(team, 0) && to_consider.size() > 0)
         {
-            decrease_prices_no_firing();
-            planned_production = min(demand, planned_production
-                    * (1 + rnd.uniform(parameter_planned_production_if_firing_is_impossible)));
+            best = pop_best(team, to_consider);
+            if (net_benefit(team, best) > 0)
+            {
+                team.add(best);
+            }
+        }
+        net_hires = hire_or_fire_staff(team, can_be_fired);
+    }
+
+    public void hiring()
+    {
+        num_applications = applications.size();
+        Group can_be_fired = new Group(this);
+        if (visastack.get(day.get()) != null)
+        {
+            for (WorkerRecord worker: visastack.remove(day.get()).getWorker_list())
+            {
+                if (staff.contains(worker))
+                {
+                    can_be_fired.add(worker);
+                }
+            }
         }
 
         if (applications.size() > 0 || can_be_fired.size() > 0) {
@@ -255,55 +289,7 @@ public class Firm {
             }
 
             net_hires = hire_or_fire_staff(team, can_be_fired);
-
-            if (planned_production > h_produce(staff, 0)
-                    + average_productivity()
-                    && net_hires <= 0 && applications.size() > 0) {
-                if (set_aside.size() == 0) {
-                    if (offer_wage_saudis >= newspaper_saudis.getAverage_wage_offer()) {
-                        offer_wage_saudis = offer_wage_saudis
-                                * (1 - rnd.uniform(parameter_wage));
-                    }
-                    if (offer_wage_expats >= newspaper_expats.getAverage_wage_offer()) {
-                        offer_wage_expats = offer_wage_expats
-                                * (1 - rnd.uniform(parameter_wage));
-                    }
-                } else {
-                    if (count_citizenship(applications, Citizenship.SAUDI) == 0) {
-                        if (offer_wage_saudis <= newspaper_saudis.getAverage_wage_offer()) {
-                            offer_wage_saudis = offer_wage_saudis * (1 + rnd.uniform(parameter_wage));
-                        }
-                    }
-                    if (count_citizenship(applications, Citizenship.EXPAT) == 0) {
-                        if (offer_wage_saudis >= newspaper_saudis.getAverage_wage_offer()) {
-                            offer_wage_saudis = offer_wage_saudis * (1 - rnd.uniform(parameter_wage));
-                        }
-                    }
-                }
-                increase_price_wage_no_reduction_possible();
-            }
         }
-    }
-
-    private void increase_price_wage_no_reduction_possible() {
-        double before = price;
-        price = price * (1 + rnd.uniform(parameter_price_if_wage_is_altered));
-        assert price > before;
-        increase_price_wage_no_reduction_possible = price - before;
-    }
-
-    private void increase_price_wage_altered() {
-        double before = price;
-        price = price * (1 + rnd.uniform(parameter_price_if_wage_is_altered));
-        assert price > before;
-        increase_price_wage_altered = price - before;
-    }
-
-    private void decrease_prices_no_firing() {
-        double before = price;
-        price = price * (1 - rnd.uniform(parameter_price_if_firing_is_impossible));
-        assert price < before;
-        decrease_prices_no_firing = price - before;
     }
 
     public void produce() {
@@ -417,7 +403,7 @@ public class Firm {
 
         for (WorkerRecord worker : layoffs) {
             assert staff.contains(worker);
-            fire(worker);
+            worker.getAddress().sendFire();
             net_hires--;
         }
     }
@@ -497,7 +483,7 @@ public class Firm {
     }
     void hire(WorkerRecord worker)
     {
-        
+
         staff.add(worker);
         if (worker.getCitizenship() == Citizenship.SAUDI) {
             wage_saudis += worker.getWage();
@@ -511,7 +497,7 @@ public class Firm {
 
     void fire(WorkerRecord worker)
     {
-        
+
         disemploy(worker);
         worker.getAddress().sendFire();
         this_round_fire++;
@@ -519,7 +505,7 @@ public class Firm {
 
     void disemploy(WorkerRecord worker)
     {
-        
+
         staff.remove(worker);
 
         if (worker.getCitizenship() == Citizenship.SAUDI) {
@@ -527,7 +513,7 @@ public class Firm {
         } else {
             wage_expats -= worker.getWage();
         }
-        
+
     }
 
     public void sendQuit(WorkerRecord worker)
@@ -539,8 +525,6 @@ public class Firm {
     int hire_or_fire_staff(Group team, Group can_be_fired) {
 
         int initial_staff = staff.size();
-
-
         for (WorkerRecord worker : team.getWorker_list()) {
             if (staff.contains(worker)) {
                 can_be_fired.remove(worker);
@@ -548,19 +532,31 @@ public class Firm {
             } else {
                 applications.remove(worker);
                 hire(worker);
+                update_wage(worker.getCitizenship(), worker.getWage());
             }
         }
 
         applications.clear();
 
         for (WorkerRecord worker : can_be_fired.getWorker_list()) {
-            assert can_be_fired.count(worker) == 1;
 
             fire(worker);
         }
         can_be_fired.clear();
 
         return staff.size() - initial_staff;
+    }
+
+    private void update_wage(Citizenship citizenship, double wage)
+    {
+        if (citizenship == Citizenship.SAUDI)
+        {
+            accepted_wage_saudis = wage;
+        }
+        else
+        {
+            accepted_wage_expats = wage;
+        }
     }
 
     double average_productivity()

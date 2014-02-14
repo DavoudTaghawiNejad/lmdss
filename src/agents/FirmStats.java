@@ -22,7 +22,6 @@ public class FirmStats {
     private int hires = 0;
     private int fires = 0;
     private int last_staff = 0;
-    public double increase_price_wage_no_reduction_possible = 0;
     public double decrease_price_bounded = 0;
     public double decrease_prices_no_firing = 0;
     public double increase_price = 0;
@@ -30,8 +29,8 @@ public class FirmStats {
     private int num_applications;
 
     public FirmStats(int num_firms) {
-        this.num_firms = num_firms;
         System.out.print("time\t");
+        System.out.print("num_firms\t");
         System.out.print("employment_saudis\t");
         System.out.print("employment_expats\t");
         System.out.print("wage_bill\t");
@@ -50,7 +49,6 @@ public class FirmStats {
         System.out.print("hires\t");
         System.out.print("fires\t");
         System.out.print("applications\t");
-        System.out.print("increase_price_wage_no_reduction_possible\t");
         System.out.print("decrease_price_bounded\t");
         System.out.print("decrease_prices_no_firing\t");
         System.out.print("increase_price\t");
@@ -60,6 +58,8 @@ public class FirmStats {
     }  
     public double printcsv()
     {
+        System.out.print(this.num_firms);
+        System.out.print("\t");
         System.out.print(this.num_saudis);
         System.out.print("\t");
         System.out.print(this.num_expats);
@@ -96,8 +96,6 @@ public class FirmStats {
         System.out.print("\t");
         System.out.print(this.num_applications);
         System.out.print("\t");
-        System.out.print(increase_price_wage_no_reduction_possible);
-        System.out.print("\t");
         System.out.print(decrease_price_bounded);
         System.out.print("\t");
         System.out.print(decrease_prices_no_firing);
@@ -109,6 +107,7 @@ public class FirmStats {
     }
 
     public void reset() {
+        this.num_firms = 0;
         this.num_saudis = 0;
         this.num_expats = 0;
         this.wage_bill = 0;
@@ -127,7 +126,6 @@ public class FirmStats {
         this.staff = 0;
         this.hires = 0;
         this.fires = 0;
-        this.increase_price_wage_no_reduction_possible = 0;
         this.decrease_price_bounded = 0;
         this.decrease_prices_no_firing = 0;
         this.increase_price = 0;
@@ -136,6 +134,7 @@ public class FirmStats {
     }
 
     public void update(Firm firm) {
+        this.num_firms++;
         this.num_saudis += firm.staff.getSaudis();
         this.num_expats += firm.staff.getExpats();
         this.wage_bill += firm.staff.getWage();
@@ -145,8 +144,8 @@ public class FirmStats {
         this.demand += firm.demand;
         this.production += firm.staff.getProductivity();
         this.planned_production += firm.planned_production;
-        this.offer_wage_saudis += firm.offer_wage_saudis;
-        this.offer_wage_expats += firm.offer_wage_expats;
+        this.offer_wage_saudis += firm.accepted_wage_saudis;
+        this.offer_wage_expats += firm.accepted_wage_expats;
         this.distributed_profits += firm.distributed_profits;
         this.wage_saudis += firm.wage_saudis;
         this.wage_expats += firm.wage_expats;
@@ -154,19 +153,13 @@ public class FirmStats {
         this.hires += firm.this_round_hire;
         this.fires -= firm.this_round_fire;
         this.num_applications += firm.num_applications;
-        this.increase_price_wage_no_reduction_possible += firm.increase_price_wage_no_reduction_possible;
-        this.decrease_price_bounded += firm.decrease_price_bounded;
-        this.decrease_prices_no_firing += firm.decrease_prices_no_firing;
-        this.increase_price += firm.increase_price;
-        this.increase_price_wage_altered += firm.increase_price_wage_altered;
+        this.increase_price += firm.stats_increase_price;
+        this.decrease_price_bounded += firm.stats_decrease_price_bounded;
 
 
         firm.this_round_hire = 0;
         firm.this_round_fire = 0;
-        firm.increase_price_wage_no_reduction_possible= 0;
-        firm.decrease_price_bounded= 0;
-        firm.decrease_prices_no_firing= 0;
-        firm.increase_price= 0;
-        firm.increase_price_wage_altered= 0;
+        firm.stats_increase_price= 0;
+        firm.stats_decrease_price_bounded= 0;
     }
 }
