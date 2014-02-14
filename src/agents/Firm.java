@@ -27,30 +27,31 @@ public class Firm {
     public double market_price = 300;
     public double planned_production = 400;
     public double distributed_profits;
-    public double wage_saudis = 0;
-    public double wage_expats = 0;
-
+    private double wage_saudis = 0;
+    private double wage_expats = 0;
     private List<Worker> applications;
     public int this_round_hire = 0;
     public int this_round_fire = 0;
-
     public Group staff = new Group(this);
 
     private double parameter_planned_production = 0.1;
 
     private double parameter_price = 2.0 / 356.0;
-    public boolean no_fake_probation;
 
+    public boolean no_fake_probation;
     private double sauditization_percentage;
     private Auctioneer auctioneer;
     private AtomicInteger day;
     public int net_hires = 0;
     public double stats_increase_price = 0;
     public int num_applications;
-    private double wage_std;
-    public double accepted_wage_expats = 10;
-    public double accepted_wage_saudis = 10;
+    public double stats_accepted_wage_expats;
+    public double stats_accepted_wage_saudis;
+    public int stats_new_hires_saudi;
+    public int stats_new_hires_expat;
     public double stats_decrease_price_bounded;
+    public double stats_offer_wage_expats;
+    public double stats_offer_wage_saudis;
 
     public void setSauditization_percentage(double sauditization_percentage) {
         this.sauditization_percentage = sauditization_percentage;
@@ -167,6 +168,8 @@ public class Firm {
 
             newspaper_saudis.place_add(new JobAdd(applications, add_wage_saudis));
             newspaper_expats.place_add(new JobAdd(applications, add_wage_expats));
+            stats_offer_wage_saudis = add_wage_saudis;
+            stats_offer_wage_expats = add_wage_expats;
         }
     }
     public void hiring_()
@@ -551,11 +554,13 @@ public class Firm {
     {
         if (citizenship == Citizenship.SAUDI)
         {
-            accepted_wage_saudis = wage;
+            stats_accepted_wage_saudis += wage;
+            stats_new_hires_saudi++;
         }
         else
         {
-            accepted_wage_expats = wage;
+            stats_accepted_wage_expats += wage;
+            stats_new_hires_expat++;
         }
     }
 
@@ -581,7 +586,6 @@ public class Firm {
         this.auctioneer = auctioneer;
         this.sauditization_percentage = sauditization_percentage;
         this.day = day;
-        this.wage_std = wage_std;
         this.rnd = new Rnd(seed);
     }
 
@@ -617,5 +621,15 @@ public class Firm {
             visastack.put(visa_date, day_list);
         }
         day_list.add(worker);
+    }
+
+    public double getAvgWageSaudis()
+    {
+        return wage_saudis;
+    }
+
+    public double getAvgWageExpats()
+    {
+        return wage_expats;
     }
 }
