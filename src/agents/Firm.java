@@ -623,13 +623,35 @@ public class Firm {
         day_list.add(worker);
     }
 
-    public double getAvgWageSaudis()
+    public double wage_bill()
     {
-        return wage_saudis;
+        return staff.getWage();
     }
 
-    public double getAvgWageExpats()
+    public int num_expats()
     {
-        return wage_expats;
+        return staff.getExpats();
+    }
+
+    public int getNum_saudis()
+    {
+        return staff.getSaudis();
+    }
+
+    public double getProduction()
+    {
+        return staff.getProductivity();
+    }
+
+    public double getWage_saudis()
+    {
+        assert wage_expats == staff.getWage_expats();
+        return staff.getWage_saudis();
+    }
+
+    public double GetWage_expats()
+    {
+        assert wage_saudis == staff.getWage_saudis();
+        return staff.getWage_expats();
     }
 }

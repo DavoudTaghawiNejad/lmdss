@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import agents.*;
 import definitions.Citizenship;
 import definitions.WorkerStatistics;
+import tools.DBConnection;
 
 
 public class Main
@@ -28,6 +29,7 @@ public class Main
     private static double wage_std;
     private static double reservation_wage_saudi;
     private static double reservation_wage_expat;
+    private static DBConnection db_connection;
 
     public static void initialisation()
     {
@@ -56,6 +58,7 @@ public class Main
         final long seed = 5302877246224082029L;
         System.out.println(seed);
         seed_generator = new Random(seed);
+        db_connection = new DBConnection(seed);
 
         statistics_firms = new FirmStats(num_firms);
 
@@ -214,7 +217,9 @@ public class Main
             }
         }
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
+        db_connection.close();
     }
+
     private static void statistics(int iday) {
 
         if (
@@ -222,10 +227,8 @@ public class Main
             && iday % 20 == 0
            )
         {
-            System.out.print(iday);
-            System.out.print("\t");
-            updateFirmStatistics();
-            System.out.println("");
+            db_connection.write_aggregate_firm_statistics(firms, iday);
+            db_connection.write_firm_statistics(firms, iday);
 
         }
         if (iday == policy_change_time - 1)
