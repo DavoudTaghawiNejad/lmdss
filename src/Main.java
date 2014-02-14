@@ -1,5 +1,3 @@
-
-
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,6 +26,8 @@ public class Main
 	private static Newspaper newspaper_expat;
     private static AtomicInteger day = new AtomicInteger();
     private static double wage_std;
+    private static double reservation_wage_saudi;
+    private static double reservation_wage_expat;
 
     public static void initialisation()
     {
@@ -36,9 +36,9 @@ public class Main
         final int num_saudis = 3800;
         final int num_expats = 7000;
         final double productivity_mean_saudi = 6854.24 / 30;
-        final double wage_mean_saudi = 3137.39 / 30;
         final double productivity_mean_expat = 6854.24 / 30;
-        final double wage_mean_expat = 764.77 / 30;
+        reservation_wage_saudi = 3137.39 / 30;
+        reservation_wage_expat = 0;
         final double expat_minimum_wage = 0;
         final double saudi_minimum_wage = 0;
         final double expat_tax_percentage = 0;
@@ -46,9 +46,9 @@ public class Main
         final double reapplication_probability = 0.03 / 356;
 
         setup_period = 500;
-        simulation_length = 1600;
-        policy_change_time = 1100;
-        wage_std = 764.77 / 30;
+        simulation_length = 2000;
+        policy_change_time = 1500;
+        wage_std = 3137.39 / 30;
         setup_workers = (int) Math.ceil((double)(num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) num_firms / setup_period);
 
@@ -59,7 +59,7 @@ public class Main
 
         statistics_firms = new FirmStats(num_firms);
 
-        auctioneer = new Auctioneer(0.5, 100000000);
+        auctioneer = new Auctioneer(0.5, 10000000000D);
 
         newspaper_saudi = new Newspaper(seed_generator.nextLong());
         newspaper_expat = new Newspaper(seed_generator.nextLong());
@@ -72,16 +72,17 @@ public class Main
         {
             workers.add(
                     new Worker(
-                            seed_generator.nextLong(),
-                            Citizenship.SAUDI,
-                            newspaper_saudi,
-                            rnd.nextGaussian() * wage_mean_saudi + wage_mean_saudi,
-                            rnd.nextGaussian() * productivity_mean_saudi + productivity_mean_saudi,
-                            expat_minimum_wage,
-                            saudi_minimum_wage,
-                            expat_tax_percentage,
-                            expat_tax_per_head,
-                            reapplication_probability, auctioneer
+                            seed_generator.nextLong(),                                              // seed
+                            Citizenship.SAUDI,                                                      // citizenship
+                            newspaper_saudi,                                                        // newspaper
+                            rnd.nextGaussian() * reservation_wage_saudi + reservation_wage_saudi,
+                            rnd.nextGaussian() * productivity_mean_saudi + productivity_mean_saudi, // productivity
+                            expat_minimum_wage,                                                     // expat_minimum_wage
+                            saudi_minimum_wage,                                                     // saudi_minimum_wage
+                            expat_tax_percentage,                                                   // expat_tax_percentage
+                            expat_tax_per_head,                                                     // expat_tax_per_head
+                            reapplication_probability,                                              // reapplication_probability
+                            auctioneer                                                              // auctioneer
                      )
             );
         }
@@ -92,7 +93,7 @@ public class Main
                             seed_generator.nextLong(),
                             Citizenship.EXPAT,
                             newspaper_saudi,
-                            rnd.nextGaussian() * wage_mean_expat + wage_mean_expat,
+                            rnd.nextGaussian() * reservation_wage_expat + reservation_wage_expat,
                             rnd.nextGaussian() * productivity_mean_expat + productivity_mean_expat,
                             expat_minimum_wage,
                             saudi_minimum_wage,
@@ -126,7 +127,8 @@ public class Main
                             auctioneer,
                             sauditization_percentage,
                             day,
-                            wage_std)
+                            wage_std
+                    )
             );
         }
     }
@@ -206,18 +208,18 @@ public class Main
             if (iday == policy_change_time)
             {
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
-                auctioneer.income *= 10;
+                auctioneer.income *= 2;
 
 
             }
         }
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
     }
-
     private static void statistics(int iday) {
+
         if (
             iday >= 500
-            && iday % 10 == 0
+            && iday % 20 == 0
            )
         {
             System.out.print(iday);
@@ -226,9 +228,9 @@ public class Main
             System.out.println("");
 
         }
-        if (iday == 1200)
+        if (iday == policy_change_time - 1)
         {
-            WorkerStatistics.net_contribution(workers, auctioneer.market_price, "1200");
+            WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy_change");
         }
     }
 

@@ -34,14 +34,16 @@ public class Worker
         return job_add.getWage();
     }
 
-    public Worker(long seed, Citizenship citizenship, Newspaper newspaper, double satisficing_wage, double productivity, double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head, double reapplication_probability, Auctioneer auctioneer)
+    public Worker(long seed, Citizenship citizenship, Newspaper newspaper, double reservation_wage, double productivity,
+                  double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage,
+                  double expat_tax_per_head, double reapplication_probability, Auctioneer auctioneer)
     {
         this.reapplication_probability = reapplication_probability;
         this.rnd = new Rnd(seed);
         this.citizenship = citizenship;
         this.newspaper = newspaper;
         this.auctioneer = auctioneer;
-        this.satisficing_wage = satisficing_wage;
+        this.satisficing_wage = reservation_wage;
         this.productivity = productivity;
         re_calculate_wage(expat_minimum_wage, saudi_minimum_wage, expat_tax_percentage, expat_tax_per_head);
     }
