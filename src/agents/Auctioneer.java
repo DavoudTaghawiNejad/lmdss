@@ -1,11 +1,12 @@
 package agents;
 import messages.FirmQuantity;
 
+
 public class Auctioneer {
-	public double love_for_variety = 0.5;
+	public double love_for_variety;
     public double q;
 	public double total_value_sold;
-	public double income = 100000;
+	public double income;
 	public double market_price;
 	public double total_deliverable_demand;
 	public double total_capacity;
@@ -16,7 +17,12 @@ public class Auctioneer {
 	public java.util.LinkedHashMap<Firm, Double> quantities = new java.util.LinkedHashMap<Firm, Double>();
 	public java.util.ArrayList<FirmQuantity> demand_list = new java.util.ArrayList<FirmQuantity>();
 
-	public void compute_market() {
+    public Auctioneer(double love_for_variety, double income) {
+        this.love_for_variety = love_for_variety;
+        this.income = income;
+    }
+
+    public void compute_market() {
 		calc_q();
 		double demand = 0;
 		double deliverable_demand = 0;
@@ -72,7 +78,7 @@ public class Auctioneer {
 
 	double demand_schedule(double pi) {
 
-		return ((income / market_price) / q)
+		return (income / q)
 				* Math.pow((q / pi), (1 / (1 - love_for_variety)));
 
 	}

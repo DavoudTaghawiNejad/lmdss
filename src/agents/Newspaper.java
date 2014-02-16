@@ -14,45 +14,46 @@ public class Newspaper {
 	public java.util.List<JobAdd> job_adds = new ArrayList<JobAdd>();
 
     JobAdd get_add() {
-
 		JobAdd job_add = null;
 		if (job_adds.size() == 0) {
-			return new JobAdd(null, -1);
+			return null;
+
 		}
 		double total_wage = 0;
-		double choice = 0;
-		for (JobAdd c : job_adds)
+		double choice;
+		for (JobAdd add : job_adds)
         {
-			total_wage += c.wage;
+			total_wage += add.getWage();
 		}
 		choice = rand.nextDouble() * total_wage;
 
-        for (JobAdd c : job_adds)
+        for (JobAdd add : job_adds)
         {
-			choice -= c.wage;
+			choice -= add.getWage();
 			if (choice <= 0) {
-                job_add = c;
+                job_add = add;
 				break;
 			}
 		}
+        assert job_add != null: total_wage;
         return job_add;
-
 	}
 
-	void calculate_average_wage_offer() {
+	public void calculate_average_wage_offer() {
 
 		double wage_offer = 0;
-        for (JobAdd c : job_adds)
+        for (JobAdd add : job_adds)
         {
-			wage_offer += c.wage;
+			wage_offer += add.getWage();
 		}
 		average_wage_offer = wage_offer / job_adds.size();
 	}
 
 
 	public void place_add(JobAdd job_add) {
+            assert job_add.getWage() > 0: job_add.getWage();
 			job_adds.add(job_add);
-			assert job_add.wage > 0 : job_add.wage;
+			assert job_add.getWage() > 0 : job_add.getWage();
 	}
 	
 	public Newspaper(long seed) {

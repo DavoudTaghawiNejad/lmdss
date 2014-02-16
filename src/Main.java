@@ -1,17 +1,15 @@
-
-
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import tools.DBConnection;
 import agents.*;
 import definitions.Citizenship;
 import definitions.WorkerStatistics;
+import tools.DBConnection;
 
 
 public class Main
 {
-	private static long initialTime;
-	private static DBConnection DB;
     private static double sauditization_percentage;
     private static List<Worker> workers;
     private static Auctioneer auctioneer;
@@ -27,36 +25,44 @@ public class Main
 	private static List<Firm> firms;
 	private static Newspaper newspaper_saudi;
 	private static Newspaper newspaper_expat;
+    private static AtomicInteger day = new AtomicInteger();
+    private static double wage_std;
+    private static double reservation_wage_saudi;
+    private static double reservation_wage_expat;
+    private static DBConnection db_connection;
 
     public static void initialisation()
     {
-    	initialTime = System.currentTimeMillis();
         num_firms = 100;
         final double sauditization_percentage = 0;
         final int num_saudis = 3800;
         final int num_expats = 7000;
         final double productivity_mean_saudi = 6854.24 / 30;
-        final double wage_mean_saudi = 3137.39 / 30;
         final double productivity_mean_expat = 6854.24 / 30;
-        final double wage_mean_expat = 764.77 / 30;
+        reservation_wage_saudi = 3137.39 / 30;
+        reservation_wage_expat = 0;
         final double expat_minimum_wage = 0;
         final double saudi_minimum_wage = 0;
         final double expat_tax_percentage = 0;
         final double expat_tax_per_head = 0;
+        final double reapplication_probability = 0.03 / 356;
 
         setup_period = 500;
         simulation_length = 2000;
         policy_change_time = 1500;
+        wage_std = 3137.39 / 30;
         setup_workers = (int) Math.ceil((double)(num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) num_firms / setup_period);
 
-        DB = new DBConnection();
-        
-        seed_generator = new Random();
+        //final long seed = (new Random().nextLong());
+        final long seed = 5302877246224082029L;
+        System.out.println(seed);
+        seed_generator = new Random(seed);
+        db_connection = new DBConnection(seed);
 
         statistics_firms = new FirmStats(num_firms);
 
-        auctioneer = new Auctioneer();
+        auctioneer = new Auctioneer(0.5, 1000000000);
 
         newspaper_saudi = new Newspaper(seed_generator.nextLong());
         newspaper_expat = new Newspaper(seed_generator.nextLong());
@@ -69,15 +75,17 @@ public class Main
         {
             workers.add(
                     new Worker(
-                            Citizenship.SAUDI,
-                            newspaper_saudi,
-                            rnd.nextGaussian() * wage_mean_saudi + wage_mean_saudi,
-                            rnd.nextGaussian() * productivity_mean_saudi + productivity_mean_saudi,
-                            expat_minimum_wage,
-                            saudi_minimum_wage,
-                            expat_tax_percentage,
-                            expat_tax_per_head,
-                            auctioneer
+                            seed_generator.nextLong(),                                              // seed
+                            Citizenship.SAUDI,                                                      // citizenship
+                            newspaper_saudi,                                                        // newspaper
+                            rnd.nextGaussian() * reservation_wage_saudi + reservation_wage_saudi,
+                            rnd.nextGaussian() * productivity_mean_saudi + productivity_mean_saudi, // productivity
+                            expat_minimum_wage,                                                     // expat_minimum_wage
+                            saudi_minimum_wage,                                                     // saudi_minimum_wage
+                            expat_tax_percentage,                                                   // expat_tax_percentage
+                            expat_tax_per_head,                                                     // expat_tax_per_head
+                            reapplication_probability,                                              // reapplication_probability
+                            auctioneer                                                              // auctioneer
                      )
             );
         }
@@ -85,20 +93,20 @@ public class Main
         {
             workers.add(
                     new Worker(
+                            seed_generator.nextLong(),
                             Citizenship.EXPAT,
-
                             newspaper_saudi,
-                            rnd.nextGaussian() * wage_mean_expat + wage_mean_saudi,
+                            rnd.nextGaussian() * reservation_wage_expat + reservation_wage_expat,
                             rnd.nextGaussian() * productivity_mean_expat + productivity_mean_expat,
                             expat_minimum_wage,
                             saudi_minimum_wage,
                             expat_tax_percentage,
                             expat_tax_per_head,
-                            auctioneer
+                            reapplication_probability, auctioneer
                      )
             );
         }
-        Collections.shuffle(workers);
+        Collections.shuffle(workers, new Random(seed_generator.nextLong()));
 
         apply_to_firm = new ArrayList<List<Worker>>();
 
@@ -120,98 +128,113 @@ public class Main
                             newspaper_saudi,
                             newspaper_expat,
                             auctioneer,
-                            sauditization_percentage)
+                            sauditization_percentage,
+                            day,
+                            wage_std
+                    )
             );
         }
     }
 
-    public static void run()
-    {
-        for (int day = 0; day < simulation_length; day++)
+    public static void run() {
+
+        for (int iday = 0; iday < simulation_length; iday++)
         {
-            if (day < setup_period)
+            day.set(iday);
+            auctioneer.new_round();
+            if (iday < setup_period)
             {
                 create_firms(Math.min(setup_firms, num_firms - firms.size()));
             }
-            for (Firm firm: firms)
-            {
-                firm.set_prices_demand();
-            }
             newspaper_saudi.clear_job_ads();
             newspaper_expat.clear_job_ads();
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.advertise();
             }
+            newspaper_saudi.calculate_average_wage_offer();
+            newspaper_expat.calculate_average_wage_offer();
             int i = 0;
-            for (Worker worker: workers)
+            for (Worker worker : workers)
             {
                 worker.apply();
                 i++;
-                if (i > setup_workers * day)
+                if (i > setup_workers * iday)
                 {
                     break;
                 }
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.hiring();
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.produce();
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.post_offer();
             }
             auctioneer.compute_market();
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.sell();
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.pay_wage();
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
                 firm.distribute_profits();
             }
-            for (Firm firm: firms)
+            for (Firm firm : firms)
             {
-                firm.firing();
+                //firm.firing();
             }
-            for (int h = firms.size()-1; h >= 0; h--) {
+            for (Firm firm : firms)
+            {
+                firm.set_prices_demand();
+            }
+            for (int h = firms.size() - 1; h >= 0; h--)
+            {
                 if (firms.get(h).out_of_business())
                 {
+                    System.out.println();
+                    System.out.println(firms.get(h));
                     firms.remove(h);
                 }
             }
-            
-            
-           
-            if (day % 10 == 0)
-            {
-            	/*
-                System.out.print(day);
-                System.out.print("\t");
-                updateFirmStatistics();
-                System.out.println("");
-                */
-                DB.SQLite_FirmStatistics(firms, initialTime, day,  num_firms);
-            }
-            
-            if (day == policy_change_time)
+            statistics(iday);
+
+            if (iday == policy_change_time)
             {
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
-                auctioneer.income *= 10;
-            }
+                auctioneer.income *= 2;
 
-            DB.SQLite_insertFirms(firms, initialTime, day);
+
+            }
         }
-        DB.SQLite_close();
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
+        db_connection.close();
+    }
+
+    private static void statistics(int iday) {
+
+        if (
+            iday >= 500
+            && iday % 20 == 0
+           )
+        {
+            db_connection.write_aggregate_firm_statistics(firms, iday);
+            db_connection.write_firm_statistics(firms, iday);
+
+        }
+        if (iday == policy_change_time - 1)
+        {
+            WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy_change");
+        }
     }
 
 
@@ -229,8 +252,7 @@ public class Main
         long started = System.currentTimeMillis();
         initialisation();
         run();
-        System.out.print("end, time spent is (seconds): ");
-        System.out.print(((double)System.currentTimeMillis() - started)/1000);
-
+        System.out.print("end");
+        System.out.print(System.currentTimeMillis() - started);
     }
 }

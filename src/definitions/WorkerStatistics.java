@@ -9,9 +9,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static definitions.Citizenship.EXPAT;
-import static definitions.Citizenship.SAUDI;
-
 
 public class WorkerStatistics
 {
@@ -22,7 +19,15 @@ public class WorkerStatistics
         public Emp(Worker w, double price)
         {
             this.employed = w.isEmployed();
-            this.profit = w.productivity * price - w.wage;
+            if (this.employed)
+            {
+                this.profit = w.getProductivity() * price - w.getWagePrivate();
+                //assert this.profit != Double.NaN;
+                //System.out.println(w.wage);
+            } else {
+                this.profit = w.getProductivity() * price - w.getMarket_wage();
+            }
+
         }
     }
 
@@ -35,7 +40,7 @@ public class WorkerStatistics
         for (Worker w:workers)
         {
 
-            if (w.citizenship == Citizenship.SAUDI) {
+            if (w.getCitizenship() == Citizenship.SAUDI) {
                 saudi_profitability.add(new Emp(w, price));
             }
             else {

@@ -2,30 +2,59 @@ package agents;
 
 import definitions.Citizenship;
 import messages.JobAdd;
+import tools.Rnd;
+import tools.WorkerRecord;
 
 public class Worker
 {
-    public Citizenship citizenship;
+    private Citizenship citizenship;
     private Newspaper newspaper;
-    public double wage;
-    public double satisficing_wage;
-    public double productivity;
-    public double wage_floor;
+    private double wage;
+    private double satisficing_wage;
+    private double productivity;
+    private double wage_floor;
     private Firm employer = null;
     private JobAdd job_add;
-    public Auctioneer auctioneer;
-    public Worker(Citizenship citizenship, Newspaper newspaper,double satisficing_wage, double productivity, double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head, Auctioneer auctioneer)
+    private Auctioneer auctioneer;
+    private final Rnd rnd;
+    private double reapplication_probability;
+    private WorkerRecord worker_record;
+
+    public Citizenship getCitizenship() {
+        return citizenship;
+    }
+
+    public double getWagePrivate() {
+        assert wage > -0.01: wage;
+        return wage;
+    }
+
+    public double getAdvertisedWage() {
+        assert job_add.getWage() > -0.01: job_add.getWage();
+        return job_add.getWage();
+    }
+
+    public Worker(long seed, Citizenship citizenship, Newspaper newspaper, double reservation_wage, double productivity,
+                  double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage,
+                  double expat_tax_per_head, double reapplication_probability, Auctioneer auctioneer)
     {
+        this.reapplication_probability = reapplication_probability;
+        this.rnd = new Rnd(seed);
         this.citizenship = citizenship;
         this.newspaper = newspaper;
         this.auctioneer = auctioneer;
-        this.satisficing_wage = satisficing_wage;
+        this.satisficing_wage = reservation_wage;
         this.productivity = productivity;
-        re_calculate_wage(expat_minimum_wage ,saudi_minimum_wage, expat_tax_percentage, expat_tax_per_head);
+        re_calculate_wage(expat_minimum_wage, saudi_minimum_wage, expat_tax_percentage, expat_tax_per_head);
     }
     
     public boolean isEmployed () {
     	return employer != null;
+    }
+
+    public double getMarket_wage()
+    {
+        return newspaper.getAverage_wage_offer();
     }
     
     
@@ -47,58 +76,67 @@ public class Worker
     				saudi_minimum_wage
     				
     		);
-    	} 		
+    	}
     }
     public void sendFire()
       
     {
         employer = null;
+        worker_record = null;
+        wage = - Double.POSITIVE_INFINITY;
     }
 
     public void apply()
     {
-    	if (!this.isEmployed())
+        if (!this.isEmployed())
         {
     		job_add = newspaper.get_add();
+
             if (
-            		job_add.firm != null
+            		job_add != null  // no adds in the newspaper
             		&&
-            		(job_add.wage/auctioneer.market_price) > wage_floor //adjust wage floor to inflation..
+            		(job_add.getWage() / auctioneer.market_price) > wage_floor // adjust wage floor to inflation..
                 )
             {
-                job_add.firm.add(this);
+                job_add.getFirm().add(this);
             }
         }
     	else if (this.isEmployed() && citizenship == Citizenship.SAUDI)
     	{
-    		job_add = newspaper.get_add();
-            if (
-            		job_add.firm != null
-            		&&
-            		job_add.wage > wage
-            		&&
-            		job_add.firm != employer
-                )
+            if (rnd.nextDouble() < reapplication_probability)
             {
-                job_add.firm.add(this);
-	        }
+                job_add = newspaper.get_add();
+                if (
+                        job_add != null // no adds in the newspaper
+                        &&
+                        job_add.getWage() > wage
+                        &&
+                        job_add.getFirm() != employer
+                    )
+                {
+                    job_add.getFirm().add(this);
+                }
+            }
         }
     }
 
-    public void sendEmploy(Firm firm)
+    public void sendEmploy(Firm firm, WorkerRecord new_worker_record)
     {
-    	if (employer == null)
-    	{
-    		employer = firm;
-    		wage = job_add.wage;
-    	}
-    	else
-    	{
-    		//System.out.println("Worker got a better offer...Nationality = "+citizenship+" old wage = "+wage+" new wage = "+job_add.wage);
-    		employer.sendQuit(this);
-    		employer = firm;
-    		wage = job_add.wage;
-    	}
+        if (employer != null)
+        {
+            employer.sendQuit(worker_record);
+        }
+        employer = firm;
+        worker_record = new_worker_record;
+        wage = job_add.getWage();
     }
-    
+
+    public double getProductivity() {
+        return productivity;
+    }
+
+    public boolean isEmployee(Firm firm)
+    {
+        return employer == firm;
+    }
 }
