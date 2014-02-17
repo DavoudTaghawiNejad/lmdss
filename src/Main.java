@@ -251,8 +251,21 @@ public class Main
     {
         long started = System.currentTimeMillis();
         initialisation();
+        //db_connection.writeToGoogleDocs();
+        
         run();
-        System.out.print("end");
-        System.out.print(System.currentTimeMillis() - started);
+        
+        try
+        {
+        	Runtime.getRuntime().exec("cmd /c start DumpCSV.bat");
+        	
+        }
+        catch (Exception e)
+        {
+        	System.out.println("Cannot run batch...");
+        }
+        
+        System.out.print("end ");
+        System.out.print((System.currentTimeMillis() - started)/1000.0);
     }
 }
