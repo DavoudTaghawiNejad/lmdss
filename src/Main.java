@@ -116,7 +116,7 @@ public class Main
 
     private static void create_firms(int number)
     {
-        for (int i = 0; i < number; i++)
+        for (int i = firms.size(); i < firms.size() + number; i++)
         {
             ArrayList<Worker> applications = new ArrayList<Worker>();
             apply_to_firm.add(applications);
