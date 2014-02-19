@@ -116,13 +116,14 @@ public class Main
 
     private static void create_firms(int number)
     {
-        for (int i = firms.size(); i < firms.size() + number; i++)
+        final int last_id = firms.size();
+        for (int i = 0; i < number; i++)
         {
             ArrayList<Worker> applications = new ArrayList<Worker>();
             apply_to_firm.add(applications);
             firms.add(
                     new Firm(
-                            i,
+                            last_id + i,
                             seed_generator.nextLong(),
                             applications,
                             newspaper_saudi,
