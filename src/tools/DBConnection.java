@@ -8,6 +8,8 @@ import java.util.List;
 
 import agents.Firm;
 
+
+
 public class DBConnection 
 {
 	
@@ -19,23 +21,43 @@ public class DBConnection
 	String sql = null;
 
 	// Aggregate parameters to be stored in each iteration (day)
-    private int num_saudis = 0;
-    private int num_expats = 0;
-    private double wage_bill = 0;
-    private double net_worth = 0;
-    private double profit = 0;
-    private double price = 0;
-    private double demand = 0;
-    private double production = 0;
-    private double planned_production = 0;
-    private double offer_wage_saudis = 0;
-    private double offer_wage_expats = 0;
-    private double distributed_profits = 0;
+    private long experiment_seed;
+    
+    
+    public int num_saudis = 0;
+    public int num_expats = 0;
+    public double wage_bill = 0;
+    public double net_worth = 0;
+    public double profit = 0;
+    public double price = 0;
+    public double demand = 0;
+    public double production = 0;
+    public double planned_production = 0;
+    public double offer_wage_saudis = 0;
+    public double offer_wage_expats = 0;
+    public double distributed_profits = 0;
     private double wage_saudis = 0;
     private double wage_expats = 0;
-    private int net_hires = 0;
-    private int num_firms;
-    private long experiment_seed;
+    public int staff = 0;
+    public int num_firms;
+    private int hires = 0;
+    private int fires = 0;
+    private int last_staff = 0;
+    public double decrease_price_bounded = 0;
+    public double decrease_prices_no_firing = 0;
+    public double increase_price = 0;
+    public double increase_price_wage_altered = 0;
+    private int num_applications;
+    private double accepted_wage_expats;
+    private double accepted_wage_saudis;
+    private int stats_new_hires_saudi;
+    private int stats_new_hires_expat;
+    
+    
+    
+    
+    
+    
 
 
     public DBConnection(long experiment_id)
@@ -90,26 +112,39 @@ public class DBConnection
 	      sql = "CREATE TABLE IF NOT EXISTS firm_statistics ("+
 	    		  "experamentID bigint(20) DEFAULT NULL,"+
 	    		  "day int(11) DEFAULT NULL,"+
-	    		  "getNum_saudis int(11) DEFAULT NULL,"+
+	    		  "num_saudis int(11) DEFAULT NULL,"+
 	    		  "num_expats  int(11) DEFAULT NULL,"+
 	    		  "wage_bill  double DEFAULT NULL,"+
 	    		  "net_worth  double DEFAULT NULL,"+
 	    		  "profit  double DEFAULT NULL,"+
 	    		  "price  double DEFAULT NULL,"+
 	    		  "demand  double DEFAULT NULL,"+
-	    		  "getProduction  double DEFAULT NULL,"+
+	    		  "production  double DEFAULT NULL,"+
 	    		  "planned_production  double DEFAULT NULL,"+
 	    		  "offer_wage_saudis  double DEFAULT NULL,"+
 	    		  "offer_wage_expats  double DEFAULT NULL,"+
 	    		  "distributed_profits  double DEFAULT NULL,"+
-	    		  "getWage_saudis  double DEFAULT NULL,"+
-	    		  "GetWage_expats  double DEFAULT NULL,"+
-	    		  "net_hires  int(11) DEFAULT NULL,"+
-	    		  "num_firms int(11) DEFAULT NULL"+
+	    		  "wage_saudis  double DEFAULT NULL,"+
+	    		  "wage_expats  double DEFAULT NULL,"+
+	    		  "staff int(11) DEFAULT NULL,"+
+	    		  "num_firms int(11) DEFAULT NULL,"+
+	    		  "hires int(11) DEFAULT NULL,"+
+	    		  "fires int(11) DEFAULT NULL,"+
+	    		  "applications int(11) DEFAULT NULL,"+
+	    		  "decrease_price_bounded double DEFAULT NULL,"+
+	    		  "decrease_prices_no_firing double DEFAULT NULL,"+
+	    		  "increase_price double DEFAULT NULL,"+
+	    		  "increase_price_wage_altered double DEFAULT NULL,"+
+	    		  "accepted_wage_expats double DEFAULT NULL,"+
+	    		  "accepted_wage_saudis double DEFAULT NULL"+
 	    		")";
 	      stmt.executeUpdate(sql);
 	      
-	      sql = "INSERT INTO firm_statistics VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+	      
+	      
+
+	      
+	      sql = "INSERT INTO firm_statistics VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	      SQLite_firmStatisticsPreparedStatement = SQLite_Connection.prepareStatement(sql);
 
 	      stmt.close();
@@ -147,6 +182,7 @@ public class DBConnection
 				SQLite_firmPreparedStatement.setDouble(16, firm.distributed_profits);
 				SQLite_firmPreparedStatement.setDouble(17, firm.getWage_saudis());
 				SQLite_firmPreparedStatement.setDouble(18, firm.GetWage_expats());
+							
 				
 				SQLite_firmPreparedStatement.addBatch();
 	        }
@@ -166,43 +202,73 @@ public class DBConnection
 	public void write_aggregate_firm_statistics(List<Firm> firms, int day)
 	{
 		//reset the statistics for each iteration (Day..)
-        this.num_saudis = 0;
-        this.num_expats = 0;
-        this.wage_bill = 0;
-        this.net_worth = 0;
-        this.profit = 0;
-        this.price = 0;
-        this.demand = 0;
-        this.production = 0;
-        this.planned_production = 0;
-        this.offer_wage_saudis = 0;
-        this.offer_wage_expats = 0;
-        this.distributed_profits = 0;
-        this.wage_saudis = 0;
-        this.wage_expats = 0;
-        this.net_hires = 0;
-        this.num_firms = firms.size();
+	        this.num_firms = 0;
+	        this.num_saudis = 0;
+	        this.num_expats = 0;
+	        this.wage_bill = 0;
+	        this.net_worth = 0;
+	        this.profit = 0;
+	        this.price = 0;
+	        this.demand = 0;
+	        this.production = 0;
+	        this.planned_production = 0;
+	        this.offer_wage_saudis = 0;
+	        this.offer_wage_expats = 0;
+	        this.distributed_profits = 0;
+	        this.wage_saudis = 0;
+	        this.wage_expats = 0;
+	        this.last_staff = this.staff;
+	        this.staff = 0;
+	        this.hires = 0;
+	        this.fires = 0;
+	        this.decrease_price_bounded = 0;
+	        this.decrease_prices_no_firing = 0;
+	        this.increase_price = 0;
+	        this.increase_price_wage_altered = 0;
+	        this.num_applications = 0;
+	        this.accepted_wage_saudis = 0;
+	        this.accepted_wage_expats = 0;
+        
+        
         
         
         // generating the statistics of the current iteration (Day..) by aggregating statistics from all firms in that iteration
         for (Firm firm: firms)
         {
-        	this.num_saudis += firm.getNum_saudis();
-        	this.num_expats += firm.num_expats();
-        	this.wage_bill += firm.wage_bill();
-        	this.net_worth += firm.net_worth;
-        	this.profit += firm.profit;
-        	this.price += firm.price;
-        	this.demand += firm.demand;
-        	this.production += firm.getProduction();
-        	this.planned_production += firm.planned_production;
-        	this.offer_wage_saudis += firm.stats_offer_wage_saudis;
-        	this.offer_wage_expats += firm.stats_offer_wage_expats;
-        	this.distributed_profits = firm.distributed_profits;
-        	this.wage_saudis += firm.getWage_saudis();
-        	this.wage_expats += firm.GetWage_expats();
-        	this.net_hires += firm.net_hires;
-        	firm.net_hires = 0;
+            this.num_firms++;
+            this.num_saudis += firm.staff.getSaudis();
+            this.num_expats += firm.staff.getExpats();
+            this.wage_bill += firm.staff.getWage();
+            this.net_worth += firm.net_worth;
+            this.profit += firm.profit;
+            this.price += firm.price * firm.demand;
+            this.demand += firm.demand;
+            this.production += firm.staff.getProductivity();
+            this.planned_production += firm.planned_production;
+            this.offer_wage_saudis += firm.stats_offer_wage_saudis;
+            this.offer_wage_expats += firm.stats_offer_wage_expats;
+            this.distributed_profits += firm.distributed_profits;
+            this.wage_saudis += firm.staff.getWage_saudis();
+            this.wage_expats += firm.staff.getWage_expats();
+            this.staff += firm.staff.size();
+            this.hires += firm.this_round_hire;
+            this.fires -= firm.this_round_fire;
+            this.num_applications += firm.num_applications;
+            this.increase_price += firm.stats_increase_price;
+            this.decrease_price_bounded += firm.stats_decrease_price_bounded;
+            this.accepted_wage_saudis  += firm.stats_accepted_wage_saudis;
+            this.accepted_wage_expats += firm.stats_accepted_wage_expats;
+            this.stats_new_hires_saudi += firm.stats_new_hires_saudi;
+            this.stats_new_hires_expat += firm.stats_new_hires_expat;
+
+            firm.stats_new_hires_saudi = 0;
+            firm.stats_new_hires_expat = 0;
+            firm.stats_accepted_wage_saudis = 0;
+            firm.stats_accepted_wage_expats = 0;
+            firm.this_round_hire = 0;
+            firm.this_round_fire = 0;
+            firm.stats_increase_price= 0;
+            firm.stats_decrease_price_bounded= 0;
         }
         
         // inserting the current iteration (Day..)'s statistics into the database
@@ -215,19 +281,29 @@ public class DBConnection
 			   SQLite_firmStatisticsPreparedStatement.setDouble(5, this.wage_bill / num_firms);
 			   SQLite_firmStatisticsPreparedStatement.setDouble(6, this.net_worth / num_firms);
 			   SQLite_firmStatisticsPreparedStatement.setDouble(7, this.profit / num_firms);
-			   SQLite_firmStatisticsPreparedStatement.setDouble(8, this.price / num_firms);
+			   /// Why is price devided by demand? should it be devided by num_firms?
+			   SQLite_firmStatisticsPreparedStatement.setDouble(8, this.price / demand);
 			   SQLite_firmStatisticsPreparedStatement.setDouble(9, this.demand );
 			   SQLite_firmStatisticsPreparedStatement.setDouble(10, this.production );
 			   SQLite_firmStatisticsPreparedStatement.setDouble(11, this.planned_production );
 			   SQLite_firmStatisticsPreparedStatement.setDouble(12, this.offer_wage_saudis / num_firms);
 			   SQLite_firmStatisticsPreparedStatement.setDouble(13, this.offer_wage_expats / num_firms);
-			   SQLite_firmStatisticsPreparedStatement.setDouble(14, this.distributed_profits );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(15, this.wage_saudis );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(16, this.wage_expats );
-			   SQLite_firmStatisticsPreparedStatement.setInt(17, this.net_hires );
+			   SQLite_firmStatisticsPreparedStatement.setDouble(14, this.distributed_profits / num_firms );
+			   SQLite_firmStatisticsPreparedStatement.setDouble(15, this.wage_saudis / num_saudis );
+			   SQLite_firmStatisticsPreparedStatement.setDouble(16, this.wage_expats / num_expats );
+			   SQLite_firmStatisticsPreparedStatement.setInt(17, this.staff - this.last_staff );
 			   SQLite_firmStatisticsPreparedStatement.setInt(18, this.num_firms);
-			   
-			   
+			   SQLite_firmStatisticsPreparedStatement.setInt(19, this.hires);
+			   SQLite_firmStatisticsPreparedStatement.setInt(20, this.fires);
+			   SQLite_firmStatisticsPreparedStatement.setInt(21, this.num_applications);
+			   SQLite_firmStatisticsPreparedStatement.setDouble(22, decrease_price_bounded);
+			   SQLite_firmStatisticsPreparedStatement.setDouble(23, decrease_prices_no_firing);
+				SQLite_firmStatisticsPreparedStatement.setDouble(24, increase_price);
+				SQLite_firmStatisticsPreparedStatement.setDouble(25, increase_price_wage_altered);
+				SQLite_firmStatisticsPreparedStatement.setDouble(26, accepted_wage_saudis / stats_new_hires_saudi);
+				SQLite_firmStatisticsPreparedStatement.setDouble(27, accepted_wage_expats / stats_new_hires_expat);
+
+				
 			   SQLite_firmStatisticsPreparedStatement.addBatch();
 	    }
 	    catch ( Exception e )
@@ -256,4 +332,5 @@ public class DBConnection
 			System.exit(0);
 	    }
 	}
-}
+	
+	}

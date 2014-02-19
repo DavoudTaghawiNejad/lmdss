@@ -1,0 +1,1 @@
+sqlite3.exe lmdss.sqlite3 < DumpCSV2.txt
