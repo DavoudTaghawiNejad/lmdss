@@ -20,6 +20,7 @@ public class Worker
     private double reapplication_probability;
     private WorkerRecord worker_record;
 
+
     public Citizenship getCitizenship() {
         return citizenship;
     }
@@ -35,8 +36,8 @@ public class Worker
     }
 
     public Worker(long seed, Citizenship citizenship, Newspaper newspaper, double reservation_wage, double productivity,
-                  double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage,
-                  double expat_tax_per_head, double reapplication_probability, Auctioneer auctioneer)
+                  double minimum_wage, double tax_percentage,
+                  double tax_per_head, double reapplication_probability, Auctioneer auctioneer)
     {
         this.reapplication_probability = reapplication_probability;
         this.rnd = new Rnd(seed);
@@ -45,9 +46,9 @@ public class Worker
         this.auctioneer = auctioneer;
         this.satisficing_wage = reservation_wage;
         this.productivity = productivity;
-        re_calculate_wage(expat_minimum_wage, saudi_minimum_wage, expat_tax_percentage, expat_tax_per_head);
+        re_calculate_wage(minimum_wage, minimum_wage, tax_percentage, tax_per_head);
     }
-    
+
     public boolean isEmployed () {
     	return employer != null;
     }
@@ -56,10 +57,11 @@ public class Worker
     {
         return newspaper.getAverage_wage_offer();
     }
-    
-    
+
+    /**
+     * calculate the wage floor, it depends on the workers' satisficing_wage, minimum wage, and taxation (if any..)
+    **/
     public void re_calculate_wage (double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head)
-      //calculate the wage floor, it depends on the workers' satisficing_wage, minimum wage, and taxation (if any..)
     {
     	if (citizenship == Citizenship.EXPAT)
     	{
@@ -74,7 +76,7 @@ public class Worker
     		wage_floor = Math.max(
     				satisficing_wage,
     				saudi_minimum_wage
-    				
+
     		);
     	}
     }

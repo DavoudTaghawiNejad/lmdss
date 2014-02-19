@@ -9,7 +9,6 @@ import definitions.WorkerStatistics;
 import tools.DBConnection;
 import tools.WorkerRecord;
 
-
 public class Main
 {
     private static double sauditization_percentage;
@@ -32,6 +31,7 @@ public class Main
     private static double reservation_wage_expat;
     private static DBConnection db_connection;
 
+
     public static void initialisation()
     {
         num_firms = 100;
@@ -47,6 +47,8 @@ public class Main
         final double expat_tax_percentage = 0;
         final double expat_tax_per_head = 0;
         final double reapplication_probability = 0.03 / 356;
+        final double saudi_tax_percentage = 0;
+        final double saudi_tax_per_head = 0;
 
         setup_period = 500;
         simulation_length = 2000;
@@ -70,47 +72,46 @@ public class Main
 
         Random rnd = new Random(seed_generator.nextLong());
 
-        for (int i = 0; i < num_saudis; i++)
-        {
-            workers.add(
-                    new Worker(
-                            seed_generator.nextLong(),                                              // seed
-                            Citizenship.SAUDI,                                                      // citizenship
-                            newspaper_saudi,                                                        // newspaper
-                            rnd.nextGaussian() * reservation_wage_saudi + reservation_wage_saudi,
-                            rnd.nextGaussian() * productivity_mean_saudi + productivity_mean_saudi, // productivity
-                            expat_minimum_wage,                                                     // expat_minimum_wage
-                            saudi_minimum_wage,                                                     // saudi_minimum_wage
-                            expat_tax_percentage,                                                   // expat_tax_percentage
-                            expat_tax_per_head,                                                     // expat_tax_per_head
-                            reapplication_probability,                                              // reapplication_probability
-                            auctioneer                                                              // auctioneer
-                     )
-            );
-        }
-        for (int i = 0; i < num_expats; i++)
-        {
-            workers.add(
-                    new Worker(
-                            seed_generator.nextLong(),
-                            Citizenship.EXPAT,
-                            newspaper_saudi,
-                            rnd.nextGaussian() * reservation_wage_expat + reservation_wage_expat,
-                            rnd.nextGaussian() * productivity_mean_expat + productivity_mean_expat,
-                            expat_minimum_wage,
-                            saudi_minimum_wage,
-                            expat_tax_percentage,
-                            expat_tax_per_head,
-                            reapplication_probability, auctioneer
-                     )
-            );
-        }
+        create_workers(num_saudis, num_expats, productivity_mean_saudi, productivity_mean_expat, expat_minimum_wage,
+                saudi_minimum_wage, saudi_tax_percentage, expat_tax_percentage, saudi_tax_per_head, expat_tax_per_head,
+                reapplication_probability, 0, reservation_wage_saudi, reservation_wage_expat, rnd
+        );
         Collections.shuffle(workers, new Random(seed_generator.nextLong()));
 
         apply_to_firm = new ArrayList<List<WorkerRecord>>();
 
         firms = new ArrayList<Firm>();
+    }
 
+    private static void create_workers(double num_saudis, double num_expats, double productivity_mean_saudi, double productivity_mean_expat,
+                                       double expat_minimum_wage, double saudi_minimum_wage, double saudi_tax_percentage, double expat_tax_percentage,
+                                       double saudi_tax_per_head, double expat_tax_per_head, double reapplication_probability_saudi, double reapplication_probability_expat, double reservation_wage_saudi, double reservation_wage_expat, Random rnd)
+    {
+        _create_workers(Citizenship.SAUDI, num_saudis, reservation_wage_saudi, productivity_mean_saudi, saudi_minimum_wage, saudi_tax_percentage, saudi_tax_per_head, reapplication_probability_saudi, rnd);
+        _create_workers(Citizenship.EXPAT, num_expats, reservation_wage_expat, productivity_mean_expat, expat_minimum_wage, expat_tax_percentage, expat_tax_per_head, reapplication_probability_expat, rnd);
+
+    }
+
+    private static void _create_workers(Citizenship citizenship, double number, double reservation_wage, double productivity_mean, double minimum_wage, double tax_percentage, double tax_per_head,
+                                        double reapplication_probability, Random rnd)
+    {
+        for (int i = 0; i < number; i++)
+        {
+            workers.add(
+                    new Worker(
+                            seed_generator.nextLong(),
+                            citizenship,
+                            newspaper_saudi,
+                            rnd.nextGaussian() * reservation_wage + reservation_wage,
+                            rnd.nextGaussian() * productivity_mean + productivity_mean,
+                            minimum_wage,
+                            tax_percentage,
+                            tax_per_head,
+                            reapplication_probability,
+                            auctioneer                                                  
+                     )
+            );
+        }
     }
 
     private static void create_firms(int number)
