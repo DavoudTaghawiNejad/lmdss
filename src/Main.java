@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -255,18 +256,21 @@ public class Main
         //db_connection.writeToGoogleDocs();
         
         run();
-        
         try
         {
-        	Runtime.getRuntime().exec("cmd /c start DumpCSV.bat");
-        	
-        }
-        catch (Exception e)
+            Runtime.getRuntime().exec("cmd /c start DumpCSV.bat");
+        } catch (IOException e)
         {
-        	System.out.println("Cannot run batch...");
+            try
+            {
+                Runtime.getRuntime().exec("sh /home/taghawi/Dropbox/workspace/saudifirms/dump.sh");
+            }
+            catch (Exception ee)
+            {
+                System.out.println("Cannot run batch...");
+            }
         }
-        
         System.out.print("end ");
-        System.out.print((System.currentTimeMillis() - started)/1000.0);
+        System.out.print((System.currentTimeMillis() - started) / 1000.0);
     }
 }
