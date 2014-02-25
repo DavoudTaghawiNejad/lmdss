@@ -1,13 +1,14 @@
 package messages;
 import agents.Worker;
+import tools.WorkerRecord;
 
 import java.util.List;
 
 public final class JobAdd{
-    private final List<Worker> firm;
+    private final List<WorkerRecord> firm;
     private final double wage;
 
-    public JobAdd(List<Worker> firm, double wage) {
+    public JobAdd(List<WorkerRecord> firm, double wage) {
     	this.firm = firm;
     	this.wage = wage;
     	assert wage > 0 || wage == -1: firm;
@@ -17,7 +18,7 @@ public final class JobAdd{
         return wage;
     }
 
-    public List<Worker> getFirm() {
+    public List<WorkerRecord> getFirm() {
         return firm;
     }
 }

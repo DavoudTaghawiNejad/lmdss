@@ -29,7 +29,7 @@ public class Firm {
     public double distributed_profits;
     private double wage_saudis = 0;
     private double wage_expats = 0;
-    private List<Worker> applications;
+    private List<WorkerRecord> applications;
     public int this_round_hire = 0;
     public int this_round_fire = 0;
     public Group staff = new Group(this);
@@ -218,7 +218,7 @@ public class Firm {
         }
 
         if (applications.size() > 0 || can_be_fired.size() > 0) {
-            ArrayList<WorkerRecord> to_consider = new ArrayList<WorkerRecord>(WorkerArray.convert(applications, day.get()));
+            List<WorkerRecord> to_consider = applications;
             to_consider.addAll(can_be_fired.getWorker_list());
             ArrayList<WorkerRecord> set_aside = new ArrayList<WorkerRecord>();
             Group team = new Group(staff, this);
@@ -534,12 +534,10 @@ public class Firm {
                 can_be_fired.remove(worker);
                 addVisa(worker);
             } else {
-                applications.remove(worker);
                 hire(worker);
                 update_wage(worker.getCitizenship(), worker.getWage());
             }
         }
-
         applications.clear();
 
         for (WorkerRecord worker : can_be_fired.getWorker_list()) {
@@ -573,7 +571,7 @@ public class Firm {
     public Firm(
             int id,
             long seed,
-            List<Worker> post_box_applications,
+            ArrayList<WorkerRecord> post_box_applications,
             Newspaper newspaper_saudis,
             Newspaper newspaper_expats,
             Auctioneer auctioneer,

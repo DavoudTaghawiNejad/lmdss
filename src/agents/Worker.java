@@ -86,7 +86,7 @@ public class Worker
         wage = - Double.POSITIVE_INFINITY;
     }
 
-    public void apply()
+    public void apply(int day)
     {
         if (!this.isEmployed())
         {
@@ -98,7 +98,7 @@ public class Worker
             		(job_add.getWage() / auctioneer.market_price) > wage_floor // adjust wage floor to inflation..
                 )
             {
-                job_add.getFirm().add(this);
+                job_add.getFirm().add(new WorkerRecord(this, job_add.getWage(), day));
             }
         }
     	else if (this.isEmployed() && citizenship == Citizenship.SAUDI)
@@ -114,7 +114,7 @@ public class Worker
                         job_add.getFirm() != employer
                     )
                 {
-                    job_add.getFirm().add(this);
+                    job_add.getFirm().add(new WorkerRecord(this, job_add.getWage(), day));
                 }
             }
         }

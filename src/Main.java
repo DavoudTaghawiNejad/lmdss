@@ -7,6 +7,7 @@ import agents.*;
 import definitions.Citizenship;
 import definitions.WorkerStatistics;
 import tools.DBConnection;
+import tools.WorkerRecord;
 
 
 public class Main
@@ -21,7 +22,7 @@ public class Main
     private static Random seed_generator;
     private static int simulation_length;
     private static int policy_change_time;
-	private static List<List<Worker>> apply_to_firm;
+	private static List<List<WorkerRecord>> apply_to_firm;
 	private static List<Firm> firms;
 	private static Newspaper newspaper_saudi;
 	private static Newspaper newspaper_expat;
@@ -106,7 +107,7 @@ public class Main
         }
         Collections.shuffle(workers, new Random(seed_generator.nextLong()));
 
-        apply_to_firm = new ArrayList<List<Worker>>();
+        apply_to_firm = new ArrayList<List<WorkerRecord>>();
 
         firms = new ArrayList<Firm>();
 
@@ -117,7 +118,7 @@ public class Main
         final int last_id = firms.size();
         for (int i = 0; i < number; i++)
         {
-            ArrayList<Worker> applications = new ArrayList<Worker>();
+            ArrayList<WorkerRecord> applications = new ArrayList<WorkerRecord>();
             apply_to_firm.add(applications);
             firms.add(
                     new Firm(
@@ -156,7 +157,7 @@ public class Main
             int i = 0;
             for (Worker worker : workers)
             {
-                worker.apply();
+                worker.apply(iday);
                 i++;
                 if (i > setup_workers * iday)
                 {
