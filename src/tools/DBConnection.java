@@ -21,7 +21,7 @@ public class DBConnection
 	String sql = null;
 
 	// Aggregate parameters to be stored in each iteration (day)
-    private long experiment_seed;
+    private String experiment_seed;
     
     
     public int num_saudis = 0;
@@ -54,7 +54,7 @@ public class DBConnection
     private int stats_new_hires_expat;
 
 
-    public DBConnection(long experiment_id)
+    public DBConnection(String experiment_id)
 	{
         this.experiment_seed = experiment_id;
         SQLite_setup();
@@ -154,7 +154,7 @@ public class DBConnection
 	    {
 			for (Firm firm: firms)
 	        {
-				SQLite_firmPreparedStatement.setLong(1, experiment_seed);
+				SQLite_firmPreparedStatement.setString(1, experiment_seed);
 				SQLite_firmPreparedStatement.setInt(2, day);
 				SQLite_firmPreparedStatement.setDouble(3, firm.wage_bill());
 				SQLite_firmPreparedStatement.setInt(4, firm.num_expats());
@@ -264,7 +264,7 @@ public class DBConnection
         // inserting the current iteration (Day..)'s statistics into the database
 	    try
 	    {
-			   SQLite_firmStatisticsPreparedStatement.setLong(1, experiment_seed);
+			   SQLite_firmStatisticsPreparedStatement.setString(1, experiment_seed);
 			   SQLite_firmStatisticsPreparedStatement.setInt(2, day);
 			   SQLite_firmStatisticsPreparedStatement.setInt(3, this.num_saudis );
 			   SQLite_firmStatisticsPreparedStatement.setInt(4, this.num_expats );

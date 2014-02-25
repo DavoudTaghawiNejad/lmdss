@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import agents.*;
 import definitions.Citizenship;
 import definitions.WorkerStatistics;
+import org.json.simple.JSONObject;
 import tools.DBConnection;
 import tools.WorkerRecord;
 
@@ -28,27 +29,31 @@ public class Simulation
     private final Parameters pmt;
 
 
+    public Simulation(String parameters)
+    {
+        this(Parameters.Parameters(parameters));
+    }
+
     public Simulation()
     {
-        pmt = new Parameters();
+        this(new Parameters());
+    }
+
+    public Simulation(Parameters pmt)
+    {
+        this.pmt = pmt;
+        pmt.toString();
         int num_expats = pmt.getNum_expats();
         int num_saudis = pmt.getNum_saudis();
 
         setup_period = 500;
-        long seed = 5302877246224082029L;
-
-
-        System.out.println(seed);
         setup_workers = (int) Math.ceil((double) (num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) pmt.getNum_firms() / setup_period);
 
-        if (seed == 0L)
-        {
-            seed = (new Random().nextLong());
-        }
+        long seed = pmt.getSeed();
         seed_generator = new Random(seed);
         Random rnd = new Random(seed_generator.nextLong());
-        db_connection = new DBConnection(seed);
+        db_connection = new DBConnection(pmt.sha());
 
         auctioneer = new Auctioneer(pmt.getLove_for_variety(), pmt.getSector_spending());
 
@@ -124,10 +129,13 @@ public class Simulation
         }
     }
 
-    public final void run()
+    public final JSONObject run()
     {
         int simulation_length = pmt.getSimulation_length();
         int policy_change_time = pmt.getPolicy_change_time();
+
+        JSONObject output = new JSONObject();
+        output.put("parameter", pmt.json());
 
         for (int iday = 0; iday < simulation_length; iday++)
         {
@@ -203,11 +211,16 @@ public class Simulation
             if (iday == policy_change_time)
             {
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
+                System.out.println(new CalibrationStatistics(firms).json());
+
+                output.put("before_policy", new CalibrationStatistics(firms).json());
                 auctioneer.income *= 2;
             }
         }
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
         db_connection.close();
+        output.put("after_policy", new CalibrationStatistics(firms).json());
+        return output;
     }
 
     private final void statistics(int iday, int policy_change_time)

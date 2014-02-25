@@ -1,3 +1,5 @@
+import org.json.simple.JSONObject;
+
 import java.io.IOException;
 
 
@@ -5,13 +7,23 @@ public class Start
 {
     public static void main(String [] args)
     {
-        long started = System.currentTimeMillis();
+        assert args.length <= 1: "should only contain one json parameter set";
         delete_database();
-        Simulation simulation = new Simulation();
-        simulation.run();
+        long started = System.currentTimeMillis();
+        Simulation simulation;
+        if (args.length == 0)
+        {
+            simulation = new Simulation();
+        }
+        else
+        {
+            simulation = new Simulation(args[0]);
+        }
+        JSONObject simulation_output = simulation.run();
         dump_csv();
-        System.out.print("end ");
-        System.out.print((System.currentTimeMillis() - started) / 1000.0);
+        simulation_output.put("run time", (System.currentTimeMillis() - started) / 1000.0);
+        System.out.println();
+        System.out.println(simulation_output);
     }
 
     private static void delete_database()
