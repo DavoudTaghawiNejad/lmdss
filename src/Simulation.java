@@ -17,54 +17,30 @@ public class Simulation
     private final int setup_workers;
     private final int setup_firms;
     private final int setup_period;
-    private final int num_firms;
     private final Random seed_generator;
-    private final int simulation_length;
-    private final int policy_change_time;
-	private final List<List<WorkerRecord>> apply_to_firm;
-	private final List<Firm> firms;
-	private final Newspaper newspaper_saudi;
-	private final Newspaper newspaper_expat;
+    private final List<List<WorkerRecord>> apply_to_firm;
+    private final List<Firm> firms;
+    private final Newspaper newspaper_saudi;
+    private final Newspaper newspaper_expat;
     private final AtomicInteger day = new AtomicInteger();
-    private final double wage_std;
-    private final double reservation_wage_saudi;
-    private final double reservation_wage_expat;
     private final DBConnection db_connection;
-    private final double initial_sauditization_percentage;
     private final ArrayList<Firm> firms_reserve = new ArrayList<Firm>();
+    private final Parameters pmt;
 
 
     public Simulation()
     {
-        num_firms = 100;
-        final int num_saudis = 3800;
-        final int num_expats = 7000;
-        final double productivity_mean_saudi = 6854.24 / 30;
-        final double productivity_mean_expat = 6854.24 / 30;
-        reservation_wage_saudi = 3137.39 / 30;
-        reservation_wage_expat = 0;
-        final double expat_minimum_wage = 0;
-        final double saudi_minimum_wage = 0;
-        final double expat_tax_percentage = 0;
-        final double expat_tax_per_head = 0;
-        final double reapplication_probability = 0.03 / 356;
-        final double saudi_tax_percentage = 0;
-        final double saudi_tax_per_head = 0;
-        initial_sauditization_percentage = 0;
-        final double sector_spending = 1000000000;
-        final double love_for_variety = 0.5;
+        pmt = new Parameters();
+        int num_expats = pmt.getNum_expats();
+        int num_saudis = pmt.getNum_saudis();
 
         setup_period = 500;
-        simulation_length = 2000;
-        policy_change_time = 1500;
-        wage_std = 3137.39 / 30;
-
         long seed = 5302877246224082029L;
 
 
         System.out.println(seed);
-        setup_workers = (int) Math.ceil((double)(num_expats + num_saudis) / setup_period);
-        setup_firms = (int) Math.ceil((double) num_firms / setup_period);
+        setup_workers = (int) Math.ceil((double) (num_expats + num_saudis) / setup_period);
+        setup_firms = (int) Math.ceil((double) pmt.getNum_firms() / setup_period);
 
         if (seed == 0L)
         {
@@ -74,7 +50,7 @@ public class Simulation
         Random rnd = new Random(seed_generator.nextLong());
         db_connection = new DBConnection(seed);
 
-        auctioneer = new Auctioneer(love_for_variety, sector_spending);
+        auctioneer = new Auctioneer(pmt.getLove_for_variety(), pmt.getSector_spending());
 
         newspaper_saudi = new Newspaper(seed_generator.nextLong());
         newspaper_expat = new Newspaper(seed_generator.nextLong());
@@ -82,20 +58,20 @@ public class Simulation
         workers = new ArrayList<Worker>();
 
 
-        create_workers(num_saudis, num_expats, productivity_mean_saudi, productivity_mean_expat, expat_minimum_wage,
-                saudi_minimum_wage, saudi_tax_percentage, expat_tax_percentage, saudi_tax_per_head, expat_tax_per_head,
-                reapplication_probability, 0, reservation_wage_saudi, reservation_wage_expat, rnd
+        create_workers(num_saudis, num_expats, pmt.getProductivity_mean_saudi(), pmt.getProductivity_mean_expat(), pmt.getExpat_minimum_wage(),
+                pmt.getSaudi_minimum_wage(), pmt.getSaudi_tax_percentage(), pmt.getExpat_tax_percentage(), pmt.getSaudi_tax_per_head(), pmt.getExpat_tax_per_head(),
+                pmt.getReapplication_probability(), 0, pmt.getReservation_wage_saudi(), pmt.getReservation_wage_expat(), rnd
         );
 
         apply_to_firm = new ArrayList<List<WorkerRecord>>();
         firms = new ArrayList<Firm>();
-        create_firms(num_firms, initial_sauditization_percentage);
+        create_firms(pmt.getNum_firms(), pmt.getInitial_sauditization_percentage(), pmt.getWage_std());
     }
 
     private final void create_workers(double num_saudis, double num_expats, double productivity_mean_saudi, double productivity_mean_expat,
-                                       double expat_minimum_wage, double saudi_minimum_wage, double saudi_tax_percentage, double expat_tax_percentage,
-                                       double saudi_tax_per_head, double expat_tax_per_head, double reapplication_probability_saudi,
-                                       double reapplication_probability_expat, double reservation_wage_saudi, double reservation_wage_expat, Random rnd
+                                      double expat_minimum_wage, double saudi_minimum_wage, double saudi_tax_percentage, double expat_tax_percentage,
+                                      double saudi_tax_per_head, double expat_tax_per_head, double reapplication_probability_saudi,
+                                      double reapplication_probability_expat, double reservation_wage_saudi, double reservation_wage_expat, Random rnd
     )
     {
         _create_workers(Citizenship.SAUDI, num_saudis, reservation_wage_saudi, productivity_mean_saudi, saudi_minimum_wage, saudi_tax_percentage, saudi_tax_per_head, reapplication_probability_saudi, rnd);
@@ -104,7 +80,7 @@ public class Simulation
     }
 
     private final void _create_workers(Citizenship citizenship, double number, double reservation_wage, double productivity_mean, double minimum_wage, double tax_percentage, double tax_per_head,
-                                        double reapplication_probability, Random rnd)
+                                       double reapplication_probability, Random rnd)
     {
         for (int i = 0; i < number; i++)
         {
@@ -119,13 +95,13 @@ public class Simulation
                             tax_percentage,
                             tax_per_head,
                             reapplication_probability,
-                            auctioneer                                                  
-                     )
+                            auctioneer
+                    )
             );
         }
     }
 
-    private final void create_firms(int number, double initial_sauditization_percentage)
+    private final void create_firms(int number, double initial_sauditization_percentage, double wage_std)
     {
         final int last_id = 0;
         for (int i = 0; i < number; i++)
@@ -148,7 +124,10 @@ public class Simulation
         }
     }
 
-    public final void run() {
+    public final void run()
+    {
+        int simulation_length = pmt.getSimulation_length();
+        int policy_change_time = pmt.getPolicy_change_time();
 
         for (int iday = 0; iday < simulation_length; iday++)
         {
@@ -219,26 +198,25 @@ public class Simulation
                     firms.remove(h);
                 }
             }
-            statistics(iday);
+            statistics(iday, policy_change_time);
 
             if (iday == policy_change_time)
             {
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
                 auctioneer.income *= 2;
-
-
             }
         }
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
         db_connection.close();
     }
 
-    private final void statistics(int iday) {
+    private final void statistics(int iday, int policy_change_time)
+    {
 
         if (
-            iday >= 500
-            && iday % 20 == 0
-           )
+                iday >= 500
+                        && iday % 20 == 0
+                )
         {
             db_connection.write_aggregate_firm_statistics(firms, iday);
             db_connection.write_firm_statistics(firms, iday);
@@ -249,4 +227,5 @@ public class Simulation
             WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy_change");
         }
     }
+
 }
