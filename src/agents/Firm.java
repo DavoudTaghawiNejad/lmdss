@@ -150,6 +150,7 @@ public class Firm {
                     add_wage_saudis = wage_saudis / staff.getSaudis() * (1 + rnd.nextGaussian());
                 } while (add_wage_saudis <= 0);
             }
+            else
             {
                 add_wage_saudis = 10;
                 //TODO set to average wage
