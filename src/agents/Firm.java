@@ -136,6 +136,8 @@ public class Firm {
      */
     public void advertise()
     {
+        assert wage_saudis == staff.getWage_saudis();
+        assert wage_expats == staff.getWage_expats();
         if (planned_production > staff.getProductivity()
             || visastack.getOrDefault(day.get(), new Group(this)).size() > 0
            )

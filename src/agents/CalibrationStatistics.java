@@ -43,14 +43,13 @@ public class CalibrationStatistics
             price += firm.price * firm.demand;
             demand += firm.demand;
             production += firm.staff.getProductivity();
-            planned_production += firm.planned_production;            
+            planned_production += firm.planned_production;
             distributed_profits += firm.distributed_profits;
             wage_saudis += firm.staff.getWage_saudis();
             wage_expats += firm.staff.getWage_expats();
             staff += firm.staff.size();
         }
     }
-    
 
     public JSONObject json()
     {
