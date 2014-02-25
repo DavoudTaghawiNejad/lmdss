@@ -14,7 +14,6 @@ public class Main
     private static double sauditization_percentage;
     private static List<Worker> workers;
     private static Auctioneer auctioneer;
-    private static FirmStats statistics_firms;
     private static int setup_workers;
     private static int setup_firms;
     private static int setup_period;
@@ -60,8 +59,6 @@ public class Main
         System.out.println(seed);
         seed_generator = new Random(seed);
         db_connection = new DBConnection(seed);
-
-        statistics_firms = new FirmStats(num_firms);
 
         auctioneer = new Auctioneer(0.5, 1000000000);
 
@@ -237,16 +234,6 @@ public class Main
         {
             WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy_change");
         }
-    }
-
-
-    private static void updateFirmStatistics() {
-        statistics_firms.reset();
-        for (Firm firm: firms)
-        {
-            statistics_firms.update(firm);
-        }
-        statistics_firms.printcsv();
     }
 
     public static void main(String [] args)
