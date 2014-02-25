@@ -1,3 +1,16 @@
+import agents.Auctioneer;
+import com.cedarsoftware.util.io.JsonReader;
+import com.cedarsoftware.util.io.JsonWriter;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Random;
+
 /**
 * Created by taghawi on 2/25/14.
 */
@@ -23,6 +36,7 @@ class Parameters
     private final double reservation_wage_saudi;
     private final double reservation_wage_expat;
     private final double initial_sauditization_percentage;
+    private long seed;
 
     public Parameters()
     {
@@ -43,10 +57,83 @@ class Parameters
         initial_sauditization_percentage = 0;
         sector_spending = 1000000000;
         love_for_variety = 0.5;
-
-        simulation_length = 2000;
+        simulation_length = 1;
         policy_change_time = 1500;
         wage_std = 3137.39 / 30;
+        seed = 0L;
+    }
+
+    public String toString()
+    {
+        if (seed == 0L)
+            return _json().toString();
+        else
+            return json().toString();
+    }
+
+    private JSONObject _json()
+    {
+        JSONParser parser=new JSONParser();
+        JSONObject ret = null;
+
+        try
+        {
+
+            ret = (JSONObject) parser.parse(JsonWriter.objectToJson(this));
+        } catch (ParseException e)
+        {
+            e.printStackTrace();
+        } catch (IOException ee)
+        {
+            ee.printStackTrace();
+        }
+        if (seed == 0L)
+        {
+            ret.remove("seed");
+        }
+        return ret;
+    }
+
+    public JSONObject json()
+    {
+        JSONObject json = _json();
+        json.put("sha", sha());
+        return json;
+    }
+
+    public String sha()
+    {
+        assert seed != 0L: "can not sha, when seed is not set";
+        MessageDigest digest = null;
+        byte[] hash = null;
+        try
+        {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            hash = digest.digest(_json().toString().getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e)
+        {
+            e.printStackTrace();
+        }
+        return hash.toString();
+    }
+
+    public static Parameters Parameters(String parameters)
+    {
+        Parameters new_class = null;
+        try
+        {
+            new_class = (Parameters) JsonReader.jsonToJava(parameters);
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return new_class;
     }
 
     public int getNum_saudis()
@@ -147,5 +234,14 @@ class Parameters
     public int getSimulation_length()
     {
         return simulation_length;
+    }
+
+    public long getSeed()
+    {
+        if (seed == 0L)
+        {
+            seed = (new Random().nextLong());
+        }
+        return seed;
     }
 }
