@@ -166,40 +166,12 @@ public class Firm {
             {
              add_wage_expats = 10;
             }
-
+            
             newspaper_saudis.place_add(new JobAdd(applications, add_wage_saudis));
             newspaper_expats.place_add(new JobAdd(applications, add_wage_expats));
             stats_offer_wage_saudis = add_wage_saudis;
             stats_offer_wage_expats = add_wage_expats;
         }
-    }
-    public void hiring_()
-    {
-        num_applications = applications.size();
-        Group can_be_fired = new Group(this);
-        if (visastack.get(day.get()) != null)
-        {
-            for (WorkerRecord worker: visastack.remove(day.get()).getWorker_list())
-            {
-                if (staff.contains(worker))
-                {
-                    can_be_fired.add(worker);
-                }
-            }
-        }
-        Group team = new Group(staff, this);
-        team.removeAll(can_be_fired);
-        ArrayList<WorkerRecord> to_consider = new ArrayList<WorkerRecord>(WorkerArray.convert(applications, day.get()));
-        WorkerRecord best;
-        while (planned_production > h_produce(team, 0) && to_consider.size() > 0)
-        {
-            best = pop_best(team, to_consider);
-            if (net_benefit(team, best) > 0)
-            {
-                team.add(best);
-            }
-        }
-        net_hires = hire_or_fire_staff(team, can_be_fired);
     }
 
     public void hiring()
