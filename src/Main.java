@@ -240,10 +240,27 @@ public class Main
     public static void main(String [] args)
     {
         long started = System.currentTimeMillis();
+        delete_database();
         initialisation();
-        //db_connection.writeToGoogleDocs();
-        
         run();
+        dump_csv();
+        System.out.print("end ");
+        System.out.print((System.currentTimeMillis() - started) / 1000.0);
+    }
+
+    private static void delete_database()
+    {
+        try
+        {
+            Runtime.getRuntime().exec("rm lmdss.sqlite3");
+        } catch (Exception ee)
+        {
+            System.out.println("Cannot run batch...");
+        }
+    }
+
+    private static void dump_csv()
+    {
         try
         {
             Runtime.getRuntime().exec("cmd /c start DumpCSV.bat");
@@ -258,7 +275,5 @@ public class Main
                 System.out.println("Cannot run batch...");
             }
         }
-        System.out.print("end ");
-        System.out.print((System.currentTimeMillis() - started) / 1000.0);
     }
 }
