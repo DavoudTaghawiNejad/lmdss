@@ -4,12 +4,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import agents.*;
+import com.sun.java.swing.plaf.gtk.resources.gtk_sv;
 import definitions.Citizenship;
 import definitions.WorkerStatistics;
 import tools.DBConnection;
 import tools.WorkerRecord;
 
-public class Main
+public class Simulation
 {
     private static double sauditization_percentage;
     private static List<Worker> workers;
@@ -32,7 +33,7 @@ public class Main
     private static DBConnection db_connection;
 
 
-    public static void initialisation()
+    public Simulation()
     {
         num_firms = 100;
         final double sauditization_percentage = 0;
@@ -235,46 +236,6 @@ public class Main
         if (iday == policy_change_time - 1)
         {
             WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy_change");
-        }
-    }
-
-    public static void main(String [] args)
-    {
-        long started = System.currentTimeMillis();
-        delete_database();
-        initialisation();
-        run();
-        dump_csv();
-        System.out.print("end ");
-        System.out.print((System.currentTimeMillis() - started) / 1000.0);
-    }
-
-    private static void delete_database()
-    {
-        try
-        {
-            Runtime.getRuntime().exec("rm lmdss.sqlite3");
-        } catch (Exception ee)
-        {
-            System.out.println("Cannot run batch...");
-        }
-    }
-
-    private static void dump_csv()
-    {
-        try
-        {
-            Runtime.getRuntime().exec("cmd /c start DumpCSV.bat");
-        } catch (IOException e)
-        {
-            try
-            {
-                Runtime.getRuntime().exec("sh /home/taghawi/Dropbox/workspace/saudifirms/dump.sh");
-            }
-            catch (Exception ee)
-            {
-                System.out.println("Cannot run batch...");
-            }
         }
     }
 }
