@@ -52,12 +52,6 @@ public class DBConnection
     private double accepted_wage_saudis;
     private int stats_new_hires_saudi;
     private int stats_new_hires_expat;
-    
-    
-    
-    
-    
-    
 
 
     public DBConnection(long experiment_id)
@@ -87,29 +81,29 @@ public class DBConnection
 	    		  "day int(11) DEFAULT NULL,"+
 	    		  "wage_bill double DEFAULT NULL,"+
 	    		  "num_expats int(11) DEFAULT NULL,"+
-	    		  "getNum_saudis int(11) DEFAULT NULL,"+
+	    		  "num_saudis int(11) DEFAULT NULL,"+
 	    		  "id int(11) DEFAULT NULL,"+
 	    		  "net_worth double DEFAULT NULL,"+
 	    		  "profit double DEFAULT NULL,"+
 	    		  "price double DEFAULT NULL,"+
 	    		  "demand double DEFAULT NULL,"+
 	    		  "market_price double DEFAULT NULL,"+
-	    		  "getProduction double DEFAULT NULL,"+
+	    		  "production double DEFAULT NULL,"+
 	    		  "planned_production double DEFAULT NULL,"+
 	    		  "offer_wage_saudis double DEFAULT NULL,"+
 	    		  "offer_wage_expats double DEFAULT NULL,"+
 	    		  "distributed_profits double DEFAULT NULL,"+
-	    		  "getWage_saudis double DEFAULT NULL,"+
-	    		  "GetWage_expats double DEFAULT NULL"+
+	    		  "wage_saudis double DEFAULT NULL,"+
+	    		  "wage_expats double DEFAULT NULL"+
 	    		")";
 	      stmt.executeUpdate(sql);
 	      
 	      sql = "INSERT INTO firms VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		  SQLite_firmPreparedStatement = SQLite_Connection.prepareStatement(sql);
 
-	      //create the aggrigate firms' data table
+	      //create the aggregate firms' data table
 	      stmt = SQLite_Connection.createStatement();
-	      sql = "CREATE TABLE IF NOT EXISTS firm_statistics ("+
+	      sql = "CREATE TABLE IF NOT EXISTS firm_aggregate ("+
 	    		  "experamentID bigint(20) DEFAULT NULL,"+
 	    		  "day int(11) DEFAULT NULL,"+
 	    		  "num_saudis int(11) DEFAULT NULL,"+
@@ -139,11 +133,7 @@ public class DBConnection
 	    		  "accepted_wage_saudis double DEFAULT NULL"+
 	    		")";
 	      stmt.executeUpdate(sql);
-	      
-	      
-	      
 
-	      
 	      sql = "INSERT INTO firm_statistics VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	      SQLite_firmStatisticsPreparedStatement = SQLite_Connection.prepareStatement(sql);
 
@@ -281,7 +271,6 @@ public class DBConnection
 			   SQLite_firmStatisticsPreparedStatement.setDouble(5, this.wage_bill / num_firms);
 			   SQLite_firmStatisticsPreparedStatement.setDouble(6, this.net_worth / num_firms);
 			   SQLite_firmStatisticsPreparedStatement.setDouble(7, this.profit / num_firms);
-			   /// Why is price devided by demand? should it be devided by num_firms?
 			   SQLite_firmStatisticsPreparedStatement.setDouble(8, this.price / demand);
 			   SQLite_firmStatisticsPreparedStatement.setDouble(9, this.demand );
 			   SQLite_firmStatisticsPreparedStatement.setDouble(10, this.production );

@@ -1,7 +1,0 @@
-.mode csv 
-.header on 
-.out firms.csv
-select * from firms;
-.out firm_statistics.csv
-select * from firm_statistics;
-.quit
