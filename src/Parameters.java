@@ -1,4 +1,3 @@
-import agents.Auctioneer;
 import com.cedarsoftware.util.io.JsonReader;
 import com.cedarsoftware.util.io.JsonWriter;
 import org.json.simple.JSONObject;
@@ -16,6 +15,7 @@ import java.util.Random;
 */
 class Parameters
 {
+    public static final double MONTHLY_TO_DAILY = 30.41;
     private final int num_saudis;
     private final int num_expats;
     private final double productivity_mean_saudi;
@@ -36,6 +36,7 @@ class Parameters
     private final double reservation_wage_saudi;
     private final double reservation_wage_expat;
     private final double initial_sauditization_percentage;
+    private final int visa_length;
     private long seed;
 
     public Parameters()
@@ -43,9 +44,9 @@ class Parameters
         num_firms = 100;
         num_saudis = 3800;
         num_expats = 7000;
-        productivity_mean_saudi = 6854.24 / 30;
-        productivity_mean_expat = 6854.24 / 30;
-        reservation_wage_saudi = 3137.39 / 30;
+        productivity_mean_saudi = 6854.24;
+        productivity_mean_expat = 6854.24;
+        reservation_wage_saudi = 3137.39;
         reservation_wage_expat = 0;
         expat_minimum_wage = 0;
         saudi_minimum_wage = 0;
@@ -55,23 +56,21 @@ class Parameters
         saudi_tax_percentage = 0;
         saudi_tax_per_head = 0;
         initial_sauditization_percentage = 0;
-        sector_spending = 1000000000;
+        sector_spending = 10000000000.0;
         love_for_variety = 0.5;
-        simulation_length = 1;
+        simulation_length = 2000;
         policy_change_time = 1500;
-        wage_std = 3137.39 / 30;
+        wage_std = 3137.39;
+        visa_length = 356;
         seed = 0L;
     }
 
     public String toString()
     {
-        if (seed == 0L)
-            return _json().toString();
-        else
-            return json().toString();
+        return json().toString();
     }
 
-    private JSONObject _json()
+    public JSONObject json()
     {
         JSONParser parser=new JSONParser();
         JSONObject ret = null;
@@ -94,16 +93,10 @@ class Parameters
         return ret;
     }
 
-    public JSONObject json()
-    {
-        JSONObject json = _json();
-        json.put("sha", sha());
-        return json;
-    }
 
     public String sha()
     {
-        assert seed != 0L: "can not sha, when seed is not set";
+        assert seed != 0L: "can not getSha, when seed is not set";
         MessageDigest digest = null;
         byte[] hash = null;
         try
@@ -115,7 +108,7 @@ class Parameters
         }
         try
         {
-            hash = digest.digest(_json().toString().getBytes("UTF-8"));
+            hash = digest.digest(json().toString().getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e)
         {
             e.printStackTrace();
@@ -131,6 +124,9 @@ class Parameters
             new_class = (Parameters) JsonReader.jsonToJava(parameters);
         } catch (IOException e)
         {
+            System.out.println("--");
+            System.out.println(parameters);
+            System.out.println("--");
             e.printStackTrace();
         }
         return new_class;
@@ -148,37 +144,37 @@ class Parameters
 
     public double getProductivity_mean_saudi()
     {
-        return productivity_mean_saudi;
+        return productivity_mean_saudi / MONTHLY_TO_DAILY;
     }
 
     public double getProductivity_mean_expat()
     {
-        return productivity_mean_expat;
+        return productivity_mean_expat / MONTHLY_TO_DAILY;
     }
 
     public double getExpat_minimum_wage()
     {
-        return expat_minimum_wage;
+        return expat_minimum_wage / MONTHLY_TO_DAILY;
     }
 
     public double getSaudi_minimum_wage()
     {
-        return saudi_minimum_wage;
+        return saudi_minimum_wage / MONTHLY_TO_DAILY;
     }
 
     public double getExpat_tax_percentage()
     {
-        return expat_tax_percentage;
+        return expat_tax_percentage / MONTHLY_TO_DAILY;
     }
 
     public double getExpat_tax_per_head()
     {
-        return expat_tax_per_head;
+        return expat_tax_per_head / MONTHLY_TO_DAILY;
     }
 
     public double getReapplication_probability()
     {
-        return reapplication_probability;
+        return reapplication_probability / MONTHLY_TO_DAILY;
     }
 
     public double getSaudi_tax_percentage()
@@ -193,7 +189,7 @@ class Parameters
 
     public double getSector_spending()
     {
-        return sector_spending;
+        return sector_spending / MONTHLY_TO_DAILY;
     }
 
     public double getLove_for_variety()
@@ -218,12 +214,12 @@ class Parameters
 
     public double getReservation_wage_saudi()
     {
-        return reservation_wage_saudi;
+        return reservation_wage_saudi / MONTHLY_TO_DAILY;
     }
 
     public double getReservation_wage_expat()
     {
-        return reservation_wage_expat;
+        return reservation_wage_expat / MONTHLY_TO_DAILY;
     }
 
     public double getInitial_sauditization_percentage()
@@ -243,5 +239,10 @@ class Parameters
             seed = (new Random().nextLong());
         }
         return seed;
+    }
+
+    public int getVisa_length()
+    {
+        return visa_length;
     }
 }
