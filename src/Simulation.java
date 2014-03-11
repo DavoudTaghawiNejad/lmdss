@@ -27,22 +27,38 @@ public class Simulation
     private final DBConnection db_connection;
     private final ArrayList<Firm> firms_reserve = new ArrayList<Firm>();
     private final Parameters pmt;
+    private final boolean time_series;
+    private final boolean panel_data;
+    private final String sha;
+    private CalibrationStatistics calibration_statistics;
 
 
-    public Simulation(String parameters)
+    public Simulation(String Options, String parameters)
     {
-        this(Parameters.Parameters(parameters));
+        this(Options, Parameters.Parameters(parameters));
     }
 
     public Simulation()
     {
-        this(new Parameters());
+        this("t", new Parameters());
     }
 
-    public Simulation(Parameters pmt)
+    public Simulation(String options, Parameters pmt)
     {
+        if (options.contains("t"))
+        {
+            time_series = true;
+        }
+        else
+            time_series = false;
+        if (options.contains("p"))
+        {
+            panel_data = true;
+        }
+        else
+            panel_data = false;
+
         this.pmt = pmt;
-        pmt.toString();
         int num_expats = pmt.getNum_expats();
         int num_saudis = pmt.getNum_saudis();
 
@@ -53,7 +69,13 @@ public class Simulation
         long seed = pmt.getSeed();
         seed_generator = new Random(seed);
         Random rnd = new Random(seed_generator.nextLong());
-        db_connection = new DBConnection(pmt.sha());
+        sha = pmt.sha();
+        if (time_series || panel_data)
+        {
+            db_connection = new DBConnection(sha);
+        }
+        else
+            db_connection = null;
 
         auctioneer = new Auctioneer(pmt.getLove_for_variety(), pmt.getSector_spending());
 
@@ -70,7 +92,7 @@ public class Simulation
 
         apply_to_firm = new ArrayList<List<WorkerRecord>>();
         firms = new ArrayList<Firm>();
-        create_firms(pmt.getNum_firms(), pmt.getInitial_sauditization_percentage(), pmt.getWage_std());
+        create_firms(pmt.getNum_firms(), pmt.getInitial_sauditization_percentage(), pmt.getWage_std(), pmt.getVisa_length());
     }
 
     private final void create_workers(double num_saudis, double num_expats, double productivity_mean_saudi, double productivity_mean_expat,
@@ -106,7 +128,7 @@ public class Simulation
         }
     }
 
-    private final void create_firms(int number, double initial_sauditization_percentage, double wage_std)
+    private final void create_firms(int number, double initial_sauditization_percentage, double wage_std, int visa_length)
     {
         final int last_id = 0;
         for (int i = 0; i < number; i++)
@@ -122,6 +144,7 @@ public class Simulation
                             newspaper_expat,
                             auctioneer,
                             initial_sauditization_percentage,
+                            visa_length,
                             day,
                             wage_std
                     )
@@ -131,6 +154,7 @@ public class Simulation
 
     public final JSONObject run()
     {
+        calibration_statistics = new CalibrationStatistics(firms);
         int simulation_length = pmt.getSimulation_length();
         int policy_change_time = pmt.getPolicy_change_time();
 
@@ -201,44 +225,56 @@ public class Simulation
             {
                 if (firms.get(h).out_of_business())
                 {
-                    System.out.println();
-                    System.out.println(firms.get(h));
+
                     firms.remove(h);
                 }
             }
-            statistics(iday, policy_change_time);
+            statistics(iday, policy_change_time, simulation_length);
 
             if (iday == policy_change_time)
             {
                 WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
-                System.out.println(new CalibrationStatistics(firms).json());
 
                 output.put("before_policy", new CalibrationStatistics(firms).json());
                 auctioneer.income *= 2;
             }
         }
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
-        db_connection.close();
-        output.put("after_policy", new CalibrationStatistics(firms).json());
+        if (db_connection != null)
+        {
+            db_connection.close();
+        }
+        output.put("after_policy", calibration_statistics.json());
         return output;
     }
 
-    private final void statistics(int iday, int policy_change_time)
+    private final void statistics(int iday, int policy_change_time, int simulation_length)
     {
 
-        if (
-                iday >= 500
-                        && iday % 20 == 0
-                )
-        {
-            db_connection.write_aggregate_firm_statistics(firms, iday);
-            db_connection.write_firm_statistics(firms, iday);
 
+            if(time_series)
+            {
+                db_connection.write_aggregate_firm_statistics(firms, iday);
+            }
+            if(panel_data)
+            {
+                db_connection.write_firm_statistics(firms, iday);
+            }
+        if (iday >  simulation_length - 200)
+        {
+            calibration_statistics.update();
         }
+
+
         if (iday == policy_change_time - 1)
         {
             WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy_change");
         }
+    }
+
+    public String getSha()
+    {
+        return sha;
     }
 
 }
