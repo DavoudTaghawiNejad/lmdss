@@ -17,6 +17,7 @@ public class Firm {
     private final Rnd rnd;
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
+    private final int visa_length;
     private Map<Integer, Group> visastack = new HashMap<Integer, Group>();
 
     public int id;
@@ -549,8 +550,11 @@ public class Firm {
             Newspaper newspaper_saudis,
             Newspaper newspaper_expats,
             Auctioneer auctioneer,
-            double sauditization_percentage,
-            AtomicInteger day, double wage_std)
+            double sauditization_percentage,            
+            int visa_length,
+            AtomicInteger day, 
+            double wage_std
+    )
     {
         this.id = id;
         this.applications = post_box_applications;
@@ -560,6 +564,7 @@ public class Firm {
         this.sauditization_percentage = sauditization_percentage;
         this.day = day;
         this.rnd = new Rnd(seed);
+        this.visa_length = visa_length;
     }
 
 
@@ -585,7 +590,6 @@ public class Firm {
 
     private void addVisa(WorkerRecord worker)
     {
-        final int visa_length = 365;
         Integer visa_date = day.get() + visa_length;
         Group day_list = visastack.get(visa_date);
         if (day_list == null)
