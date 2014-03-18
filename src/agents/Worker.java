@@ -46,7 +46,7 @@ public class Worker
         this.auctioneer = auctioneer;
         this.satisficing_wage = reservation_wage;
         this.productivity = productivity;
-        re_calculate_wage(minimum_wage, minimum_wage, tax_percentage, tax_per_head);
+        re_calculate_wage(minimum_wage);
     }
 
     public boolean isEmployed () {
@@ -61,24 +61,18 @@ public class Worker
     /**
      * calculate the wage floor, it depends on the workers' satisficing_wage, minimum wage, and taxation (if any..)
     **/
-    public void re_calculate_wage (double expat_minimum_wage, double saudi_minimum_wage, double expat_tax_percentage, double expat_tax_per_head)
+    public void re_calculate_wage (double minimum_wage)
     {
-    	if (citizenship == Citizenship.EXPAT)
-    	{
-    		wage_floor = Math.max(
-    				satisficing_wage,
-    				expat_minimum_wage
-    		);
-    		wage *= (1 + expat_tax_percentage);
-    		wage += expat_tax_per_head;
-    	} else if (citizenship == Citizenship.SAUDI)
-    	{
-    		wage_floor = Math.max(
-    				satisficing_wage,
-    				saudi_minimum_wage
 
-    		);
-    	}
+        wage_floor = Math.max(
+                satisficing_wage,
+                minimum_wage
+        );
+
+        if (isEmployed())
+        {
+            wage = Math.max(wage, wage_floor);
+        }
     }
     public void sendFire()
       
@@ -140,5 +134,10 @@ public class Worker
     public boolean isEmployee(Firm firm)
     {
         return employer == firm;
+    }
+
+    public void setWage(double wage)
+    {
+        this.wage = wage;
     }
 }

@@ -31,6 +31,11 @@ public class CalibrationStatistics
         this.firms = firms;
     }
 
+    public CalibrationStatistics(String s)
+    {
+        samples = 1;
+    }
+
     private void convert_to_monthly()
     {
         profit *= 30.42;

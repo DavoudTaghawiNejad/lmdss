@@ -5,6 +5,7 @@ import agents.Worker;
 import definitions.Citizenship;
 import definitions.ContractStatus;
 
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -16,6 +17,7 @@ public class WorkerRecord
     public int visa_expiration = 0;
     public int contract_end = 0;
     public ContractStatus contract_status;
+    private double wage;
 
 
     public WorkerRecord(Worker worker, double agreed_wage, int start_date) {
@@ -47,6 +49,12 @@ public class WorkerRecord
 
     public Worker getAddress() {
         return worker;
+    }
+
+    public void setWage(double wage)
+    {
+        this.wage = wage;
+        this.worker.setWage(wage);
     }
 }
 

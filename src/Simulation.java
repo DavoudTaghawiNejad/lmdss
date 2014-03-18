@@ -1,3 +1,4 @@
+
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -6,6 +7,8 @@ import agents.*;
 import definitions.Citizenship;
 import definitions.WorkerStatistics;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import tools.DBConnection;
 import tools.WorkerRecord;
 
@@ -26,25 +29,24 @@ public class Simulation
     private final AtomicInteger day = new AtomicInteger();
     private final DBConnection db_connection;
     private final ArrayList<Firm> firms_reserve = new ArrayList<Firm>();
-    private final Parameters pmt;
+    private final Assumptions assumptions;
     private final boolean time_series;
     private final boolean panel_data;
     private final String sha;
-    private CalibrationStatistics calibration_statistics;
+    private CalibrationStatistics after_policy_calibration_statistics;
+    private CalibrationStatistics before_policy_calibration_statistics;
+    private Policy after_policy;
+    private Policy before_policy;
 
-
-    public Simulation(String Options, String parameters)
+    public Simulation(String options, String parameters) throws ParseException
     {
-        this(Options, Parameters.Parameters(parameters));
-    }
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(parameters);
+        JSONObject dictionary = (JSONObject) obj;
+        assumptions = Assumptions.Assumptions(dictionary.get("assumptions").toString());
+        before_policy = Policy.Policy(dictionary.get("before_policy").toString());
+        after_policy = Policy.Policy(dictionary.get("after_policy").toString());
 
-    public Simulation()
-    {
-        this("t", new Parameters());
-    }
-
-    public Simulation(String options, Parameters pmt)
-    {
         if (options.contains("t"))
         {
             time_series = true;
@@ -58,18 +60,18 @@ public class Simulation
         else
             panel_data = false;
 
-        this.pmt = pmt;
-        int num_expats = pmt.getNum_expats();
-        int num_saudis = pmt.getNum_saudis();
+
+        int num_expats = assumptions.getNum_expats();
+        int num_saudis = assumptions.getNum_saudis();
 
         setup_period = 500;
         setup_workers = (int) Math.ceil((double) (num_expats + num_saudis) / setup_period);
-        setup_firms = (int) Math.ceil((double) pmt.getNum_firms() / setup_period);
+        setup_firms = (int) Math.ceil((double) assumptions.getNum_firms() / setup_period);
 
-        long seed = pmt.getSeed();
+        long seed = assumptions.getSeed();
         seed_generator = new Random(seed);
         Random rnd = new Random(seed_generator.nextLong());
-        sha = pmt.sha();
+        sha = assumptions.sha();
         if (time_series || panel_data)
         {
             db_connection = new DBConnection(sha);
@@ -77,7 +79,7 @@ public class Simulation
         else
             db_connection = null;
 
-        auctioneer = new Auctioneer(pmt.getLove_for_variety(), pmt.getSector_spending());
+        auctioneer = new Auctioneer(assumptions.getLove_for_variety(), assumptions.getSector_spending());
 
         newspaper_saudi = new Newspaper(seed_generator.nextLong());
         newspaper_expat = new Newspaper(seed_generator.nextLong());
@@ -85,14 +87,14 @@ public class Simulation
         workers = new ArrayList<Worker>();
 
 
-        create_workers(num_saudis, num_expats, pmt.getProductivity_mean_saudi(), pmt.getProductivity_mean_expat(), pmt.getExpat_minimum_wage(),
-                pmt.getSaudi_minimum_wage(), pmt.getSaudi_tax_percentage(), pmt.getExpat_tax_percentage(), pmt.getSaudi_tax_per_head(), pmt.getExpat_tax_per_head(),
-                pmt.getReapplication_probability(), 0, pmt.getReservation_wage_saudi(), pmt.getReservation_wage_expat(), rnd
+        create_workers(num_saudis, num_expats, assumptions.getProductivity_mean_saudi(), assumptions.getProductivity_mean_expat(), before_policy.getExpat_minimum_wage(),
+                before_policy.getSaudi_minimum_wage(), before_policy.getSaudi_tax_percentage(), before_policy.getExpat_tax_percentage(), before_policy.getSaudi_tax_per_head(), before_policy.getExpat_tax_per_head(),
+                assumptions.getReapplication_probability(), 0, assumptions.getReservation_wage_saudi(), assumptions.getReservation_wage_expat(), rnd
         );
 
         apply_to_firm = new ArrayList<List<WorkerRecord>>();
         firms = new ArrayList<Firm>();
-        create_firms(pmt.getNum_firms(), pmt.getInitial_sauditization_percentage(), pmt.getWage_std(), pmt.getVisa_length());
+        create_firms(assumptions.getNum_firms(), before_policy.getSauditization_percentage(), assumptions.getWage_std(), before_policy.getVisa_length());
     }
 
     private final void create_workers(double num_saudis, double num_expats, double productivity_mean_saudi, double productivity_mean_expat,
@@ -154,12 +156,15 @@ public class Simulation
 
     public final JSONObject run()
     {
-        calibration_statistics = new CalibrationStatistics(firms);
-        int simulation_length = pmt.getSimulation_length();
-        int policy_change_time = pmt.getPolicy_change_time();
+        after_policy_calibration_statistics = new CalibrationStatistics(firms);
+        before_policy_calibration_statistics = new CalibrationStatistics(firms);
+
+
+        int simulation_length = assumptions.getSimulation_length();
+        int policy_change_time = assumptions.getPolicy_change_time();
 
         JSONObject output = new JSONObject();
-        output.put("parameter", pmt.json());
+        output.put("parameter", assumptions.json());
 
         for (int iday = 0; iday < simulation_length; iday++)
         {
@@ -233,10 +238,11 @@ public class Simulation
 
             if (iday == policy_change_time)
             {
-                WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy");
-
-                output.put("before_policy", new CalibrationStatistics(firms).json());
-                auctioneer.income *= 2;
+                after_policy.change_policy_for_workers(workers);
+                for (Firm firm : firms)
+                {
+                    firm.set_new_policy(before_policy.dump_policy(), after_policy.dump_policy());
+                }
             }
         }
         WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
@@ -244,32 +250,39 @@ public class Simulation
         {
             db_connection.close();
         }
-        output.put("after_policy", calibration_statistics.json());
+        output.put("before_policy", after_policy_calibration_statistics.json());
+        output.put("after_policy", after_policy_calibration_statistics.json());
         return output;
     }
+
+
 
     private final void statistics(int iday, int policy_change_time, int simulation_length)
     {
 
 
-            if(time_series)
-            {
-                db_connection.write_aggregate_firm_statistics(firms, iday);
-            }
-            if(panel_data)
-            {
-                db_connection.write_firm_statistics(firms, iday);
-            }
+        if(time_series)
+        {
+            db_connection.write_aggregate_firm_statistics(firms, iday);
+        }
+        if(panel_data)
+        {
+            db_connection.write_firm_statistics(firms, iday);
+        }
+
+        if (iday >  policy_change_time - 200 && iday < policy_change_time)
+        {
+            before_policy_calibration_statistics.update();
+        }
         if (iday >  simulation_length - 200)
         {
-            calibration_statistics.update();
+            after_policy_calibration_statistics.update();
         }
 
-
-        if (iday == policy_change_time - 1)
-        {
-            WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy_change");
-        }
+        //if (iday == policy_change_time - 1)
+        //{
+        //    WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy_change");
+        //}
     }
 
     public String getSha()

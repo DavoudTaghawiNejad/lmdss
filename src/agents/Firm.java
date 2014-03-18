@@ -17,7 +17,7 @@ public class Firm {
     private final Rnd rnd;
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
-    private final int visa_length;
+    private int visa_length;
     private Map<Integer, Group> visastack = new HashMap<Integer, Group>();
 
     public int id;
@@ -82,6 +82,16 @@ public class Firm {
             decrease_planned_production_bounded();
         }
     }
+
+    public void set_new_policy(HashMap<String, Double> before_policy, HashMap<String, Double> after_policy)
+    {
+
+        staff.recalculate_wage(before_policy, after_policy);
+        sauditization_percentage = after_policy.get("sauditization_percentage");
+        visa_length = (int)Math.ceil(after_policy.get("visa_length"));
+    }
+
+
 
 
     private void decrease_price_bounded()

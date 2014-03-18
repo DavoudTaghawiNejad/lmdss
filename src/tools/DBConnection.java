@@ -321,5 +321,4 @@ public class DBConnection
 			System.exit(0);
 	    }
 	}
-	
-	}
+}

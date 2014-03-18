@@ -1,10 +1,12 @@
 package tools;
 
 import agents.Firm;
+import agents.Worker;
 import definitions.Citizenship;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -28,13 +30,7 @@ public class Group
         worker_list = new ArrayList<WorkerRecord>(staff.getWorker_list());
         worker_list.removeAll(can_be_fired.getWorker_list());
         this.employer = employer;
-        productivity = staff.getProductivity() - can_be_fired.getProductivity();
-        wage = staff.getWage() - can_be_fired.getWage();
-        wage_saudis = staff.getWage_saudis() - can_be_fired.getWage_saudis();
-        wage_expats = staff.getWage_expats() - can_be_fired.getWage_expats();
-
-        saudis = staff.getSaudis() - can_be_fired.getSaudis();
-        expats = staff.getExpats() - can_be_fired.getExpats();
+        productivity = staff.getProductivity();
     }
 
     public int getSaudis() {
@@ -136,6 +132,53 @@ public class Group
         saudis -= getSaudis();
         expats -= getExpats();
         return worker_list.removeAll(to_remove.getWorker_list());
+    }
+    
+    public void recalculate_wage(HashMap<String, Double> before_policy, HashMap<String, Double> after_policy)
+    {
+
+        double  after_expat_tax_percentage =  after_policy.get("expat_tax_percentage");
+        double before_expat_tax_percentage = before_policy.get("expat_tax_percentage");
+        double  after_saudi_tax_percentage = after_policy.get("saudi_tax_percentage");
+        double before_saudi_tax_percentage = before_policy.get("saudi_tax_percentage");
+        
+        double after_expat_minimum_wage = after_policy.get("expat_minimum_wage");
+        double before_expat_minimum_wage = before_policy.get("expat_minimum_wage");
+        double after_saudi_minimum_wage = after_policy.get("saudi_minimum_wage");
+        double before_saudi_minimum_wage = before_policy.get("saudi_minimum_wage");
+        
+        double after_expat_tax_per_head = after_policy.get("expat_tax_per_head");
+        double before_expat_tax_per_head = before_policy.get("expat_tax_per_head");
+        double after_saudi_tax_per_head = after_policy.get("saudi_tax_per_head");
+        double before_saudi_tax_per_head = before_policy.get("saudi_tax_per_head");
+
+        for (WorkerRecord worker: worker_list)
+        {
+            double before_tax_percent;
+            double before_tax_per_head;
+            double after_tax_percent;
+            double after_tax_per_head;
+            double minimum_wage;
+            if (worker.getCitizenship() == Citizenship.SAUDI)
+            {
+                before_tax_percent = before_saudi_tax_percentage;
+                before_tax_per_head = before_saudi_tax_per_head;
+                after_tax_percent = after_saudi_tax_percentage;
+                after_tax_per_head = after_saudi_tax_per_head;
+                minimum_wage = after_saudi_minimum_wage;
+            }
+            else
+            {
+                before_tax_percent = before_expat_tax_percentage;
+                before_tax_per_head = before_expat_tax_per_head; 
+                after_tax_percent = after_expat_tax_percentage;
+                after_tax_per_head = after_expat_tax_per_head;
+                minimum_wage = after_expat_minimum_wage;
+            }
+            double netto_wage = worker.getWage() * (1 - before_tax_percent) - before_tax_per_head;
+            double new_brutto = netto_wage * (1 + after_tax_percent) - after_tax_per_head;
+            worker.setWage(Math.max(new_brutto, minimum_wage));
+        }
     }
 
     public int size()
