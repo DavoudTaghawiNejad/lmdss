@@ -36,14 +36,20 @@ public class Simulation
     private Policy after_policy;
     private Policy before_policy;
 
-    public Simulation(String options, String parameters) throws ParseException
-    {
+    public Simulation(String options, String parameters) throws Exception {
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(parameters);
         JSONObject dictionary = (JSONObject) obj;
-        assumptions = Assumptions.Assumptions(dictionary.get("assumptions").toString());
-        before_policy = Policy.Policy(dictionary.get("before_policy").toString());
-        after_policy = Policy.Policy(dictionary.get("after_policy").toString());
+
+        try {
+            assumptions = Assumptions.Assumptions(dictionary.get("assumptions").toString());
+            before_policy = Policy.Policy(dictionary.get("before_policy").toString());
+            after_policy = Policy.Policy(dictionary.get("after_policy").toString());
+        } catch (Exception e) {
+            System.out.println(dictionary.toString());
+            e.printStackTrace();
+            throw new Exception(e);
+        }
 
         if (options.contains("t"))
         {
