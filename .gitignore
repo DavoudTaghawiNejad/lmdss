@@ -1,0 +1,16 @@
+.classpath
+.idea/
+.project
+*.csv
+bin/
+saudifirms.iml
+saudifirms.rar
+src/analysis/
+worker.csv
+.gitignore
+*~
+*.class
+cge/
+*.sqlite3
+kriging/
+
