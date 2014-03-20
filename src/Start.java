@@ -9,7 +9,7 @@ import java.util.List;
 
 public class Start
 {
-    public static void main(String [] raw_args) throws ParseException
+    public static void main(String [] raw_args) throws Exception
     {
         List<String> args = Arrays.asList(raw_args);
         if (args.contains("--help") || args.contains("-h") || args.size() <2 || args.size() > 3)
