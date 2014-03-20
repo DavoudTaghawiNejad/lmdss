@@ -12,8 +12,6 @@ import org.json.simple.parser.ParseException;
 import tools.DBConnection;
 import tools.WorkerRecord;
 
-import static java.lang.Integer.min;
-
 public class Simulation
 {
     private final List<Worker> workers;
@@ -172,8 +170,8 @@ public class Simulation
             auctioneer.new_round();
             if (iday < setup_period)
             {
-                firms.addAll(firms_reserve.subList(0, min(setup_firms, firms_reserve.size())));
-                firms_reserve.subList(0, min(setup_firms, firms_reserve.size())).clear();
+                firms.addAll(firms_reserve.subList(0, Math.min(setup_firms, firms_reserve.size())));
+                firms_reserve.subList(0, Math.min(setup_firms, firms_reserve.size())).clear();
             }
             newspaper_saudi.clear_job_ads();
             newspaper_expat.clear_job_ads();
