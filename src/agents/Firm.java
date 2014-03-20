@@ -149,8 +149,15 @@ public class Firm {
     {
         assert wage_saudis == staff.getWage_saudis();
         assert wage_expats == staff.getWage_expats();
+        int num_visas_expiering_today = 0;
+        int iday = day.get();
+        try {
+            num_visas_expiering_today = visastack.get(iday).size();
+        } catch (Exception e) {
+            num_visas_expiering_today = 0;
+        }
         if (planned_production > staff.getProductivity()
-            || visastack.getOrDefault(day.get(), new Group(this)).size() > 0
+            || num_visas_expiering_today > 0
            )
         {
             double add_wage_saudis;
@@ -179,7 +186,7 @@ public class Firm {
             {
              add_wage_expats = 10;
             }
-            
+
             newspaper_saudis.place_add(new JobAdd(applications, add_wage_saudis));
             newspaper_expats.place_add(new JobAdd(applications, add_wage_expats));
             stats_offer_wage_saudis = add_wage_saudis;
