@@ -53,6 +53,9 @@ public class Firm {
     public double stats_decrease_price_bounded;
     public double stats_offer_wage_expats;
     public double stats_offer_wage_saudis;
+    private int distance_to_cut_off;
+    private int before_saudis;
+
 
     public void setSauditization_percentage(double sauditization_percentage) {
         this.sauditization_percentage = sauditization_percentage;
@@ -647,5 +650,20 @@ public class Firm {
     {
         assert wage_saudis == staff.getWage_saudis();
         return staff.getWage_expats();
+    }
+
+    public void setKinky(double quota) {
+
+        int saudis = staff.getSaudis();
+        distance_to_cut_off = (int) Math.ceil((staff.getExpats() + saudis) * quota - saudis);
+        before_saudis = saudis;
+    }
+
+    public int getDistance_to_cut_off() {
+        return distance_to_cut_off;
+    }
+
+    public int getBefore_saudis() {
+        return before_saudis;
     }
 }

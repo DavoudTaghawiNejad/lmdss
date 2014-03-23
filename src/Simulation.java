@@ -5,10 +5,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import agents.*;
 import definitions.Citizenship;
-import definitions.WorkerStatistics;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import tools.DBConnection;
 import tools.WorkerRecord;
 
@@ -35,6 +33,7 @@ public class Simulation
     private CalibrationStatistics before_policy_calibration_statistics;
     private Policy after_policy;
     private Policy before_policy;
+    private KinkyStatistics before_after;
 
     public Simulation(String options, String parameters) throws Exception {
         JSONParser parser = new JSONParser();
@@ -162,6 +161,7 @@ public class Simulation
     {
         after_policy_calibration_statistics = new CalibrationStatistics(firms);
         before_policy_calibration_statistics = new CalibrationStatistics(firms);
+        before_after = new KinkyStatistics(firms);
 
 
         int simulation_length = assumptions.getSimulation_length();
@@ -249,13 +249,14 @@ public class Simulation
                 }
             }
         }
-        WorkerStatistics.net_contribution(workers, auctioneer.market_price, "final");
+
         if (db_connection != null)
         {
             db_connection.close();
         }
         output.put("before_policy", after_policy_calibration_statistics.json());
         output.put("after_policy", after_policy_calibration_statistics.json());
+        output.put("kinky_statistics", before_after.json());
         return output;
     }
 
@@ -274,6 +275,14 @@ public class Simulation
             db_connection.write_firm_statistics(firms, iday);
         }
 
+        if (iday ==  policy_change_time - 1)
+        {
+            before_after.before();
+        }
+        if (iday ==  simulation_length - 1)
+        {
+            before_after.after();
+        }
         if (iday >  policy_change_time - 200 && iday < policy_change_time)
         {
             before_policy_calibration_statistics.update();
@@ -282,11 +291,6 @@ public class Simulation
         {
             after_policy_calibration_statistics.update();
         }
-
-        //if (iday == policy_change_time - 1)
-        //{
-        //    WorkerStatistics.net_contribution(workers, auctioneer.market_price, "before_policy_change");
-        //}
     }
 
     public String getSha()
