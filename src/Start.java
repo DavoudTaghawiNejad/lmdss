@@ -1,6 +1,5 @@
 import agents.CalibrationStatistics;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -60,7 +59,7 @@ public class Start
     }
 
     private static void dump_csv()
-    {
+    {/*
         try
         {
             Runtime.getRuntime().exec("cmd /c start DumpCSV.bat");
@@ -74,6 +73,6 @@ public class Start
             {
                 System.out.println("Cannot run batch...");
             }
-        }
+        }*/
     }
 }
