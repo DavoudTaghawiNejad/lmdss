@@ -254,7 +254,7 @@ public class Simulation
         {
             db_connection.close();
         }
-        output.put("before_policy", after_policy_calibration_statistics.json());
+        output.put("before_policy", before_policy_calibration_statistics.json());
         output.put("after_policy", after_policy_calibration_statistics.json());
         output.put("kinky_statistics", before_after.json());
         return output;
