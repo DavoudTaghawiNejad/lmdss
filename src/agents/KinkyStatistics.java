@@ -42,17 +42,25 @@ public class KinkyStatistics
             };
             int size = firm.staff.getSaudis() + firm.staff.getExpats();
             double quota;
-            if (size < 250)
+            if (size < 10)
+            {
+                quota = quotas[1];
+            }
+            else if (size < 50)
             {
                 quota = quotas[2];
             }
-            if (size < 1897)
+            else if (size < 500)
             {
                 quota = quotas[3];
             }
-            else
+            else if (size < 3000)
             {
                 quota = quotas[4];
+            }
+            else
+            {
+                quota = quotas[5];
             }
             firm.setKinky(quota);
         }
