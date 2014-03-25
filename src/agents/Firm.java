@@ -21,7 +21,7 @@ public class Firm {
     private Map<Integer, Group> visastack = new HashMap<Integer, Group>();
 
     public int id;
-    public double net_worth = 1000;
+    public double net_worth = 10000;
     public double profit;
     public double price = 300;
     public double demand = 1;
@@ -99,7 +99,7 @@ public class Firm {
         double before = price;
         double rand;
         rand = rnd.uniform(parameter_price);
-        if (price * (1 - rand) > (staff.getWage() / staff.getProductivity()) * 1.1) {
+        if (price * (1 - rand) > (staff.getWage() / staff.getProductivity()) * 1.0) {
             price = price * (1 - rand);
         }
         stats_decrease_price_bounded = price - before;

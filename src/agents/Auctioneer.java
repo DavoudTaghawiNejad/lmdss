@@ -6,7 +6,7 @@ public class Auctioneer {
 	public double love_for_variety;
     public double q;
 	public double total_value_sold;
-	public double income;
+	public double income = 0;
 	public double market_price;
 	public double total_deliverable_demand;
 	public double total_capacity;
@@ -17,9 +17,8 @@ public class Auctioneer {
 	public java.util.LinkedHashMap<Firm, Double> quantities = new java.util.LinkedHashMap<Firm, Double>();
 	public java.util.ArrayList<FirmQuantity> demand_list = new java.util.ArrayList<FirmQuantity>();
 
-    public Auctioneer(double love_for_variety, double income) {
-        this.love_for_variety = love_for_variety;
-        this.income = income;
+    public Auctioneer(double love_for_variety) {
+        this.love_for_variety = love_for_variety;        
     }
 
     public void compute_market() {
