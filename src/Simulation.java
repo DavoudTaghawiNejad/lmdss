@@ -68,7 +68,7 @@ public class Simulation
         int num_expats = assumptions.getNum_expats();
         int num_saudis = assumptions.getNum_saudis();
 
-        setup_period = 500;
+        setup_period = 1000;
         setup_workers = (int) Math.ceil((double) (num_expats + num_saudis) / setup_period);
         setup_firms = (int) Math.ceil((double) assumptions.getNum_firms() / setup_period);
 
@@ -83,7 +83,7 @@ public class Simulation
         else
             db_connection = null;
 
-        auctioneer = new Auctioneer(assumptions.getLove_for_variety(), assumptions.getSector_spending());
+        auctioneer = new Auctioneer(assumptions.getLove_for_variety());
 
         newspaper_saudi = new Newspaper(seed_generator.nextLong());
         newspaper_expat = new Newspaper(seed_generator.nextLong());
@@ -178,6 +178,7 @@ public class Simulation
             {
                 firms.addAll(firms_reserve.subList(0, Math.min(setup_firms, firms_reserve.size())));
                 firms_reserve.subList(0, Math.min(setup_firms, firms_reserve.size())).clear();
+                auctioneer.income = (float)assumptions.getSector_spending() * ((float)iday / (float)setup_period);
             }
             newspaper_saudi.clear_job_ads();
             newspaper_expat.clear_job_ads();
