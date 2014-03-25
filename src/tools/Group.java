@@ -136,6 +136,9 @@ public class Group
     
     public void recalculate_wage(HashMap<String, Double> before_policy, HashMap<String, Double> after_policy)
     {
+        wage = 0;
+        wage_saudis = 0;
+        wage_expats = 0;
 
         double  after_expat_tax_percentage =  after_policy.get("expat_tax_percentage");
         double before_expat_tax_percentage = before_policy.get("expat_tax_percentage");
@@ -143,9 +146,9 @@ public class Group
         double before_saudi_tax_percentage = before_policy.get("saudi_tax_percentage");
         
         double after_expat_minimum_wage = after_policy.get("expat_minimum_wage");
-        double before_expat_minimum_wage = before_policy.get("expat_minimum_wage");
+
         double after_saudi_minimum_wage = after_policy.get("saudi_minimum_wage");
-        double before_saudi_minimum_wage = before_policy.get("saudi_minimum_wage");
+
         
         double after_expat_tax_per_head = after_policy.get("expat_tax_per_head");
         double before_expat_tax_per_head = before_policy.get("expat_tax_per_head");
@@ -177,7 +180,17 @@ public class Group
             }
             double netto_wage = worker.getWage() * (1 - before_tax_percent) - before_tax_per_head;
             double new_brutto = netto_wage * (1 + after_tax_percent) - after_tax_per_head;
-            worker.setWage(Math.max(new_brutto, minimum_wage));
+            double new_wage = Math.max(new_brutto, minimum_wage);
+            worker.setWage(new_wage);
+            wage += new_wage;
+            if (worker.getCitizenship() == Citizenship.SAUDI)
+            {
+                wage_saudis += new_wage;
+            }
+            else
+            {
+                wage_expats += new_wage;
+            }
         }
     }
 
