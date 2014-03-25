@@ -1,8 +1,19 @@
 import agents.CalibrationStatistics;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
+import java.io.FileReader;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,45 +46,16 @@ public class Start
             System.out.println("All parameters and results are monthly");
             return;
         }
-        delete_database();
         long started = System.currentTimeMillis();
         Simulation simulation;
         {
-            simulation = new Simulation(args.get(0), args.get(1));
+        	JSONParser parser = new JSONParser();
+        	String jsonString = parser.parse(new FileReader(args.get(1))).toString();
+            simulation = new Simulation(args.get(0), jsonString);
         }
         JSONObject simulation_output = simulation.run();
-        dump_csv();
         simulation_output.put("run time", (System.currentTimeMillis() - started) / 1000.0);
         simulation_output.put("hash", simulation.getSha());
         System.out.print(simulation_output);
-    }
-
-    private static void delete_database()
-    {
-        try
-        {
-            Runtime.getRuntime().exec("rm lmdss.sqlite3");
-        } catch (Exception ee)
-        {
-            System.out.println("Cannot run batch...");
-        }
-    }
-
-    private static void dump_csv()
-    {
-        try
-        {
-            Runtime.getRuntime().exec("cmd /c start DumpCSV.bat");
-        } catch (IOException e)
-        {
-            try
-            {
-                Runtime.getRuntime().exec("sh /home/taghawi/Dropbox/workspace/saudifirms/dump.sh");
-            }
-            catch (Exception ee)
-            {
-                System.out.println("Cannot run batch...");
-            }
-        }
     }
 }
