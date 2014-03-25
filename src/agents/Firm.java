@@ -39,7 +39,7 @@ public class Firm {
 
     private double parameter_price = 2.0 / 356.0;
 
-    public boolean no_fake_probation;
+    public boolean no_fake_probation = true;
     private double sauditization_percentage;
     private Auctioneer auctioneer;
     private AtomicInteger day;
