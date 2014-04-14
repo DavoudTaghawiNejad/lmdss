@@ -62,8 +62,11 @@ public class Firm {
     }
 
     /**
-     * adapts prices if production is not in line with planned_production
-     * adapts planned_production, when demand is changed
+     * When a firm's production exceeds their planned production, by more than the productivity of the average worker.
+     * The firm decrease it's price. But never below it's marginal costs. If the production falls short by more than
+     * the average productivity of a worker, they price is increased.
+     *
+     * When observed demand exceeds/falls short of planned production, planned production is increased/decreased.
      */
     public void set_prices_demand()
     {
@@ -121,6 +124,7 @@ public class Firm {
      * There is no decrease is planned_production, when pp is close to actual production.
      * (2 times the average production)
      */
+    //TODO simplifiy, in line with paper
     private void decrease_planned_production_bounded() {
         double before  = planned_production;
         planned_production = max(demand, planned_production
@@ -145,8 +149,8 @@ public class Firm {
     }
 
     /**
-     * If production should be expanded or people can be fired, Advertisments are set with
-     * the wage is the average wage of workers plus a random term.
+     * The advertised wage for Saudis and non Saudis is the firm's average wage in the respective category plus
+     * a random gaussian variable. The standard deviation is a model parameter.
      */
     public void advertise()
     {
