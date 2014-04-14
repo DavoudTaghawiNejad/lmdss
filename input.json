@@ -5,7 +5,7 @@
         "simulation_length": 2462,
         "num_firms": 69.81,
         "num_expats": 6500,
-        "num_saudis": 5500,
+        "num_saudis": 5000,
         "wage_std": 200,
         "reservation_wage_expat": 9.081523391881518,
         "productivity_mean_saudi": 2258.1547815095755,
@@ -36,5 +36,6 @@
         "saudi_tax_percentage": 0,
         "sauditization_percentage": 0.15,
         "visa_length": 356
-    }
+    },
+    "seed": 1300
 }
