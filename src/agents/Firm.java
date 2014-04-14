@@ -94,7 +94,35 @@ public class Firm {
     {
 
         staff.recalculate_wage(before_policy, after_policy);
-        sauditization_percentage = after_policy.get("sauditization_percentage");
+        double[] quotas;
+        quotas = new double[]{0.0,
+                0.0, // 1
+                8 / 100,  // 2
+                15 / 100, // 3
+                20 / 100, // 4
+                20 / 100 // 5
+        };
+        int size = staff.getSaudis() + staff.getExpats();
+        if (size < 10)
+        {
+            sauditization_percentage = quotas[1];
+        }
+        else if (size < 50)
+        {
+            sauditization_percentage = quotas[2];
+        }
+        else if (size < 500)
+        {
+            sauditization_percentage = quotas[3];
+        }
+        else if (size < 3000)
+        {
+            sauditization_percentage = quotas[4];
+        }
+        else
+        {
+            sauditization_percentage = quotas[5];
+        }
         visa_length = (int)Math.ceil(after_policy.get("visa_length"));
     }
 
