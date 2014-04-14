@@ -55,6 +55,7 @@ public class Firm {
     public double stats_offer_wage_saudis;
     private int distance_to_cut_off;
     private int before_saudis;
+    private int before_expats;
 
 
     public void setSauditization_percentage(double sauditization_percentage) {
@@ -661,6 +662,7 @@ public class Firm {
         int saudis = staff.getSaudis();
         distance_to_cut_off = (int) Math.ceil((staff.getExpats() + saudis) * quota - saudis);
         before_saudis = saudis;
+        before_expats = staff.getSaudis();
     }
 
     public int getDistance_to_cut_off() {
@@ -669,5 +671,9 @@ public class Firm {
 
     public int getBefore_saudis() {
         return before_saudis;
+    }
+
+    public int getBefore_expats() {
+        return before_expats;
     }
 }
