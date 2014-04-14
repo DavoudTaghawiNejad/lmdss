@@ -180,14 +180,11 @@ public class Simulation
                 firms_reserve.subList(0, Math.min(setup_firms, firms_reserve.size())).clear();
                 auctioneer.income = (float)assumptions.getSector_spending() * ((float)iday / (float)setup_period);
             }
-            newspaper_saudi.clear_job_ads();
-            newspaper_expat.clear_job_ads();
-            for (Firm firm : firms)
-            {
-                firm.advertise();
-            }
-            newspaper_saudi.calculate_average_wage_offer();
-            newspaper_expat.calculate_average_wage_offer();
+                                    newspaper_saudi.clear_job_ads();
+                                    newspaper_expat.clear_job_ads();
+            for (Firm firm : firms) firm.advertise();
+                                    newspaper_saudi.calculate_average_wage_offer();
+                                    newspaper_expat.calculate_average_wage_offer();
             int i = 0;
             for (Worker worker : workers)
             {
@@ -198,39 +195,16 @@ public class Simulation
                     break;
                 }
             }
-            for (Firm firm : firms)
-            {
-                firm.hiring();
-            }
-            for (Firm firm : firms)
-            {
-                firm.produce();
-            }
-            for (Firm firm : firms)
-            {
-                firm.post_offer();
-            }
-            auctioneer.compute_market();
-            for (Firm firm : firms)
-            {
-                firm.sell();
-            }
-            for (Firm firm : firms)
-            {
-                firm.pay_wage();
-            }
-            for (Firm firm : firms)
-            {
-                firm.distribute_profits();
-            }
-            for (Firm firm : firms)
-            {
-                //firm.firing();
-            }
-            for (Firm firm : firms)
-            {
-                firm.set_prices_demand();
-            }
+            for (Firm firm : firms) firm.hiring();
+            for (Firm firm : firms) firm.produce();
+            for (Firm firm : firms) firm.post_offer();
+                                    auctioneer.compute_market();
+            for (Firm firm : firms) firm.sell();
+            for (Firm firm : firms) firm.pay_wage();
+            for (Firm firm : firms) firm.distribute_profits();
+            //firm.firing();
+            for (Firm firm : firms) firm.set_prices_demand();
+
             for (int h = firms.size() - 1; h >= 0; h--)
             {
                 if (firms.get(h).out_of_business())
@@ -257,7 +231,9 @@ public class Simulation
         }
         output.put("before_policy", before_policy_calibration_statistics.json());
         output.put("after_policy", after_policy_calibration_statistics.json());
-        output.put("kinky_statistics", before_after.json());
+        output.put("k_saudis", before_after.saudis());
+        output.put("k_expats", before_after.expats());
+        output.put("k_sauditization", before_after.sauditization());
         return output;
     }
 
