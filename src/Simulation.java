@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import agents.*;
 import definitions.Citizenship;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.json.simple.JSONValue;
 import tools.DBConnection;
 import tools.WorkerRecord;
 
@@ -35,15 +35,18 @@ public class Simulation
     private Policy before_policy;
     private KinkyStatistics before_after;
 
-    public Simulation(String options, String parameters) throws Exception {
-        JSONParser parser = new JSONParser();
-        Object obj = parser.parse(parameters);
-        JSONObject dictionary = (JSONObject) obj;
-
+    public Simulation(String options, JSONObject dictionary) throws Exception
+    {
+        if (!dictionary.keySet().contains("assumptions"))
+            throw new Exception("no assumptions in json");
+        if (!dictionary.keySet().contains("before_policy"))
+            throw new Exception("no before_policy in json");
+        if (!dictionary.keySet().contains("after_policy"))
+            throw new Exception("no after_policy in json");
         try {
-            assumptions = Assumptions.Assumptions(dictionary.get("assumptions").toString());
-            before_policy = Policy.Policy(dictionary.get("before_policy").toString());
-            after_policy = Policy.Policy(dictionary.get("after_policy").toString());
+            assumptions = new Assumptions((JSONObject) dictionary.get("assumptions"));
+            before_policy = new Policy((JSONObject) dictionary.get("before_policy"));
+            after_policy = new Policy((JSONObject) dictionary.get("after_policy"));
         } catch (Exception e) {
             System.out.println(dictionary.toString());
             e.printStackTrace();
@@ -64,14 +67,14 @@ public class Simulation
             panel_data = false;
 
 
-        int num_expats = assumptions.getNum_expats();
-        int num_saudis = assumptions.getNum_saudis();
+        int num_expats = assumptions.num_expats;
+        int num_saudis = assumptions.num_saudis;
 
         setup_period = 1000;
         setup_workers = (int) Math.ceil((double) (num_expats + num_saudis) / setup_period);
-        setup_firms = (int) Math.ceil((double) assumptions.getNum_firms() / setup_period);
+        setup_firms = (int) Math.ceil((double) assumptions.num_firms / setup_period);
 
-        long seed = assumptions.getSeed();
+        long seed = assumptions.seed;
         seed_generator = new Random(seed);
         Random rnd = new Random(seed_generator.nextLong());
         sha = assumptions.sha();
@@ -82,7 +85,7 @@ public class Simulation
         else
             db_connection = null;
 
-        auctioneer = new Auctioneer(assumptions.getLove_for_variety(), assumptions.getSector_spending());
+        auctioneer = new Auctioneer(assumptions.love_for_variety, assumptions.sector_spending / Assumptions.MONTHLY_TO_DAILY);
 
         newspaper_saudi = new Newspaper(seed_generator.nextLong());
         newspaper_expat = new Newspaper(seed_generator.nextLong());
@@ -90,14 +93,14 @@ public class Simulation
         workers = new ArrayList<Worker>();
 
 
-        create_workers(num_saudis, num_expats, assumptions.getProductivity_mean_saudi(), assumptions.getProductivity_mean_expat(), before_policy.getExpat_minimum_wage(),
-                before_policy.getSaudi_minimum_wage(), before_policy.getSaudi_tax_percentage(), before_policy.getExpat_tax_percentage(), before_policy.getSaudi_tax_per_head(), before_policy.getExpat_tax_per_head(),
-                assumptions.getReapplication_probability(), 0, assumptions.getReservation_wage_saudi(), assumptions.getReservation_wage_expat(), rnd
+        create_workers(num_saudis, num_expats, assumptions.productivity_mean_saudi / Assumptions.MONTHLY_TO_DAILY, assumptions.productivity_mean_expat / Assumptions.MONTHLY_TO_DAILY, before_policy.expat_minimum_wage / Policy.MONTHLY_TO_DAILY,
+                before_policy.saudi_minimum_wage / Policy.MONTHLY_TO_DAILY, before_policy.saudi_tax_percentage, before_policy.expat_tax_percentage / Policy.MONTHLY_TO_DAILY, before_policy.saudi_tax_per_head, before_policy.expat_tax_per_head / Policy.MONTHLY_TO_DAILY,
+                assumptions.reapplication_probability / Assumptions.MONTHLY_TO_DAILY, 0, assumptions.reservation_wage_mean_saudi, assumptions.reservation_wage_mean_expat, rnd
         );
 
         apply_to_firm = new ArrayList<List<WorkerRecord>>();
         firms = new ArrayList<Firm>();
-        create_firms(assumptions.getNum_firms(), before_policy.getSauditization_percentage(), assumptions.getWage_std(), before_policy.getVisa_length());
+        create_firms(assumptions.num_firms, before_policy.sauditization_percentage, assumptions.reservation_wage_std_saudi, assumptions.reservation_wage_std_expat, before_policy.visa_length);
     }
 
     private final void create_workers(double num_saudis, double num_expats, double productivity_mean_saudi, double productivity_mean_expat,
@@ -133,7 +136,7 @@ public class Simulation
         }
     }
 
-    private final void create_firms(int number, double initial_sauditization_percentage, double wage_std, int visa_length)
+    private final void create_firms(int number, double initial_sauditization_percentage, double reservation_wage_std_saudi, double reservation_wage_std_expats, int visa_length)
     {
         final int last_id = 0;
         for (int i = 0; i < number; i++)
@@ -151,7 +154,8 @@ public class Simulation
                             initial_sauditization_percentage,
                             visa_length,
                             day,
-                            wage_std
+                            reservation_wage_std_saudi,
+                            reservation_wage_std_expats
                     )
             );
         }
@@ -164,11 +168,11 @@ public class Simulation
         before_after = new KinkyStatistics(firms);
 
 
-        int simulation_length = assumptions.getSimulation_length();
-        int policy_change_time = assumptions.getPolicy_change_time();
+        int simulation_length = assumptions.simulation_length;
+        int policy_change_time = assumptions.policy_change_time;
 
         JSONObject output = new JSONObject();
-        output.put("parameter", assumptions.json());
+        output.put("parameter", assumptions.toJson());
 
         for (int iday = 0; iday < simulation_length; iday++)
         {
@@ -178,7 +182,7 @@ public class Simulation
             {
                 firms.addAll(firms_reserve.subList(0, Math.min(setup_firms, firms_reserve.size())));
                 firms_reserve.subList(0, Math.min(setup_firms, firms_reserve.size())).clear();
-                auctioneer.income = (float)assumptions.getSector_spending() * ((float)iday / (float)setup_period);
+                auctioneer.income = (float) (assumptions.sector_spending / Assumptions.MONTHLY_TO_DAILY) * ((float)iday / (float)setup_period);
             }
                                     newspaper_saudi.clear_job_ads();
                                     newspaper_expat.clear_job_ads();

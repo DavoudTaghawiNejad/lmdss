@@ -1,49 +1,31 @@
-
-
-import agents.Firm;
 import agents.Worker;
-import com.cedarsoftware.util.io.JsonReader;
 import com.cedarsoftware.util.io.JsonWriter;
 import definitions.Citizenship;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
+import tools.ComplainingJSONObject;
+import tools.check_bounds;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
+import static tools.MyComparators.*;
 
-/**
-* Created by taghawi on 2/25/14.
-*/
+
 class Policy
 {
     public static final double MONTHLY_TO_DAILY = 30.41;
-
-
-
-
-    private final double expat_minimum_wage;
-    private final double saudi_minimum_wage;
-    private final double expat_tax_percentage;
-    private final double expat_tax_per_head;
-
-    private final double saudi_tax_percentage;
-    private final double saudi_tax_per_head;
-
-
-
-
-
-
-
-
-    private final double sauditization_percentage;
-    private final int visa_length;
+    public final double expat_minimum_wage;
+    public final double saudi_minimum_wage;
+    public final double expat_tax_percentage;
+    public final double expat_tax_per_head;
+    public final double saudi_tax_percentage;
+    public final double saudi_tax_per_head;
+    public final double sauditization_percentage;
+    public final int visa_length;
 
     public HashMap<String, Double> dump_policy()
     {
@@ -55,7 +37,7 @@ class Policy
         out.put("expat_tax_per_head", expat_tax_per_head);
         out.put("saudi_tax_per_head", saudi_tax_per_head);
         out.put("sauditization_percentage", sauditization_percentage);
-        out.put("visa_length", (double)visa_length);
+        out.put("visa_length", (double) visa_length);
         return out;
     }
 
@@ -65,25 +47,10 @@ class Policy
         saudi_minimum_wage = 0;
         expat_tax_percentage = 0;
         expat_tax_per_head = 0;
-
         saudi_tax_percentage = 0;
         saudi_tax_per_head = 0;
         sauditization_percentage = 0;
-
-
-
-
-
-
-
-
-
-
-
-
-
         visa_length = 356;
-
     }
 
     public String toString()
@@ -107,47 +74,38 @@ class Policy
         {
             ee.printStackTrace();
         }
-
         return ret;
     }
 
 
-    public String sha()
+    public String sha() throws NoSuchAlgorithmException, UnsupportedEncodingException
     {
-
         MessageDigest digest = null;
         byte[] hash = null;
-        try
-        {
-            digest = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e)
-        {
-            e.printStackTrace();
-        }
-        try
-        {
-            hash = digest.digest(json().toString().getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e)
-        {
-            e.printStackTrace();
-        }
+        digest = MessageDigest.getInstance("SHA-256");
+        hash = digest.digest(json().toString().getBytes("UTF-8"));
         return hash.toString();
     }
 
-    public static Policy Policy(String parameters)
+    public Policy(JSONObject parameter) throws Exception
     {
-        Policy new_class = null;
-        try
-        {
-            new_class = (Policy) JsonReader.jsonToJava(parameters);
-        } catch (IOException e)
-        {
-            System.out.println("--");
-            System.out.println(parameters);
-            System.out.println("--");
-            e.printStackTrace();
-        }
-        return new_class;
+        ComplainingJSONObject parameters = new ComplainingJSONObject(parameter);
+        expat_minimum_wage = parameters.getNumber("expat_minimum_wage").doubleValue();
+        check_bounds.check_bound("expat_minimum_wage", expat_minimum_wage, 0, BIGGER_EQUAL);
+        saudi_minimum_wage =  parameters.getNumber("saudi_minimum_wage").doubleValue();
+        check_bounds.check_bound("saudi_minimum_wage", saudi_minimum_wage, 0, BIGGER_EQUAL);
+        expat_tax_percentage =  parameters.getNumber("expat_tax_percentage").doubleValue();
+        check_bounds.check_bound("expat_tax_percentage", expat_tax_percentage, 0, BIGGER_EQUAL);
+        expat_tax_per_head =  parameters.getNumber("expat_tax_per_head").doubleValue();
+        check_bounds.check_bound("expat_tax_per_head", expat_tax_per_head, Double.NEGATIVE_INFINITY, BIGGER);
+        saudi_tax_percentage =  parameters.getNumber("saudi_tax_percentage").doubleValue();
+        check_bounds.check_bound("saudi_tax_percentage", saudi_tax_percentage, 0, BIGGER_EQUAL);
+        saudi_tax_per_head =  parameters.getNumber("saudi_tax_per_head").doubleValue();
+        check_bounds.check_bound("saudi_tax_per_head", saudi_tax_per_head, Double.NEGATIVE_INFINITY, BIGGER);
+        sauditization_percentage =  parameters.getNumber("sauditization_percentage").doubleValue();
+        check_bounds.check_bounds("sauditization_percentage", sauditization_percentage, 0, 1, BIGGER_EQUAL, SMALLER_EQUAL);
+        visa_length =  parameters.getNumber("visa_length").intValue();
+        check_bounds.check_bound("visa_length", visa_length, 0, BIGGER);
     }
 
     public void change_policy_for_workers(List<Worker> workers)
@@ -163,119 +121,5 @@ class Policy
                 worker.re_calculate_wage(expat_minimum_wage);
             }
         }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public double getExpat_minimum_wage()
-    {
-        return expat_minimum_wage / MONTHLY_TO_DAILY;
-    }
-
-    public double getSaudi_minimum_wage()
-    {
-        return saudi_minimum_wage / MONTHLY_TO_DAILY;
-    }
-
-    public double getExpat_tax_percentage()
-    {
-        return expat_tax_percentage / MONTHLY_TO_DAILY;
-    }
-
-    public double getExpat_tax_per_head()
-    {
-        return expat_tax_per_head / MONTHLY_TO_DAILY;
-    }
-
-
-
-
-
-
-
-    public double getSaudi_tax_percentage()
-    {
-        return saudi_tax_percentage;
-    }
-
-    public double getSaudi_tax_per_head()
-    {
-        return saudi_tax_per_head;
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public double getSauditization_percentage()
-    {
-        return sauditization_percentage;
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public int getVisa_length()
-    {
-        return visa_length;
     }
 }

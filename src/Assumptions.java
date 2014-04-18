@@ -1,44 +1,37 @@
-
-
-import com.cedarsoftware.util.io.JsonReader;
 import com.cedarsoftware.util.io.JsonWriter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
+import tools.ComplainingJSONObject;
+import tools.check_bounds;
+import static tools.MyComparators.*;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
-/**
-* Created by taghawi on 2/25/14.
-*/
+
 class Assumptions
 {
     public static final double MONTHLY_TO_DAILY = 30.41;
-    private final int num_saudis;
-    private final int num_expats;
-    private final double productivity_mean_saudi;
-    private final double productivity_mean_expat;
-
-
-
-    private final double reapplication_probability;
-
-
-    private final double sector_spending;
-    private final double love_for_variety;
-    private final int num_firms;
-    private final int simulation_length;
-    private final int policy_change_time;
-    private final double wage_std;
-    private final double reservation_wage_saudi;
-    private final double reservation_wage_expat;
-
-
-    private long seed;
+    public final long seed;
+    public final int simulation_length;
+    public final int policy_change_time;
+    public final int num_firms;
+    public final int num_saudis;
+    public final int num_expats;
+    public final double productivity_mean_saudi;
+    public final double productivity_mean_expat;
+    public final double productivity_std_saudi;
+    public final double productivity_std_expat;
+    public final double reapplication_probability;
+    public final double sector_spending;
+    public final double love_for_variety;
+    public final double reservation_wage_mean_saudi;
+    public final double reservation_wage_std_saudi;
+    public final double reservation_wage_mean_expat;
+    public final double reservation_wage_std_expat;
 
     public Assumptions()
     {
@@ -47,29 +40,26 @@ class Assumptions
         num_expats = 7000;
         productivity_mean_saudi = 6854.24;
         productivity_mean_expat = 6854.24;
-        reservation_wage_saudi = 3137.39;
-        reservation_wage_expat = 0;
-
-
+        productivity_std_saudi = 1000;
+        productivity_std_expat = 1000;
+        reservation_wage_mean_saudi  = 3137.39;
+        reservation_wage_mean_expat = 0;
+        reservation_wage_std_expat = 1000;
+        reservation_wage_std_saudi = 1000;
         reapplication_probability = 0.03 / 356;
-
-
-
         sector_spending = 10000000000.0;
         love_for_variety = 0.5;
         simulation_length = 2000;
         policy_change_time = 1500;
-        wage_std = 3137.39;
-
         seed = 0L;
     }
 
     public String toString()
     {
-        return json().toString();
+        return toJson().toString();
     }
 
-    public JSONObject json()
+    public JSONObject toJson()
     {
         JSONParser parser = new JSONParser();
         JSONObject ret = null;
@@ -104,7 +94,7 @@ class Assumptions
         }
         try
         {
-            hash = digest.digest(json().toString().getBytes("UTF-8"));
+            hash = digest.digest(toJson().toString().getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e)
         {
             e.printStackTrace();
@@ -112,119 +102,58 @@ class Assumptions
         return hash.toString();
     }
 
-    public static Assumptions Assumptions(String parameters)
+    public Assumptions(JSONObject parameter) throws Exception
     {
-        Assumptions new_class = null;
+        ComplainingJSONObject parameters = new ComplainingJSONObject(parameter);
+        simulation_length =  parameters.getNumber("simulation_length").intValue();
+        policy_change_time =  parameters.getNumber("policy_change_time").intValue();
+        num_firms =  parameters.getNumber("num_firms").intValue();
+        num_saudis =  parameters.getNumber("num_saudis").intValue();
+        num_expats =  parameters.getNumber("num_expats").intValue();
+        productivity_mean_saudi =  parameters.getNumber("productivity_mean_saudi").doubleValue();
+        productivity_mean_expat =  parameters.getNumber("productivity_mean_expat").doubleValue();
+        productivity_std_saudi =  parameters.getNumber("productivity_std_saudi").doubleValue();
+        productivity_std_expat =  parameters.getNumber("productivity_std_expat").doubleValue();
+        reapplication_probability =  parameters.getNumber("reapplication_probability").doubleValue();
+        sector_spending =  parameters.getNumber("sector_spending").doubleValue();
+        love_for_variety =  parameters.getNumber("love_for_variety").doubleValue();
+        reservation_wage_mean_saudi =  parameters.getNumber("reservation_wage_mean_saudi").doubleValue();
+        reservation_wage_std_saudi =  parameters.getNumber("reservation_wage_std_saudi").doubleValue();
+        reservation_wage_mean_expat =  parameters.getNumber("reservation_wage_mean_expat").doubleValue();
+        reservation_wage_std_expat =  parameters.getNumber("reservation_wage_std_expat").doubleValue();
+        check_bounds.check_bound("simulation_length", simulation_length, 0, BIGGER);
+        check_bounds.check_bound("policy_change_time", policy_change_time, -1, BIGGER_EQUAL);
+        check_bounds.check_bound("num_firms", num_firms, 0, BIGGER);
+        check_bounds.check_bound("num_saudis", num_saudis, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("num_expats", num_expats, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("num_saudis + num_expats", num_saudis + num_expats, 0, BIGGER);
+        check_bounds.check_bound("productivity_mean_saudi", productivity_mean_saudi, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("productivity_mean_expat", productivity_mean_expat, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("productivity_std_saudi", productivity_std_saudi, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("productivity_std_expat", productivity_std_expat, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("productivity_mean_saudi + productivity_std_saudi", productivity_mean_saudi + productivity_std_saudi, 0, BIGGER);
+        check_bounds.check_bound("productivity_mean_expat + productivity_std_expat", productivity_mean_expat + productivity_std_expat, 0, BIGGER);
+        check_bounds.check_bound("reapplication_probability", reapplication_probability, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("sector_spending", sector_spending, 0, BIGGER);
+        check_bounds.check_bounds("love_for_variety", love_for_variety, 0.0, 1.0, BIGGER, SMALLER);
+        check_bounds.check_bound("reservation_wage_mean_saudi", reservation_wage_mean_saudi, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("reservation_wage_std_saudi", reservation_wage_std_saudi, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("reservation_wage_mean_expat", reservation_wage_mean_expat, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("reservation_wage_std_expat", reservation_wage_std_expat, 0, BIGGER_EQUAL);
+
+        long local_seed = 0;
         try
         {
-            new_class = (Assumptions) JsonReader.jsonToJava(parameters);
-        } catch (IOException e)
+            local_seed = ((Number) parameters.get("seed")).longValue();
+        } catch (NullPointerException e)
+        {}
+        if (local_seed == 0)
         {
-            System.out.println("--");
-            System.out.println(parameters);
-            System.out.println("--");
-            e.printStackTrace();
+            seed = new Random().nextLong();
         }
-        return new_class;
-    }
-
-    public int getNum_saudis()
-    {
-        return num_saudis;
-    }
-
-    public int getNum_expats()
-    {
-        return num_expats;
-    }
-
-    public double getProductivity_mean_saudi()
-    {
-        return productivity_mean_saudi / MONTHLY_TO_DAILY;
-    }
-
-    public double getProductivity_mean_expat()
-    {
-        return productivity_mean_expat / MONTHLY_TO_DAILY;
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-    public double getReapplication_probability()
-    {
-        return reapplication_probability / MONTHLY_TO_DAILY;
-    }
-
-
-
-
-
-
-
-
-
-
-
-    public double getSector_spending()
-    {
-        return sector_spending / MONTHLY_TO_DAILY;
-    }
-
-    public double getLove_for_variety()
-    {
-        return love_for_variety;
-    }
-
-    public int getNum_firms()
-    {
-        return num_firms;
-    }
-
-    public int getPolicy_change_time()
-    {
-        return policy_change_time;
-    }
-
-    public double getWage_std()
-    {
-        return wage_std;
-    }
-
-    public double getReservation_wage_saudi()
-    {
-        return reservation_wage_saudi / MONTHLY_TO_DAILY;
-    }
-
-    public double getReservation_wage_expat()
-    {
-        return reservation_wage_expat / MONTHLY_TO_DAILY;
-    }
-
-
-
-
-
-
-    public int getSimulation_length()
-    {
-        return simulation_length;
-    }
-
-    public long getSeed()
-    {
-        if (seed == 0L)
+        else
         {
-            seed = (new Random().nextLong());
+            seed = local_seed;
         }
-        return seed;
     }
 }

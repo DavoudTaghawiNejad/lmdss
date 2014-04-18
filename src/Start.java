@@ -1,8 +1,7 @@
 import agents.CalibrationStatistics;
-
 import org.json.simple.JSONObject;
 import java.io.FileReader;
-import org.json.simple.parser.JSONParser;
+import org.json.simple.JSONValue;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,7 +18,7 @@ public class Start
             System.out.println("start tp  for both");
             System.out.println("start tp {Assumptions} for both with parameters");
             System.out.println("start c {Assumptions} for calibration");
-            System.out.println("start c filename.json for calibration");
+            System.out.println("start c filename.toJson for calibration");
             System.out.println();
             System.out.println("Parameters:");
             System.out.println("{");
@@ -38,18 +37,16 @@ public class Start
         }
         long started = System.currentTimeMillis();
         Simulation simulation;
-        String parameters;
+        JSONObject parameters;
         if (args.get(1).startsWith("{"))
         {
-            parameters = args.get(1);
+            parameters = (JSONObject) JSONValue.parse(args.get(1));
         }
         else
         {
-            JSONParser parser = new JSONParser();
-            parameters = parser.parse(new FileReader(args.get(1))).toString();
+            parameters = (JSONObject) JSONValue.parse(new FileReader(args.get(1)));
         }
         simulation = new Simulation(args.get(0), parameters);
-
         JSONObject simulation_output = simulation.run();
         simulation_output.put("run time", (System.currentTimeMillis() - started) / 1000.0);
         simulation_output.put("hash", simulation.getSha());
