@@ -171,10 +171,10 @@ public class Assumptions
         check_bounds.check_bound("reservation_wage_std_saudi", reservation_wage_std_saudi, 0, BIGGER_EQUAL);
         check_bounds.check_bound("reservation_wage_mean_expat", reservation_wage_mean_expat, 0, BIGGER_EQUAL);
         check_bounds.check_bound("reservation_wage_std_expat", reservation_wage_std_expat, 0, BIGGER_EQUAL);
-        check_bounds.check_bound("price_step_increase", price_step_increase, 0, BIGGER);
-        check_bounds.check_bound("price_step_decrease", price_step_decrease, 0, BIGGER);
-        check_bounds.check_bound("planned_production_step_increase", planned_production_step_increase, 0, BIGGER);
-        check_bounds.check_bound("planned_production_step_decrease", planned_production_step_decrease, 0, BIGGER);
+        check_bounds.check_bounds("price_step_increase", price_step_increase, 0, 1, BIGGER, SMALLER);
+        check_bounds.check_bounds("price_step_decrease", price_step_decrease, 0, 1, BIGGER, SMALLER);
+        check_bounds.check_bounds("planned_production_step_increase", planned_production_step_increase, 0, 1, BIGGER, SMALLER);
+        check_bounds.check_bounds("planned_production_step_decrease", planned_production_step_decrease, 0, 1, BIGGER, SMALLER);
         check_bounds.check_bound("initial_net_worth_mean", initial_net_worth_mean, 0, BIGGER);
         check_bounds.check_bound("initial_net_worth_std", initial_net_worth_std, 0, BIGGER);
         //minimum_mark_up [-inf, inf]

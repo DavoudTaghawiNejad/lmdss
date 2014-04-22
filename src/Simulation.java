@@ -255,7 +255,7 @@ public class Simulation
             for (Firm firm : firms) firm.pay_wage();
             for (Firm firm : firms) firm.add_or_distribute_profits();
             //firm.firing();
-            for (Firm firm : firms) firm.set_prices_demand();
+            for (Firm firm : firms) firm.set_prices_and_planned_production();
 
             for (int h = firms.size() - 1; h >= 0; h--)
             {

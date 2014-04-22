@@ -42,7 +42,7 @@ public class KinkyStatistics
                 20 / 100, // 4
                 20 / 100 // 5
             };
-            int size = firm.staff.getSaudis() + firm.staff.getExpats();
+            int size = firm.getStaff().getSaudis() + firm.getStaff().getExpats();
             double quota;
             if (size < 10)
             {
@@ -77,14 +77,14 @@ public class KinkyStatistics
         }
         for (Firm firm: firms)
         {
-            int delta_saudis = firm.getBefore_saudis() - firm.staff.getSaudis();
-            int delta_expats = firm.getBefore_expats() - firm.staff.getExpats();
+            int delta_saudis = firm.getBefore_saudis() - firm.getStaff().getSaudis();
+            int delta_expats = firm.getBefore_expats() - firm.getStaff().getExpats();
 
             double b_sauditization = 0;
             double a_sauditization = 0;
             try {
                 b_sauditization = firm.getBefore_saudis() / (firm.getBefore_saudis() + firm.getBefore_expats());
-                a_sauditization = firm.staff.getSaudis() / (firm.staff.getSaudis()+ firm.staff.getExpats());
+                a_sauditization = firm.getStaff().getSaudis() / (firm.getStaff().getSaudis()+ firm.getStaff().getExpats());
             } catch (Exception e) {
             }
 

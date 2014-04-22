@@ -1,11 +1,8 @@
 package agents;
-
-
 import messages.*;
 import tools.*;
 import definitions.Citizenship;
 import tools.Policy;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import static java.lang.Math.*;
@@ -16,39 +13,27 @@ import static java.lang.Math.*;
 
 
 public class Firm {
+    public final int id;
     private final Rnd rnd;
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
     private int visa_length;
     private Map<Integer, Group> visa_stack = new HashMap<Integer, Group>();
-    public int id;
-    public double net_worth;
-    public double profit;
-    public double price = 300;
-    public double demand = 1;
-    public double market_price = 300;
-    public double planned_production = 400;
-    public double distributed_profits;
+    private double net_worth;
+    private double profit;
+    private double price = 300;
+    private double demand = 1;
+    private double market_price = 300;
+    private double planned_production = 400;
+    private double distributed_profits;
     private double wage_saudis = 0;
     private double wage_expats = 0;
     private List<WorkerRecord> applications;
-    public int this_round_hire = 0;
-    public int this_round_fire = 0;
-    public Group staff = new Group(this);
-    public boolean no_fake_probation = true;
+    private Group staff = new Group(this);
+    private boolean no_fake_probation = true;
     private double sauditization_percentage;
     private Auctioneer auctioneer;
     private AtomicInteger day;
-    public int net_hires = 0;
-    public double stats_increase_price = 0;
-    public int num_applications;
-    public double stats_accepted_wage_expats;
-    public double stats_accepted_wage_saudis;
-    public int stats_new_hires_saudi;
-    public int stats_new_hires_expat;
-    public double stats_decrease_price_bounded;
-    public double stats_offer_wage_expats;
-    public double stats_offer_wage_saudis;
     private int distance_to_cut_off;
     private int before_saudis;
     private int before_expats;
@@ -62,7 +47,19 @@ public class Firm {
     private double percent_distribute;
     private double min_net_worth;
     private double production_function_exponent;
-
+    
+    public double stats_increase_price = 0;
+    public int stats_num_applications;
+    public double stats_accepted_wage_expats;
+    public double stats_accepted_wage_saudis;
+    public int stats_new_hires_saudi;
+    public int stats_new_hires_expat;
+    public double stats_decrease_price_bounded;
+    public double stats_offer_wage_expats;
+    public double stats_offer_wage_saudis;
+    public int stats_net_hires = 0;
+    public int stats_this_round_hire = 0;
+    public int stats_this_round_fire = 0;
 
     public Firm(
             int id,
@@ -104,17 +101,23 @@ public class Firm {
     }
 
     /**
-     * When a firm's production exceeds their planned production, by more than the productivity of the average worker.
-     * The firm decrease it's price. But never below it's marginal costs. If the production falls short by more than
-     * the average productivity of a worker, they price is increased.
+     * Price, and production target setting. Firms planned production and prices are set adaptively. Planned production
+     * is adaptively increased, when there is excess demand, with regard to the planning - decreased in the opposite
+     * case. Prices are modified, whenever the firm doesn’t find workers to meet its production target. (which feeds
+     * back to the observed demand).
      *
      * When observed demand exceeds/falls short of planned production, planned production is increased/decreased.
+     *
+     * When a firm's actual production exceeds their planned production, by more than the productivity of the average
+     * worker in that firm, the firm decrease it's price. But never below it's marginal costs. If the production falls
+     * short by more than the average productivity of a worker, the price is increased. The increase/decrease of the
+     * price is a uniform random percentage. The mean is a sector parameter.
      */
-    public void set_prices_demand()
+    public void set_prices_and_planned_production()
     {
         if (staff.getProductivity() > planned_production + average_productivity())
         {
-                decrease_price_bounded();
+                decrease_price_bounded_by_margine();
         }
         else if (staff.getProductivity() < planned_production - average_productivity())
         {
@@ -123,15 +126,13 @@ public class Firm {
 
         if (demand > planned_production)
         {
-            increase_planned_production();
+            increase_planned_production_bounded_by_demand();
         }
         else
         {
-            decrease_planned_production_bounded();
+            decrease_planned_production_bounded_by_demand();
         }
     }
-
-
 
 
     public void set_new_policy(HashMap<String, Double> before_policy, HashMap<String, Double> after_policy)
@@ -170,41 +171,24 @@ public class Firm {
         visa_length = (int)Math.ceil(after_policy.get("visa_length"));
     }
 
-    private void decrease_price_bounded()
+    private void decrease_price_bounded_by_margine()
     {
         double before = price;
-        double rand;
-        rand = rnd.uniform(price_step_decrease);
-        if (price * (1 - rand) > (staff.getWage() / staff.getProductivity()) * minimum_mark_up) {
-            price = price * (1 - rand);
-        }
+        planned_production = Math.max(
+                    ((staff.getWage() / staff.getProductivity()) * minimum_mark_up),
+                planned_production * (1 - rnd.uniform(price_step_decrease))
+        );
         stats_decrease_price_bounded = price - before;
-
     }
-
-    private void decrease_planned_production() {
-
-        planned_production = max(demand, planned_production
-                * (1 - rnd.uniform(planned_production_step_decrease)));
-
-     }
 
     /**
      * Decreases planned_production by a random number; never below demand.
-     * There is no decrease is planned_production, when pp is close to actual production.
-     * (2 times the average production)
      */
-    //TODO simplifiy, in line with paper
-    private void decrease_planned_production_bounded() {
-        double before  = planned_production;
-        planned_production = max(demand, planned_production
-                * (1 - rnd.uniform(planned_production_step_decrease)));
+    private void decrease_planned_production_bounded_by_demand()
 
-        if (planned_production < staff.getProductivity() && planned_production > staff.getProductivity() - 2 * average_productivity())
-        {
-            planned_production = min(before, staff.getProductivity());
-        }
-     }
+    {
+        planned_production = Math.max(demand, planned_production * (1 - rnd.uniform(planned_production_step_decrease)));
+    }
 
     private void increase_price()
     {
@@ -213,7 +197,7 @@ public class Firm {
         stats_increase_price = price - before;
     }
 
-    private void increase_planned_production() {
+    private void increase_planned_production_bounded_by_demand() {
         planned_production = Math.min(demand, planned_production
                 * (1 + rnd.uniform(planned_production_step_increase)));
     }
@@ -249,8 +233,7 @@ public class Firm {
             }
             else
             {
-                add_wage_saudis = 10;
-                //TODO set to average wage
+                add_wage_saudis = newspaper_saudis.getAverage_wage_offer();
             }
             if (wage_expats != 0 &&
                     staff.getExpats() != 0)
@@ -261,7 +244,7 @@ public class Firm {
             }
             else
             {
-             add_wage_expats = 10;
+             add_wage_expats = newspaper_expats.getAverage_wage_offer();
             }
 
             newspaper_saudis.place_add(new JobAdd(applications, add_wage_saudis));
@@ -273,7 +256,7 @@ public class Firm {
 
     public void hiring()
     {
-        num_applications = applications.size();
+        stats_num_applications = applications.size();
         Group can_be_fired = new Group(this);
         if (visa_stack.get(day.get()) != null)
         {
@@ -299,7 +282,7 @@ public class Firm {
             int last_set_aside_size = to_consider.size();
 
             while (planned_production > h_produce(team, 0)
-                    && team.getWage() * days_pay_must_be_available < net_worth
+                    && team.getWage() * days_pay_must_be_available <= net_worth
                     ) {
 
                 if ((to_consider.size() > 0) && (set_aside.size() == 0)) {
@@ -361,7 +344,7 @@ public class Firm {
                 }
             }
 
-            net_hires = hire_or_fire_staff(team, can_be_fired);
+            stats_net_hires = hire_or_fire_staff(team, can_be_fired);
         }
     }
 
@@ -392,9 +375,6 @@ public class Firm {
                 distributed_profits = 0;
             }
             net_worth -= distributed_profits;
-            if (net_worth == 0)
-                net_worth = -1;
-            //TODO What is the use of this???
         }
     }
 
@@ -478,7 +458,7 @@ public class Firm {
         for (WorkerRecord worker : layoffs) {
             assert staff.contains(worker);
             worker.getAddress().sendFire();
-            net_hires--;
+            stats_net_hires--;
         }
     }
 
@@ -566,7 +546,7 @@ public class Firm {
             addVisa(worker);
         }
         worker.getAddress().sendEmploy(this, worker);
-        this_round_hire++;
+        stats_this_round_hire++;
     }
 
     void fire(WorkerRecord worker)
@@ -574,7 +554,7 @@ public class Firm {
 
         disemploy(worker);
         worker.getAddress().sendFire();
-        this_round_fire++;
+        stats_this_round_fire++;
     }
 
     void disemploy(WorkerRecord worker)
@@ -648,7 +628,7 @@ public class Firm {
 
     public boolean out_of_business()
     {
-        if (net_worth < 0)
+        if (net_worth <= 0)
         {
             fire_staff(staff.getWorker_list());
             return true;
@@ -721,5 +701,45 @@ public class Firm {
 
     public int getBefore_expats() {
         return before_expats;
+    }
+
+    public Group getStaff()
+    {
+        return staff;
+    }
+
+    public double getNet_worth()
+    {
+        return net_worth;
+    }
+
+    public double getPrice()
+    {
+        return price;
+    }
+
+    public double getDemand()
+    {
+        return demand;
+    }
+
+    public double getDistributed_profits()
+    {
+        return distributed_profits;
+    }
+
+    public double getProfit()
+    {
+        return profit;
+    }
+
+    public double getPlanned_production()
+    {
+        return planned_production;
+    }
+
+    public double getMarket_price()
+    {
+        return market_price;
     }
 }

@@ -160,16 +160,16 @@ public class DBConnection
 				SQLite_firmPreparedStatement.setInt(4, firm.num_expats());
 				SQLite_firmPreparedStatement.setInt(5, firm.getNum_saudis());
 				SQLite_firmPreparedStatement.setInt(6, firm.id);
-				SQLite_firmPreparedStatement.setDouble(7, firm.net_worth);
-				SQLite_firmPreparedStatement.setDouble(8, firm.profit);
-				SQLite_firmPreparedStatement.setDouble(9, firm.price);
-				SQLite_firmPreparedStatement.setDouble(10, firm.demand);
-				SQLite_firmPreparedStatement.setDouble(11, firm.market_price);
+				SQLite_firmPreparedStatement.setDouble(7, firm.getNet_worth());
+				SQLite_firmPreparedStatement.setDouble(8, firm.getProfit());
+				SQLite_firmPreparedStatement.setDouble(9, firm.getPrice());
+				SQLite_firmPreparedStatement.setDouble(10, firm.getDemand());
+				SQLite_firmPreparedStatement.setDouble(11, firm.getMarket_price());
 				SQLite_firmPreparedStatement.setDouble(12, firm.getProduction());
-				SQLite_firmPreparedStatement.setDouble(13, firm.planned_production);
+				SQLite_firmPreparedStatement.setDouble(13, firm.getPlanned_production());
 				SQLite_firmPreparedStatement.setDouble(14, firm.stats_offer_wage_saudis);
 				SQLite_firmPreparedStatement.setDouble(15, firm.stats_offer_wage_expats);
-				SQLite_firmPreparedStatement.setDouble(16, firm.distributed_profits);
+				SQLite_firmPreparedStatement.setDouble(16, firm.getDistributed_profits());
 				SQLite_firmPreparedStatement.setDouble(17, firm.getWage_saudis());
 				SQLite_firmPreparedStatement.setDouble(18, firm.GetWage_expats());
 							
@@ -226,24 +226,24 @@ public class DBConnection
         for (Firm firm: firms)
         {
             this.num_firms++;
-            this.num_saudis += firm.staff.getSaudis();
-            this.num_expats += firm.staff.getExpats();
-            this.wage_bill += firm.staff.getWage();
-            this.net_worth += firm.net_worth;
-            this.profit += firm.profit;
-            this.price += firm.price * firm.demand;
-            this.demand += firm.demand;
-            this.production += firm.staff.getProductivity();
-            this.planned_production += firm.planned_production;
+            this.num_saudis += firm.getStaff().getSaudis();
+            this.num_expats += firm.getStaff().getExpats();
+            this.wage_bill += firm.getStaff().getWage();
+            this.net_worth += firm.getNet_worth();
+            this.profit += firm.getProfit();
+            this.price += firm.getPrice() * firm.getDemand();
+            this.demand += firm.getDemand();
+            this.production += firm.getStaff().getProductivity();
+            this.planned_production += firm.getPlanned_production();
             this.offer_wage_saudis += firm.stats_offer_wage_saudis;
             this.offer_wage_expats += firm.stats_offer_wage_expats;
-            this.distributed_profits += firm.distributed_profits;
-            this.wage_saudis += firm.staff.getWage_saudis();
-            this.wage_expats += firm.staff.getWage_expats();
-            this.staff += firm.staff.size();
-            this.hires += firm.this_round_hire;
-            this.fires -= firm.this_round_fire;
-            this.num_applications += firm.num_applications;
+            this.distributed_profits += firm.getDistributed_profits();
+            this.wage_saudis += firm.getStaff().getWage_saudis();
+            this.wage_expats += firm.getStaff().getWage_expats();
+            this.staff += firm.getStaff().size();
+            this.hires += firm.stats_this_round_hire;
+            this.fires -= firm.stats_this_round_fire;
+            this.num_applications += firm.stats_num_applications;
             this.increase_price += firm.stats_increase_price;
             this.decrease_price_bounded += firm.stats_decrease_price_bounded;
             this.accepted_wage_saudis  += firm.stats_accepted_wage_saudis;
@@ -255,8 +255,8 @@ public class DBConnection
             firm.stats_new_hires_expat = 0;
             firm.stats_accepted_wage_saudis = 0;
             firm.stats_accepted_wage_expats = 0;
-            firm.this_round_hire = 0;
-            firm.this_round_fire = 0;
+            firm.stats_this_round_hire = 0;
+            firm.stats_this_round_fire = 0;
             firm.stats_increase_price= 0;
             firm.stats_decrease_price_bounded= 0;
         }

@@ -53,18 +53,18 @@ public class CalibrationStatistics
     public void update() {
         samples++;
         for (Firm firm: firms)
-        {
+        {            
             num_firms++;
-            num_saudis += firm.staff.getSaudis();
-            num_expats += firm.staff.getExpats();
-            net_worth += firm.net_worth;
-            profit += firm.profit;
-            price += firm.price * firm.demand;
-            demand += firm.demand;
-            production += firm.staff.getProductivity();
-            distributed_profits += firm.distributed_profits;
-            wage_saudis += firm.staff.getWage_saudis();
-            wage_expats += firm.staff.getWage_expats();
+            num_saudis += firm.getStaff().getSaudis();
+            num_expats += firm.getStaff().getExpats();
+            net_worth += firm.getNet_worth();
+            profit += firm.getProfit();
+            price += firm.getPrice() * firm.getDemand();
+            demand += firm.getDemand();
+            production += firm.getStaff().getProductivity();
+            distributed_profits += firm.getDistributed_profits();
+            wage_saudis += firm.getStaff().getWage_saudis();
+            wage_expats += firm.getStaff().getWage_expats();
         }
     }
 
