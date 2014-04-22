@@ -1,23 +1,21 @@
+package tools;
+
 import agents.Worker;
 import com.cedarsoftware.util.io.JsonWriter;
 import definitions.Citizenship;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
-import tools.ComplainingJSONObject;
-import tools.check_bounds;
+
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import static tools.MyComparators.*;
 
 
-class Policy
+public class Policy
 {
-    public static final double MONTHLY_TO_DAILY = 30.41;
     public final double expat_minimum_wage;
     public final double saudi_minimum_wage;
     public final double expat_tax_percentage;
@@ -55,57 +53,57 @@ class Policy
 
     public String toString()
     {
-        return json().toString();
-    }
-
-    public JSONObject json()
-    {
-        JSONParser parser=new JSONParser();
-        JSONObject ret = null;
-
         try
         {
-
-            ret = (JSONObject) parser.parse(JsonWriter.objectToJson(this));
-        } catch (ParseException e)
+            return toJson().toString();
+        } catch (Exception e)
         {
             e.printStackTrace();
-        } catch (IOException ee)
-        {
-            ee.printStackTrace();
+            System.exit(0);
+            return "";
         }
-        return ret;
     }
 
+    public JSONObject toJson() throws IOException, ParseException
+    {
+        return (JSONObject) JSONValue.parse(JsonWriter.objectToJson(this));
+    }
 
-    public String sha() throws NoSuchAlgorithmException, UnsupportedEncodingException
+    public String sha()
     {
         MessageDigest digest = null;
         byte[] hash = null;
-        digest = MessageDigest.getInstance("SHA-256");
-        hash = digest.digest(json().toString().getBytes("UTF-8"));
+        try
+        {
+            digest = MessageDigest.getInstance("SHA-256");
+            hash = digest.digest(toJson().toString().getBytes("UTF-8"));
+        } catch (Exception e)
+        {
+            hash = "hashing failed".getBytes();
+        }
         return hash.toString();
     }
 
     public Policy(JSONObject parameter) throws Exception
     {
-        ComplainingJSONObject parameters = new ComplainingJSONObject(parameter);
-        expat_minimum_wage = parameters.getNumber("expat_minimum_wage").doubleValue();
-        check_bounds.check_bound("expat_minimum_wage", expat_minimum_wage, 0, BIGGER_EQUAL);
-        saudi_minimum_wage =  parameters.getNumber("saudi_minimum_wage").doubleValue();
-        check_bounds.check_bound("saudi_minimum_wage", saudi_minimum_wage, 0, BIGGER_EQUAL);
-        expat_tax_percentage =  parameters.getNumber("expat_tax_percentage").doubleValue();
-        check_bounds.check_bound("expat_tax_percentage", expat_tax_percentage, 0, BIGGER_EQUAL);
-        expat_tax_per_head =  parameters.getNumber("expat_tax_per_head").doubleValue();
-        check_bounds.check_bound("expat_tax_per_head", expat_tax_per_head, Double.NEGATIVE_INFINITY, BIGGER);
+        ReadParameter parameters = new ReadParameter(parameter);
+        saudi_minimum_wage =  parameters.getTimeDouble("saudi_minimum_wage");
+        expat_minimum_wage = parameters.getTimeDouble("expat_minimum_wage");
         saudi_tax_percentage =  parameters.getNumber("saudi_tax_percentage").doubleValue();
-        check_bounds.check_bound("saudi_tax_percentage", saudi_tax_percentage, 0, BIGGER_EQUAL);
-        saudi_tax_per_head =  parameters.getNumber("saudi_tax_per_head").doubleValue();
-        check_bounds.check_bound("saudi_tax_per_head", saudi_tax_per_head, Double.NEGATIVE_INFINITY, BIGGER);
+        expat_tax_percentage =  parameters.getNumber("expat_tax_percentage").doubleValue();
+        saudi_tax_per_head =  parameters.getTimeDouble("saudi_tax_per_head");
+        expat_tax_per_head =  parameters.getTimeDouble("expat_tax_per_head");
         sauditization_percentage =  parameters.getNumber("sauditization_percentage").doubleValue();
-        check_bounds.check_bounds("sauditization_percentage", sauditization_percentage, 0, 1, BIGGER_EQUAL, SMALLER_EQUAL);
         visa_length =  parameters.getNumber("visa_length").intValue();
+        check_bounds.check_bound("saudi_minimum_wage", saudi_minimum_wage, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("expat_minimum_wage", expat_minimum_wage, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("expat_tax_percentage", expat_tax_percentage, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("saudi_tax_percentage", saudi_tax_percentage, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("saudi_tax_per_head", saudi_tax_per_head, Double.NEGATIVE_INFINITY, BIGGER);
+        check_bounds.check_bound("expat_tax_per_head", expat_tax_per_head, Double.NEGATIVE_INFINITY, BIGGER);
         check_bounds.check_bound("visa_length", visa_length, 0, BIGGER);
+        check_bounds.check_bounds("sauditization_percentage", sauditization_percentage, 0, 1, BIGGER_EQUAL, SMALLER_EQUAL);
+        parameters.warn_keys_not_read();
     }
 
     public void change_policy_for_workers(List<Worker> workers)

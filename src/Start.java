@@ -1,7 +1,9 @@
 import agents.CalibrationStatistics;
 import org.json.simple.JSONObject;
+import java.io.File;
 import java.io.FileReader;
 import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,11 +25,11 @@ public class Start
             System.out.println("Parameters:");
             System.out.println("{");
             System.out.println("\"assumptions\":");
-            System.out.print(new Assumptions().toString());
+            System.out.print(new tools.Assumptions().toString());
             System.out.println(",\n\"before_policy\":");
-            System.out.println(new Policy().toString());
+            System.out.println(new tools.Policy().toString());
             System.out.println(",\"after_policy\":");
-            System.out.print(new Policy().toString());
+            System.out.print(new tools.Policy().toString());
             System.out.println("\n}");
             System.out.println("\n\nResults\n");
             System.out.println(new CalibrationStatistics("--help").json().toString());
@@ -44,13 +46,22 @@ public class Start
         }
         else
         {
-            parameters = (JSONObject) JSONValue.parse(new FileReader(args.get(1)));
+            File f = new File(args.get(1));
+            if(f.exists() && !f.isDirectory())
+            {
+                JSONParser parser = new JSONParser();
+                parameters = (JSONObject) parser.parse(new FileReader(args.get(1)));
+            }
+            else
+            {
+                throw new IllegalArgumentException(args.get(1) + "not a file or JSON string" );
+            }
         }
         simulation = new Simulation(args.get(0), parameters);
         JSONObject simulation_output = simulation.run();
         simulation_output.put("run time", (System.currentTimeMillis() - started) / 1000.0);
-        simulation_output.put("hash", simulation.getSha());
-        System.out.print(simulation_output);
+        simulation_output.put("assumptions_hash", simulation.getSha());
+        System.out.print(simulation_output.toJSONString());
     }
 }
 

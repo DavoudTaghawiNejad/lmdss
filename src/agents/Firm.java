@@ -4,6 +4,8 @@ package agents;
 import messages.*;
 import tools.*;
 import definitions.Citizenship;
+import tools.Policy;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import static java.lang.Math.*;
@@ -18,10 +20,9 @@ public class Firm {
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
     private int visa_length;
-    private Map<Integer, Group> visastack = new HashMap<Integer, Group>();
-
+    private Map<Integer, Group> visa_stack = new HashMap<Integer, Group>();
     public int id;
-    public double net_worth = 1000;
+    public double net_worth;
     public double profit;
     public double price = 300;
     public double demand = 1;
@@ -34,11 +35,6 @@ public class Firm {
     public int this_round_hire = 0;
     public int this_round_fire = 0;
     public Group staff = new Group(this);
-
-    private double parameter_planned_production = 0.1;
-
-    private double parameter_price = 2.0 / 356.0;
-
     public boolean no_fake_probation = true;
     private double sauditization_percentage;
     private Auctioneer auctioneer;
@@ -56,7 +52,52 @@ public class Firm {
     private int distance_to_cut_off;
     private int before_saudis;
     private int before_expats;
+    private double price_step_increase;
+    private double price_step_decrease;
+    private double planned_production_step_decrease;
+    private double planned_production_step_increase;
+    private final double minimum_mark_up;
+    private final double days_pay_must_be_available;
+    private double required_roi;
+    private double percent_distribute;
+    private double min_net_worth;
+    private double production_function_exponent;
 
+
+    public Firm(
+            int id,
+            long seed,
+            ArrayList<WorkerRecord> post_box_applications,
+            Newspaper newspaper_saudis,
+            Newspaper newspaper_expats,
+            Auctioneer auctioneer,
+            AtomicInteger day,
+            Assumptions assumptions,
+            Policy initial_policy,
+            double net_worth
+    )
+    {
+        this.id = id;
+        this.applications = post_box_applications;
+        this.newspaper_saudis = newspaper_saudis;
+        this.newspaper_expats = newspaper_expats;
+        this.auctioneer = auctioneer;
+        this.sauditization_percentage = initial_policy.sauditization_percentage;
+        this.day = day;
+        this.price_step_increase = assumptions.price_step_increase;
+        this.price_step_decrease = assumptions.price_step_decrease;
+        this.rnd = new Rnd(seed);
+        this.visa_length = initial_policy.visa_length;
+        this.planned_production_step_decrease = assumptions.planned_production_step_decrease;
+        this.planned_production_step_increase = assumptions.planned_production_step_increase;
+        this.minimum_mark_up = assumptions.minimum_mark_up;
+        this.days_pay_must_be_available = assumptions.days_pay_must_be_available;
+        this.net_worth = net_worth;
+        this.min_net_worth = net_worth;
+        this.required_roi = assumptions.required_roi;
+        this.percent_distribute = assumptions.percent_distribute;
+        this.production_function_exponent = assumptions.production_function_exponent;
+    }
 
     public void setSauditization_percentage(double sauditization_percentage) {
         this.sauditization_percentage = sauditization_percentage;
@@ -89,6 +130,9 @@ public class Firm {
             decrease_planned_production_bounded();
         }
     }
+
+
+
 
     public void set_new_policy(HashMap<String, Double> before_policy, HashMap<String, Double> after_policy)
     {
@@ -126,15 +170,12 @@ public class Firm {
         visa_length = (int)Math.ceil(after_policy.get("visa_length"));
     }
 
-
-
-
     private void decrease_price_bounded()
     {
         double before = price;
         double rand;
-        rand = rnd.uniform(parameter_price);
-        if (price * (1 - rand) > (staff.getWage() / staff.getProductivity()) * 1.1) {
+        rand = rnd.uniform(price_step_decrease);
+        if (price * (1 - rand) > (staff.getWage() / staff.getProductivity()) * minimum_mark_up) {
             price = price * (1 - rand);
         }
         stats_decrease_price_bounded = price - before;
@@ -144,7 +185,7 @@ public class Firm {
     private void decrease_planned_production() {
 
         planned_production = max(demand, planned_production
-                * (1 - rnd.uniform(parameter_planned_production)));
+                * (1 - rnd.uniform(planned_production_step_decrease)));
 
      }
 
@@ -157,7 +198,7 @@ public class Firm {
     private void decrease_planned_production_bounded() {
         double before  = planned_production;
         planned_production = max(demand, planned_production
-                * (1 - rnd.uniform(parameter_planned_production)));
+                * (1 - rnd.uniform(planned_production_step_decrease)));
 
         if (planned_production < staff.getProductivity() && planned_production > staff.getProductivity() - 2 * average_productivity())
         {
@@ -168,13 +209,13 @@ public class Firm {
     private void increase_price()
     {
         double before = price;
-        price = price * (1 + rnd.uniform(parameter_price));
+        price = price * (1 + rnd.uniform(price_step_increase));
         stats_increase_price = price - before;
     }
 
     private void increase_planned_production() {
         planned_production = Math.min(demand, planned_production
-                * (1 + rnd.uniform(parameter_planned_production)));
+                * (1 + rnd.uniform(planned_production_step_increase)));
     }
 
     /**
@@ -188,7 +229,7 @@ public class Firm {
         int num_visas_expiering_today = 0;
         int iday = day.get();
         try {
-            num_visas_expiering_today = visastack.get(iday).size();
+            num_visas_expiering_today = visa_stack.get(iday).size();
         } catch (Exception e) {
             num_visas_expiering_today = 0;
         }
@@ -234,9 +275,9 @@ public class Firm {
     {
         num_applications = applications.size();
         Group can_be_fired = new Group(this);
-        if (visastack.get(day.get()) != null)
+        if (visa_stack.get(day.get()) != null)
         {
-            for (WorkerRecord worker: visastack.remove(day.get()).getWorker_list())
+            for (WorkerRecord worker: visa_stack.remove(day.get()).getWorker_list())
             {
                 if (staff.contains(worker))
                 {
@@ -258,7 +299,7 @@ public class Firm {
             int last_set_aside_size = to_consider.size();
 
             while (planned_production > h_produce(team, 0)
-                    && team.getWage() * 30 < net_worth
+                    && team.getWage() * days_pay_must_be_available < net_worth
                     ) {
 
                 if ((to_consider.size() > 0) && (set_aside.size() == 0)) {
@@ -342,17 +383,18 @@ public class Firm {
         profit -= staff.getWage();
     }
 
-    public void distribute_profits() {
+    public void add_or_distribute_profits() {
         distributed_profits = 0;
         net_worth += profit;
-        if (profit < 0.1 * net_worth) {
-            distributed_profits = net_worth - 0.9 * profit;
-            if (net_worth - distributed_profits < 100) {
+        if (profit < required_roi * net_worth) {
+            distributed_profits = net_worth - percent_distribute * profit;
+            if (net_worth - distributed_profits < min_net_worth) {
                 distributed_profits = 0;
             }
             net_worth -= distributed_profits;
             if (net_worth == 0)
                 net_worth = -1;
+            //TODO What is the use of this???
         }
     }
 
@@ -427,7 +469,7 @@ public class Firm {
 
         double p = additional;
         p += team.getProductivity();
-        return Math.pow(p, 1);
+        return Math.pow(p, production_function_exponent);
 
     }
 
@@ -477,6 +519,7 @@ public class Firm {
 
     }
 
+
     boolean is_admissible(Group team) {
         double saudi = team.getSaudis();
         double expat = team.getExpats();
@@ -493,7 +536,6 @@ public class Firm {
 
     }
 
-
     boolean net_benefit(Group team, Group potential_team) {
 
         return price
@@ -501,7 +543,6 @@ public class Firm {
                 planned_production, h_produce(team, 0))) > potential_team.getWage()
                 - team.getWage();
     }
-
     int count_citizenship(List<Worker> team, Citizenship citizenship) {
 
         int counter = 0;
@@ -513,6 +554,7 @@ public class Firm {
         return counter;
 
     }
+
     void hire(WorkerRecord worker)
     {
 
@@ -548,11 +590,11 @@ public class Firm {
 
     }
 
+
     public void sendQuit(WorkerRecord worker)
     {
         disemploy(worker);
     }
-
 
     int hire_or_fire_staff(Group team, Group can_be_fired) {
 
@@ -596,30 +638,6 @@ public class Firm {
         return staff.getProductivity() / staff.size();
     }
 
-    public Firm(
-            int id,
-            long seed,
-            ArrayList<WorkerRecord> post_box_applications,
-            Newspaper newspaper_saudis,
-            Newspaper newspaper_expats,
-            Auctioneer auctioneer,
-            double sauditization_percentage,            
-            int visa_length,
-            AtomicInteger day, 
-            double wage_std
-    )
-    {
-        this.id = id;
-        this.applications = post_box_applications;
-        this.newspaper_saudis = newspaper_saudis;
-        this.newspaper_expats = newspaper_expats;
-        this.auctioneer = auctioneer;
-        this.sauditization_percentage = sauditization_percentage;
-        this.day = day;
-        this.rnd = new Rnd(seed);
-        this.visa_length = visa_length;
-    }
-
 
 
     public void send_market_price_individual_demand(double market_price, double demand)
@@ -644,11 +662,11 @@ public class Firm {
     private void addVisa(WorkerRecord worker)
     {
         Integer visa_date = day.get() + visa_length;
-        Group day_list = visastack.get(visa_date);
+        Group day_list = visa_stack.get(visa_date);
         if (day_list == null)
         {
             day_list = new Group(this);
-            visastack.put(visa_date, day_list);
+            visa_stack.put(visa_date, day_list);
         }
         day_list.add(worker);
     }
