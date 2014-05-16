@@ -681,7 +681,7 @@ public class Firm {
         return staff.getWage_saudis();
     }
 
-    public double GetWage_expats()
+    public double getWage_expats()
     {
         assert wage_saudis == staff.getWage_saudis();
         return staff.getWage_expats();
