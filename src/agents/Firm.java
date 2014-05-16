@@ -60,6 +60,8 @@ public class Firm {
     public int stats_net_hires = 0;
     public int stats_this_round_hire = 0;
     public int stats_this_round_fire = 0;
+    private final double wage_step_saudis;
+    private final double wage_step_expats;
 
     public Firm(
             int id,
@@ -79,6 +81,8 @@ public class Firm {
         this.newspaper_saudis = newspaper_saudis;
         this.newspaper_expats = newspaper_expats;
         this.auctioneer = auctioneer;
+        this.wage_step_expats = assumptions.wage_step_expat;
+        this.wage_step_saudis = assumptions.wage_step_saudi;
         this.sauditization_percentage = initial_policy.sauditization_percentage;
         this.day = day;
         this.price_step_increase = assumptions.price_step_increase;
@@ -228,7 +232,7 @@ public class Firm {
                 staff.getSaudis() != 0)
             {
                 do {
-                    add_wage_saudis = wage_saudis / staff.getSaudis() * (1 + rnd.nextGaussian());
+                    add_wage_saudis = wage_saudis / staff.getSaudis() * (1 + rnd.nextGaussian(wage_step_saudis));
                 } while (add_wage_saudis <= 0);
             }
             else
@@ -239,7 +243,7 @@ public class Firm {
                     staff.getExpats() != 0)
             {
                 do {
-                    add_wage_expats = wage_expats / staff.getExpats() * (1 + rnd.nextGaussian());
+                    add_wage_expats = wage_expats / staff.getExpats() * (1 + rnd.nextGaussian(wage_step_expats));
                 } while (add_wage_expats <= 0);
             }
             else

@@ -216,8 +216,8 @@ public class Simulation
         before_after = new KinkyStatistics(firms);
 
 
-        int simulation_length = assumptions.simulation_length;
-        int policy_change_time = assumptions.policy_change_time;
+        int policy_change_time = assumptions.setup_period_1 + assumptions.setup_period_2 + assumptions.time_before_policy;
+        int simulation_length =  policy_change_time + assumptions.time_after_policy;
 
         JSONObject output = new JSONObject();
         output.put("parameter", assumptions.toJson());

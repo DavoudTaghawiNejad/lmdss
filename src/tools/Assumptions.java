@@ -14,10 +14,10 @@ import java.util.Random;
 public class Assumptions
 {
     public final long seed;
-    public final int simulation_length;
+    public final int time_after_policy;
     public final int setup_period_1;
     public final int setup_period_2;
-    public final int policy_change_time;
+    public final int time_before_policy;
     public final int num_firms;
     public final int num_saudis;
     public final int num_expats;
@@ -44,11 +44,15 @@ public class Assumptions
     public final double required_roi;
     public final double percent_distribute;
     public final double production_function_exponent;
+    public final double initial_wage_offer_saudi;
+    public final double initial_wage_offer_expat;
+    public final double wage_step_saudi;
+    public final double wage_step_expat;
 
     public Assumptions()
     {
         seed = 0L;
-        simulation_length = 2000;
+        time_after_policy = 2000;
         setup_period_1 = 1000;
         setup_period_2 = 1000;
         num_firms = 100;
@@ -64,20 +68,25 @@ public class Assumptions
         reservation_wage_std_saudi = 1000;
         sector_spending = 10000000000.0;
         love_for_variety = 0.5;
-        policy_change_time = 1500;
+        time_before_policy = 1500;
         price_step_increase = 2.0 / 356.0;
         price_step_decrease = 2.0 / 356.0;
-        planned_production_step_increase = 0.1;
         initial_net_worth_mean = 10000;
         initial_net_worth_std = 1000;
+        planned_production_step_increase = 0.1;
         planned_production_step_decrease = 0.1;
         reapplication_probability_saudi = 0.03 / 356;
         reapplication_probability_expat = 0;
         minimum_mark_up = 1.1;
         days_pay_must_be_available = 30;
-        required_roi = 0.14;
+        required_roi = 0.14 / 365;
         percent_distribute = 0.9;
         production_function_exponent = 1;
+        initial_wage_offer_saudi = 5000;
+        initial_wage_offer_expat = 500;
+        wage_step_saudi = 2.0 / 365;
+        wage_step_expat = 2.0 / 365;
+
     }
 
     public String toString()
@@ -118,10 +127,10 @@ public class Assumptions
     public Assumptions(JSONObject parameter) throws Exception
     {
         ReadParameter parameters = new ReadParameter(parameter);
-        simulation_length =  parameters.getNumber("simulation_length").intValue();
+        time_after_policy =  parameters.getNumber("time_after_policy").intValue();
         setup_period_1 =  parameters.getNumber("setup_period_1").intValue();
         setup_period_2 =  parameters.getNumber("setup_period_2").intValue();
-        policy_change_time =  parameters.getNumber("policy_change_time").intValue();
+        time_before_policy =  parameters.getNumber("time_before_policy").intValue();
         num_firms =  parameters.getNumber("num_firms").intValue();
         num_saudis =  parameters.getNumber("num_saudis").intValue();
         num_expats =  parameters.getNumber("num_expats").intValue();
@@ -140,7 +149,7 @@ public class Assumptions
         price_step_increase = parameters.getDirectionalTV("price_step", "increase");
         price_step_decrease = parameters.getDirectionalTV("price_step", "decrease");
         planned_production_step_increase = parameters.getDirectionalTV("planned_production_step", "increase");
-        planned_production_step_decrease = parameters.getDirectionalTV("planned_production_step", "increase");
+        planned_production_step_decrease = parameters.getDirectionalTV("planned_production_step", "decrease");
         initial_net_worth_mean = parameters.getNumber("initial_net_worth_mean").doubleValue();
         initial_net_worth_std = parameters.getNumber("initial_net_worth_std").doubleValue();
         minimum_mark_up = parameters.getNumber("minimum_mark_up").doubleValue();
@@ -148,11 +157,16 @@ public class Assumptions
         required_roi = parameters.getTimeDouble("required_roi");
         percent_distribute = parameters.getTimeDouble("percent_distribute");
         production_function_exponent = parameters.getNumber("production_function_exponent").doubleValue();
+        initial_wage_offer_saudi = parameters.getTimeDouble("initial_wage_offer_saudi");
+        initial_wage_offer_expat = parameters.getTimeDouble("initial_wage_offer_expat");
+        wage_step_saudi = parameters.getTimeDouble("wage_step_saudi");
+        wage_step_expat = parameters.getTimeDouble("wage_step_expat");
 
-        check_bounds.check_bound("simulation_length", simulation_length, 0, BIGGER);
+
+        check_bounds.check_bound("time_after_policy", time_after_policy, 0, BIGGER);
         check_bounds.check_bound("setup_period_1", setup_period_1, 0, BIGGER);
         check_bounds.check_bound("setup_period_2", setup_period_2, 0, BIGGER);
-        check_bounds.check_bound("policy_change_time", policy_change_time, -1, BIGGER_EQUAL);
+        check_bounds.check_bound("time_before_policy", time_before_policy, -1, BIGGER_EQUAL);
         check_bounds.check_bound("num_firms", num_firms, 0, BIGGER);
         check_bounds.check_bound("num_saudis", num_saudis, 0, BIGGER_EQUAL);
         check_bounds.check_bound("num_expats", num_expats, 0, BIGGER_EQUAL);
@@ -182,6 +196,10 @@ public class Assumptions
         check_bounds.check_bound("required_roi", required_roi, 0, BIGGER_EQUAL);
         check_bounds.check_bounds("percent_distribute", percent_distribute, 0.0, 1.0 / 365, BIGGER_EQUAL, SMALLER);
         //production_function_exponent [-inf, inf]
+        check_bounds.check_bound("initial_wage_offer_saudi", initial_wage_offer_saudi, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("initial_wage_offer_expat", initial_wage_offer_expat, 0, BIGGER_EQUAL);
+        check_bounds.check_bounds("wage_step_saudi", wage_step_saudi, 0, 1, BIGGER, SMALLER);
+        check_bounds.check_bounds("wage_step_expat", wage_step_expat, 0, 1, BIGGER, SMALLER);
         long local_seed = 0;
         try
         {

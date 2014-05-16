@@ -20,4 +20,9 @@ public class Rnd extends Random
     {
         return super.nextDouble() * stretch;
     }
+
+    public double nextGaussian(double stretch)
+    {
+        return super.nextGaussian() * stretch;
+    }
 }
