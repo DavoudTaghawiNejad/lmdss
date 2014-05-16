@@ -67,5 +67,6 @@ public class Newspaper {
 
     public void clear_job_ads() {
         job_adds.clear();
+        average_wage_offer = Double.NEGATIVE_INFINITY;
     }
 }
