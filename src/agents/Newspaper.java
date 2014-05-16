@@ -53,11 +53,12 @@ public class Newspaper {
 	public void place_add(JobAdd job_add) {
             assert job_add.getWage() > 0: job_add.getWage();
 			job_adds.add(job_add);
-			assert job_add.getWage() > 0 : job_add.getWage();
+			assert job_add.getWage() > 0: job_add.getWage();
 	}
 	
-	public Newspaper(long seed) {
+	public Newspaper(long seed, double initial_wage_offer) {
         rand = new Random(seed);
+        average_wage_offer = initial_wage_offer;
 	}
 
     public double getAverage_wage_offer() {
