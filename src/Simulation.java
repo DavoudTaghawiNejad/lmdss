@@ -43,11 +43,13 @@ public class Simulation
             throw new Exception("no after_policy in json");
         try {
             assumptions = new tools.Assumptions((JSONObject) dictionary.get("assumptions"));
-            before_policy = new tools.Policy((JSONObject) dictionary.get("before_policy"));
-            after_policy = new tools.Policy((JSONObject) dictionary.get("after_policy"));
+            before_policy = new tools.Policy((JSONObject) dictionary.get("before_policy"), "before_policy");
+            after_policy = new tools.Policy((JSONObject) dictionary.get("after_policy"), "after_policy");
         } catch (Exception e) {
-            System.out.println(dictionary.toString());
-            e.printStackTrace();
+            if (options.contains("d"))
+            {
+                System.out.println(dictionary.toString());
+            }
             throw new Exception(e);
         }
 
