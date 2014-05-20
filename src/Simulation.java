@@ -1,14 +1,17 @@
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import agents.*;
 import definitions.Citizenship;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
-import tools.*;
+import tools.DBConnection;
+import tools.WorkerRecord;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Simulation
 {
@@ -230,8 +233,8 @@ public class Simulation
         for (int iday = 0; iday < simulation_length; iday++)
         {
             if (print_round)
-                if ( iday % 10  == 0)
-                    System.out.println(iday);
+                if ( iday % 100  == 0)
+                    System.out.print(iday + ", ");
             day.set(iday);
             auctioneer.new_round();
             if (iday < assumptions.setup_period_1)
