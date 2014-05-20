@@ -33,9 +33,11 @@ public class Simulation
     private tools.Policy after_policy;
     private tools.Policy before_policy;
     private KinkyStatistics before_after;
+    private Boolean debug;
 
-    public Simulation(String options, JSONObject dictionary) throws Exception
+    public Simulation(String options, JSONObject dictionary, Boolean debug) throws Exception
     {
+        this.debug = debug;
         if (!dictionary.keySet().contains("assumptions"))
             throw new Exception("no assumptions in json");
         if (!dictionary.keySet().contains("before_policy"))
@@ -227,6 +229,9 @@ public class Simulation
 
         for (int iday = 0; iday < simulation_length; iday++)
         {
+            if (debug)
+                if ( iday % 10  == 0)
+                    System.out.println(iday);
             day.set(iday);
             auctioneer.new_round();
             if (iday < assumptions.setup_period_1)
