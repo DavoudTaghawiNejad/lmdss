@@ -164,15 +164,19 @@ public class Start
         }
     }
 
+
     private static JSONObject run_simulation(List<String> args, JSONObject parameters, boolean print_round) throws Exception
     {
         Simulation simulation;
         long started = System.currentTimeMillis();
         simulation = new Simulation(args.get(0), parameters, print_round);
         JSONObject simulation_output = simulation.run();
-        simulation_output.put("run time", (System.currentTimeMillis() - started) / 1000.0);
-        simulation_output.put("assumptions_hash", simulation.getSha());
-        return simulation_output;
+        JSONObject output = new JSONObject();
+        output.put("result", simulation_output);
+        output.put("run time", (System.currentTimeMillis() - started) / 1000.0);
+        output.put("hash", parameters.get("hash"));
+        output.put("parameters", parameters);
+        return output;
     }
 }
 

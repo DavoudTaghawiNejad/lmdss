@@ -228,7 +228,6 @@ public class Simulation
         int simulation_length =  policy_change_time + assumptions.time_after_policy;
 
         JSONObject output = new JSONObject();
-        output.put("parameter", assumptions.toJson());
 
         for (int iday = 0; iday < simulation_length; iday++)
         {
