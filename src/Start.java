@@ -1,10 +1,10 @@
 import agents.CalibrationStatistics;
-import com.cedarsoftware.util.io.JsonWriter;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.zeromq.ZMQ;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,7 +17,7 @@ public class Start
     public static void main(String[] raw_args) throws Exception
     {
         List<String> args = Arrays.asList(raw_args);
-        if (args.contains("--help") || args.contains("-h") || (args.size() < 2 && !args.get(0).contains("z")) || args.size() > 3)
+        if (args.contains("--help") || args.contains("-h") || args.size() < 1 || args.size() > 4)
         {
             print_help();
             return;
@@ -47,17 +47,18 @@ public class Start
 
     private static void print_help()
     {
-        System.out.println("start t   \t-\tfor time series");
-        System.out.println("start p   \t-\tfor panel data");
-        System.out.println("start tp  \t-\tfor both");
-        System.out.println("start tp {Assumptions}  \t-\tfor both with parameters");
-        System.out.println("start c {Assumptions}   \t-\tfor calibration");
-        System.out.println("start c filename.toJson \t-\tfor calibration");
-        System.out.println("start ztpc                                \t-\tfor ZeroMQ remote controlling");
-        System.out.println("start ztpc 5557 5558 5559 tcp://localhost:\t-\tfor ZeroMQ remote controlling with custom address");
-        System.out.println("start ztpc task result kill address       \t-\tfor ZeroMQ remote controlling");
-        System.out.println("start zatpc ...      \t-\tfor ZeroMQ remote controlling, does not shut down amazon instance");
         System.out.println();
+        System.out.println("java -Djava.library.path=/usr/local/lib -jar saudifirms.jar ...");
+        System.out.println("... t   \t-\tfor time series");
+        System.out.println("... p   \t-\tfor panel data");
+        System.out.println("... tp  \t-\tfor both");
+        System.out.println("... tp {Assumptions}  \t-\tfor both with parameters");
+        System.out.println("... c {Assumptions}   \t-\tfor calibration");
+        System.out.println("... c filename.toJson \t-\tfor calibration");
+        System.out.println("... ztpc                                \t-\tfor ZeroMQ remote controlling");
+        System.out.println("... ztpc 5557 5558 5559 tcp://localhost:\t-\tfor ZeroMQ remote controlling with custom address");
+        System.out.println("... ztpc task result kill address       \t-\tfor ZeroMQ remote controlling");
+        System.out.println("... zatpc ...      \t-\tfor ZeroMQ remote controlling, does not shut down amazon instance");
         System.out.println("Parameters:");
         System.out.println("{");
         System.out.println("\"assumptions\":");
@@ -71,7 +72,6 @@ public class Start
         System.out.println(new CalibrationStatistics("--help").json().toString());
         System.out.println();
         System.out.println("All parameters and results are monthly");
-        return;
     }
 
     private static JSONObject simulation_from_file(List<String> args) throws IOException, ParseException
@@ -91,11 +91,10 @@ public class Start
 
     private static void simulation_via_zmq(List<String> args, boolean print_round) throws Exception
     {
-        Simulation simulation;
-        int address_task = -1;
-        int address_result = -1;
-        int address_kill = -1;
-        String address_prefix = null;
+        int address_task;
+        int address_result;
+        int address_kill;
+        String address_prefix;
         try
         {
             address_task = Integer.getInteger(args.get(1));
@@ -127,28 +126,38 @@ public class Start
         controller.connect(address_prefix + String.valueOf(address_kill));
         controller.subscribe("".getBytes());
 
-        ZMQ.Poller items = new ZMQ.Poller (2);
-        items.register(receiver, ZMQ.Poller.POLLIN);
-        items.register(controller, ZMQ.Poller.POLLIN);
+        ZMQ.Poller poller = new ZMQ.Poller(2);
+        final int RECEIVER = 0;
+        poller.register(receiver, ZMQ.Poller.POLLIN);
+        final int CONTROLLER = 1;
+        poller.register(controller, ZMQ.Poller.POLLIN);
 
         while (true) {
 
             System.out.println("Receiving");
-            items.poll();
-            if (items.pollin(0)) {
+            poller.poll();  //we can put a time out for shutdown of instance
+            if (poller.pollin(RECEIVER)) {
                 byte[] messageb = receiver.recv();
                 String message = new String(messageb, "UTF-8");
-                JSONObject parameters = (JSONObject) JSONValue.parse(message);
+                JSONObject parameters = null;
+                try
+                {
+                    parameters = (JSONObject) JSONValue.parse(message);
+                } catch (ClassCastException e)
+                {
+                    System.out.println(messageb);
+                    throw e;
+                }
                 System.out.println("Received and Working:");
-                System.out.println(JsonWriter.formatJson(parameters.toString()));
+                //System.out.println(JsonWriter.formatJson(parameters.toString()));
                 JSONObject simulation_output = run_simulation(args, parameters, print_round);
                 System.out.println("Worked and Send:");
-                System.out.println(JsonWriter.formatJson(simulation_output.toString()));
+                //System.out.println(JsonWriter.formatJson(simulation_output.toString()));
                 String output_string = simulation_output.toJSONString();
                 sender.send(output_string, 0);
             }
             //  Any waiting controller command acts as 'KILL'
-            if (items.pollin(1)) {
+            if (poller.pollin(CONTROLLER)) {
                 break; // Exit loop
             }
 
