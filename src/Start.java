@@ -20,7 +20,7 @@ public class Start
     public static void main(String[] raw_args) throws Exception
     {
         List<String> args = Arrays.asList(raw_args);
-        if (args.contains("--help") || args.contains("-h") || args.size() < 1 || args.size() > 4)
+        if (args.contains("--help") || args.contains("-h") || args.size() < 1 || args.size() > 5)
         {
             print_help();
             return;
