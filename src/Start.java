@@ -4,10 +4,13 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.zeromq.ZMQ;
+import tools.InvalidValueError;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -89,8 +92,8 @@ public class Start
         return parameters;
     }
 
-    private static void simulation_via_zmq(List<String> args, boolean print_round) throws Exception
-    {
+    private static void simulation_via_zmq(List<String> args, boolean print_round) throws UnsupportedEncodingException {
+        System.out.println("simulation via zmq 0.1");
         int address_task;
         int address_result;
         int address_kill;
@@ -138,22 +141,38 @@ public class Start
             poller.poll();  //we can put a time out for shutdown of instance
             if (poller.pollin(RECEIVER)) {
                 byte[] messageb = receiver.recv();
-                String message = new String(messageb, "UTF-8");
+                String output_string;
+                String message;
                 JSONObject parameters = null;
                 try
                 {
-                    parameters = (JSONObject) JSONValue.parse(message);
-                } catch (ClassCastException e)
+                    message = new String(messageb, "UTF-8");
+                } catch (Exception e)
                 {
-                    System.out.println(messageb);
-                    throw e;
+                    output_string = e.toString() + "                                                    ***" + messageb + "***";
+                    sender.send(output_string, 0);
+                    continue;
+                }
+                try
+                {
+                    parameters = (JSONObject) JSONValue.parse(message);
+                } catch (Exception e)
+                {
+                    output_string = e.toString() + "/n'" + message + "'";
+                    sender.send(output_string, 0);
+                    continue;
                 }
                 System.out.println("Received and Working:");
                 //System.out.println(JsonWriter.formatJson(parameters.toString()));
-                JSONObject simulation_output = run_simulation(args, parameters, print_round);
+                JSONObject simulation_output = null;
+                try {
+                    simulation_output = run_simulation(args, parameters, print_round);
+                    output_string = simulation_output.toJSONString();
+                } catch (Exception e) {
+                    output_string = e.toString();
+                }
                 System.out.println("Worked and Send:");
                 //System.out.println(JsonWriter.formatJson(simulation_output.toString()));
-                String output_string = simulation_output.toJSONString();
                 sender.send(output_string, 0);
             }
             //  Any waiting controller command acts as 'KILL'
@@ -174,8 +193,7 @@ public class Start
     }
 
 
-    private static JSONObject run_simulation(List<String> args, JSONObject parameters, boolean print_round) throws Exception
-    {
+    private static JSONObject run_simulation(List<String> args, JSONObject parameters, boolean print_round) throws SQLException, InvalidValueError, ClassNotFoundException, IOException, ParseException {
         Simulation simulation;
         long started = System.currentTimeMillis();
         simulation = new Simulation(args.get(0), parameters, print_round);

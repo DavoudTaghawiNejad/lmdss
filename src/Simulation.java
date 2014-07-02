@@ -4,6 +4,7 @@ import definitions.Citizenship;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import tools.DBConnection;
+import tools.InvalidValueError;
 import tools.WorkerRecord;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -38,25 +39,22 @@ public class Simulation
     private KinkyStatistics before_after;
     private Boolean print_round;
 
-    public Simulation(String options, JSONObject dictionary, Boolean print_round) throws Exception
-    {
+    public Simulation(String options, JSONObject dictionary, Boolean print_round) throws InvalidValueError, NullPointerException, SQLException, ClassNotFoundException {
         this.print_round = print_round;
         if (!dictionary.keySet().contains("assumptions"))
-            throw new Exception("no assumptions in json");
+            throw new NullPointerException("no assumptions in json");
         if (!dictionary.keySet().contains("before_policy"))
-            throw new Exception("no before_policy in json");
+            throw new NullPointerException("no before_policy in json");
         if (!dictionary.keySet().contains("after_policy"))
-            throw new Exception("no after_policy in json");
+            throw new NullPointerException("no after_policy in json");
         try {
             assumptions = new tools.Assumptions((JSONObject) dictionary.get("assumptions"));
             before_policy = new tools.Policy((JSONObject) dictionary.get("before_policy"), "before_policy");
             after_policy = new tools.Policy((JSONObject) dictionary.get("after_policy"), "after_policy");
-        } catch (Exception e) {
-            if (options.contains("d"))
-            {
-                System.out.println(dictionary.toString());
-            }
-            throw new Exception(e);
+        } catch (InvalidValueError invalidValueError) {
+            System.out.println(dictionary.toString());
+
+            throw invalidValueError;
         }
 
         if (options.contains("t"))
