@@ -1,5 +1,6 @@
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -211,7 +212,7 @@ public class Simulation
         }
     }
 
-    public final JSONObject run() throws IOException, ParseException
+    public final JSONObject run() throws IOException, ParseException, SQLException
     {
         after_policy_calibration_statistics = new CalibrationStatistics(firms);
         before_policy_calibration_statistics = new CalibrationStatistics(firms);
@@ -294,7 +295,7 @@ public class Simulation
 
 
 
-    private void statistics(int iday, int policy_change_time, int simulation_length)
+    private void statistics(int iday, int policy_change_time, int simulation_length) throws SQLException
     {
 
 

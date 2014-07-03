@@ -1,11 +1,7 @@
 package tools;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.List;
-
 import agents.Firm;
 
 
@@ -54,17 +50,15 @@ public class DBConnection
     private int stats_new_hires_expat;
 
 
-    public DBConnection(String experiment_id)
-	{
+    public DBConnection(String experiment_id) throws SQLException, ClassNotFoundException
+    {
         this.experiment_seed = experiment_id;
         SQLite_setup();
 	}
 	
-	private void SQLite_setup()
-	{
+	private void SQLite_setup() throws ClassNotFoundException, SQLException
+    {
 		Statement stmt = null;
-	    try 
-	    {
 	      Class.forName("org.sqlite.JDBC");
 	      SQLite_Connection = DriverManager.getConnection("jdbc:sqlite:lmdss.sqlite3");
 	      SQLite_Connection.prepareStatement("PRAGMA synchronous=OFF;").execute();
@@ -138,14 +132,6 @@ public class DBConnection
 	      SQLite_firmStatisticsPreparedStatement = SQLite_Connection.prepareStatement(sql);
 
 	      stmt.close();
-	      
-	    }
-	    catch ( Exception e )
-	    {
-		      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-		      e.printStackTrace();
-		      System.exit(0);
-		}
 	}
 	
 	public void write_firm_statistics(List<Firm> firms, int day)
@@ -171,10 +157,8 @@ public class DBConnection
 				SQLite_firmPreparedStatement.setDouble(15, firm.stats_offer_wage_expats);
 				SQLite_firmPreparedStatement.setDouble(16, firm.getDistributed_profits());
 				SQLite_firmPreparedStatement.setDouble(17, firm.getWage_saudis());
-				SQLite_firmPreparedStatement.setDouble(18, firm.GetWage_expats());
-							
-				
-				SQLite_firmPreparedStatement.addBatch();
+				SQLite_firmPreparedStatement.setDouble(18, firm.getWage_expats());
+                SQLite_firmPreparedStatement.addBatch();
 	        }
 
 			SQLite_firmPreparedStatement.executeBatch();
@@ -189,8 +173,8 @@ public class DBConnection
 	}
 	
 		
-	public void write_aggregate_firm_statistics(List<Firm> firms, int day)
-	{
+	public void write_aggregate_firm_statistics(List<Firm> firms, int day) throws SQLException
+    {
 		//reset the statistics for each iteration (Day..)
 	        this.num_firms = 0;
 	        this.num_saudis = 0;
@@ -257,68 +241,47 @@ public class DBConnection
             firm.stats_accepted_wage_expats = 0;
             firm.stats_this_round_hire = 0;
             firm.stats_this_round_fire = 0;
-            firm.stats_increase_price= 0;
+            firm.stats_increase_price = 0;
             firm.stats_decrease_price_bounded= 0;
         }
         
         // inserting the current iteration (Day..)'s statistics into the database
-	    try
-	    {
-			   SQLite_firmStatisticsPreparedStatement.setString(1, experiment_seed);
-			   SQLite_firmStatisticsPreparedStatement.setInt(2, day);
-			   SQLite_firmStatisticsPreparedStatement.setInt(3, this.num_saudis );
-			   SQLite_firmStatisticsPreparedStatement.setInt(4, this.num_expats );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(5, this.wage_bill / num_firms);
-			   SQLite_firmStatisticsPreparedStatement.setDouble(6, this.net_worth / num_firms);
-			   SQLite_firmStatisticsPreparedStatement.setDouble(7, this.profit / num_firms);
-			   SQLite_firmStatisticsPreparedStatement.setDouble(8, this.price / demand);
-			   SQLite_firmStatisticsPreparedStatement.setDouble(9, this.demand );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(10, this.production );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(11, this.planned_production );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(12, this.offer_wage_saudis / num_firms);
-			   SQLite_firmStatisticsPreparedStatement.setDouble(13, this.offer_wage_expats / num_firms);
-			   SQLite_firmStatisticsPreparedStatement.setDouble(14, this.distributed_profits / num_firms );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(15, this.wage_saudis / num_saudis );
-			   SQLite_firmStatisticsPreparedStatement.setDouble(16, this.wage_expats / num_expats );
-			   SQLite_firmStatisticsPreparedStatement.setInt(17, this.staff - this.last_staff );
-			   SQLite_firmStatisticsPreparedStatement.setInt(18, this.num_firms);
-			   SQLite_firmStatisticsPreparedStatement.setInt(19, this.hires);
-			   SQLite_firmStatisticsPreparedStatement.setInt(20, this.fires);
-			   SQLite_firmStatisticsPreparedStatement.setInt(21, this.num_applications);
-			   SQLite_firmStatisticsPreparedStatement.setDouble(22, decrease_price_bounded);
-			   SQLite_firmStatisticsPreparedStatement.setDouble(23, decrease_prices_no_firing);
-				SQLite_firmStatisticsPreparedStatement.setDouble(24, increase_price);
-				SQLite_firmStatisticsPreparedStatement.setDouble(25, increase_price_wage_altered);
-				SQLite_firmStatisticsPreparedStatement.setDouble(26, accepted_wage_saudis / stats_new_hires_saudi);
-				SQLite_firmStatisticsPreparedStatement.setDouble(27, accepted_wage_expats / stats_new_hires_expat);
-
-				
-			   SQLite_firmStatisticsPreparedStatement.addBatch();
-	    }
-	    catch ( Exception e )
-	    {
-	    	System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-	    	e.printStackTrace();
-	    	System.exit(0);
-		}
+        SQLite_firmStatisticsPreparedStatement.setString(1, experiment_seed);
+        SQLite_firmStatisticsPreparedStatement.setInt(2, day);
+        SQLite_firmStatisticsPreparedStatement.setInt(3, this.num_saudis );
+        SQLite_firmStatisticsPreparedStatement.setInt(4, this.num_expats );
+        SQLite_firmStatisticsPreparedStatement.setDouble(5, this.wage_bill / num_firms);
+        SQLite_firmStatisticsPreparedStatement.setDouble(6, this.net_worth / num_firms);
+        SQLite_firmStatisticsPreparedStatement.setDouble(7, this.profit / num_firms);
+        SQLite_firmStatisticsPreparedStatement.setDouble(8, this.price / demand);
+        SQLite_firmStatisticsPreparedStatement.setDouble(9, this.demand );
+        SQLite_firmStatisticsPreparedStatement.setDouble(10, this.production );
+        SQLite_firmStatisticsPreparedStatement.setDouble(11, this.planned_production );
+        SQLite_firmStatisticsPreparedStatement.setDouble(12, this.offer_wage_saudis / num_firms);
+        SQLite_firmStatisticsPreparedStatement.setDouble(13, this.offer_wage_expats / num_firms);
+        SQLite_firmStatisticsPreparedStatement.setDouble(14, this.distributed_profits / num_firms );
+        SQLite_firmStatisticsPreparedStatement.setDouble(15, this.wage_saudis / num_saudis );
+        SQLite_firmStatisticsPreparedStatement.setDouble(16, this.wage_expats / num_expats );
+        SQLite_firmStatisticsPreparedStatement.setInt(17, this.staff - this.last_staff );
+        SQLite_firmStatisticsPreparedStatement.setInt(18, this.num_firms);
+        SQLite_firmStatisticsPreparedStatement.setInt(19, this.hires);
+        SQLite_firmStatisticsPreparedStatement.setInt(20, this.fires);
+        SQLite_firmStatisticsPreparedStatement.setInt(21, this.num_applications);
+        SQLite_firmStatisticsPreparedStatement.setDouble(22, decrease_price_bounded);
+        SQLite_firmStatisticsPreparedStatement.setDouble(23, decrease_prices_no_firing);
+        SQLite_firmStatisticsPreparedStatement.setDouble(24, increase_price);
+        SQLite_firmStatisticsPreparedStatement.setDouble(25, increase_price_wage_altered);
+        SQLite_firmStatisticsPreparedStatement.setDouble(26, accepted_wage_saudis / stats_new_hires_saudi);
+        SQLite_firmStatisticsPreparedStatement.setDouble(27, accepted_wage_expats / stats_new_hires_expat);
+        SQLite_firmStatisticsPreparedStatement.addBatch();
 	}
 
 
-	public void close()
-	{
-		try
-		{
+	public void close() throws SQLException
+    {
 			SQLite_firmStatisticsPreparedStatement.executeBatch();
 			SQLite_firmStatisticsPreparedStatement.clearBatch();
-			
-					
 			SQLite_Connection.commit();
 			SQLite_Connection.close();
-	    }
-		catch ( Exception e )
-		{
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			System.exit(0);
-	    }
 	}
 }
