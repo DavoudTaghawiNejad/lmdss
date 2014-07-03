@@ -84,7 +84,7 @@ public class Policy
         return hash.toString();
     }
 
-    public Policy(JSONObject parameter) throws Exception
+    public Policy(JSONObject parameter, String section) throws Exception
     {
         ReadParameter parameters = new ReadParameter(parameter);
         saudi_minimum_wage =  parameters.getTimeDouble("saudi_minimum_wage");
@@ -103,7 +103,7 @@ public class Policy
         check_bounds.check_bound("expat_tax_per_head", expat_tax_per_head, Double.NEGATIVE_INFINITY, BIGGER);
         check_bounds.check_bound("visa_length", visa_length, 0, BIGGER);
         check_bounds.check_bounds("sauditization_percentage", sauditization_percentage, 0, 1, BIGGER_EQUAL, SMALLER_EQUAL);
-        parameters.warn_keys_not_read();
+        parameters.warn_keys_not_read(section);
     }
 
     public void change_policy_for_workers(List<Worker> workers)

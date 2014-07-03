@@ -77,13 +77,13 @@ public class ReadParameter extends JSONObject
         return value;
     }
 
-    public void warn_keys_not_read()
+    public void warn_keys_not_read(String section)
     {
         for (String key: readed.keySet())
         {
             if (readed.get(key) == false)
             {
-                System.out.println("WARNING '" + key + "' has not been read. Possibly because they have been redundant");
+                System.out.println("WARNING in " + section + " '" + key + "' has not been read. Possibly because they have been redundant");
             }
         }
     }
