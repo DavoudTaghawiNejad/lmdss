@@ -83,8 +83,8 @@ public class Simulation
 
         auctioneer = new Auctioneer(assumptions.love_for_variety, assumptions.sector_spending);
 
-        newspaper_saudi = new Newspaper(seed_generator.nextLong());
-        newspaper_expat = new Newspaper(seed_generator.nextLong());
+        newspaper_saudi = new Newspaper(seed_generator.nextLong(), assumptions.initial_wage_offer_saudi);
+        newspaper_expat = new Newspaper(seed_generator.nextLong(), assumptions.initial_wage_offer_expat);
 
         workers = new ArrayList<Worker>();
 
