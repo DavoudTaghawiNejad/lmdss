@@ -1,16 +1,21 @@
 {
     "assumptions": {
-        "policy_change_time": 2000,
-        "simulation_length": 2462,
+        "seed": 1230,
         "setup_period_1" : 1000,
         "setup_period_2" : 1000,
+        "time_after_policy": 500,
+        "time_before_policy": 500,
         "num_firms": 69.81,
         "num_expats": 6500,
         "num_saudis": 5000,
+
+        "initial_wage_offer_saudi_pmonth": 5000,
+        "initial_wage_offer_expat_pmonth": 1000,
         "reservation_wage_mean_expat": 9.081523391881518,
         "reservation_wage_mean_saudi": 2047.107524383257,
         "reservation_wage_std_saudi": 1000,
         "reservation_wage_std_expat": 1000,
+
         "reapplication_probability_saudi": 0.01076245503283952,
         "reapplication_probability_expat": 0.0,
         "productivity_mean_saudi_pmonth": 2258.1547815095755,
@@ -28,7 +33,10 @@
         "percent_distribute_pyear": 0.5,
         "days_pay_must_be_available": 30,
         "production_function_exponent": 1,
-        "seed": 1230
+
+        "wage_step_saudi_pyear": 2,
+        "wage_step_expat_pyear":2,
+
     },
     "before_policy": {
         "saudi_minimum_wage_pmonth": 0,
