@@ -7,10 +7,8 @@ import java.util.Random;
 
 
 public class Newspaper {
-	private double average_wage_offer;
-
+	private double average_wage_offer = 1;
     private Random rand;
-
 	public java.util.List<JobAdd> job_adds = new ArrayList<JobAdd>();
 
     JobAdd get_add() {
@@ -39,14 +37,18 @@ public class Newspaper {
         return job_add;
 	}
 
-	public void calculate_average_wage_offer() {
+	public void calculate_average_wage_offer()
+    {
 
 		double wage_offer = 0;
         for (JobAdd add : job_adds)
         {
 			wage_offer += add.getWage();
 		}
-		average_wage_offer = wage_offer / job_adds.size();
+        if (wage_offer / job_adds.size() > 0)
+        {
+            average_wage_offer = wage_offer / job_adds.size();
+        }
 	}
 
 

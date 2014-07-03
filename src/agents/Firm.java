@@ -26,8 +26,6 @@ public class Firm {
     private double market_price = 300;
     private double planned_production = 400;
     private double distributed_profits;
-    private double wage_saudis = 0;
-    private double wage_expats = 0;
     private List<WorkerRecord> applications;
     private Group staff = new Group(this);
     private boolean no_fake_probation = true;
@@ -174,9 +172,9 @@ public class Firm {
     private void decrease_price_bounded_by_margine()
     {
         double before = price;
-        planned_production = Math.max(
+        price = Math.max(
                     ((staff.getWage() / staff.getProductivity()) * minimum_mark_up),
-                planned_production * (1 - rnd.uniform(price_step_decrease))
+                price * (1 - rnd.uniform(price_step_decrease))
         );
         stats_decrease_price_bounded = price - before;
     }
@@ -207,9 +205,7 @@ public class Firm {
      * a random gaussian variable. The standard deviation is a model parameter.
      */
     public void advertise()
-    {
-        assert wage_saudis == staff.getWage_saudis();
-        assert wage_expats == staff.getWage_expats();
+    {        
         int num_visas_expiering_today = 0;
         int iday = day.get();
         try {
@@ -224,28 +220,31 @@ public class Firm {
             double add_wage_saudis;
             double add_wage_expats;
 
-            if (wage_saudis != 0 &&
+            if (staff.getWage_saudis() != 0 &&
                 staff.getSaudis() != 0)
             {
                 do {
-                    add_wage_saudis = wage_saudis / staff.getSaudis() * (1 + rnd.nextGaussian());
+                    add_wage_saudis = staff.getWage_saudis() / staff.getSaudis() * (1 + rnd.nextGaussian());
                 } while (add_wage_saudis <= 0);
             }
             else
             {
                 add_wage_saudis = newspaper_saudis.getAverage_wage_offer();
             }
-            if (wage_expats != 0 &&
+            if (staff.getWage_expats() != 0 &&
                     staff.getExpats() != 0)
             {
                 do {
-                    add_wage_expats = wage_expats / staff.getExpats() * (1 + rnd.nextGaussian());
+                    add_wage_expats = staff.getWage_expats() / staff.getExpats() * (1 + rnd.nextGaussian());
                 } while (add_wage_expats <= 0);
             }
             else
             {
              add_wage_expats = newspaper_expats.getAverage_wage_offer();
             }
+            assert add_wage_saudis > 0: add_wage_saudis;
+            assert add_wage_expats > 0 : add_wage_expats;
+
 
             newspaper_saudis.place_add(new JobAdd(applications, add_wage_saudis));
             newspaper_expats.place_add(new JobAdd(applications, add_wage_expats));
@@ -539,12 +538,6 @@ public class Firm {
     {
 
         staff.add(worker);
-        if (worker.getCitizenship() == Citizenship.SAUDI) {
-            wage_saudis += worker.getWage();
-        } else {
-            wage_expats += worker.getWage();
-            addVisa(worker);
-        }
         worker.getAddress().sendEmploy(this, worker);
         stats_this_round_hire++;
     }
@@ -559,15 +552,7 @@ public class Firm {
 
     void disemploy(WorkerRecord worker)
     {
-
         staff.remove(worker);
-
-        if (worker.getCitizenship() == Citizenship.SAUDI) {
-            wage_saudis -= worker.getWage();
-        } else {
-            wage_expats -= worker.getWage();
-        }
-
     }
 
 
@@ -673,13 +658,13 @@ public class Firm {
 
     public double getWage_saudis()
     {
-        assert wage_expats == staff.getWage_expats();
+        assert staff.getWage_expats() == staff.getWage_expats();
         return staff.getWage_saudis();
     }
 
     public double GetWage_expats()
     {
-        assert wage_saudis == staff.getWage_saudis();
+        assert staff.getWage_saudis() == staff.getWage_saudis();
         return staff.getWage_expats();
     }
 
