@@ -124,8 +124,7 @@ public class Assumptions
         return hash.toString();
     }
 
-    public Assumptions(JSONObject parameter) throws Exception
-    {
+    public Assumptions(JSONObject parameter) throws InvalidValueError {
         ReadParameter parameters = new ReadParameter(parameter);
         time_after_policy =  parameters.getNumber("time_after_policy").intValue();
         setup_period_1 =  parameters.getNumber("setup_period_1").intValue();

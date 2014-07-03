@@ -84,7 +84,7 @@ public class Policy
         return hash.toString();
     }
 
-    public Policy(JSONObject parameter, String section) throws Exception
+    public Policy(JSONObject parameter, String section) throws InvalidValueError
     {
         ReadParameter parameters = new ReadParameter(parameter);
         saudi_minimum_wage =  parameters.getTimeDouble("saudi_minimum_wage");

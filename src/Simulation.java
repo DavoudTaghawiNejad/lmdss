@@ -1,14 +1,18 @@
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import agents.*;
 import definitions.Citizenship;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
-import tools.*;
+import tools.DBConnection;
+import tools.InvalidValueError;
+import tools.WorkerRecord;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Simulation
 {
@@ -33,25 +37,24 @@ public class Simulation
     private tools.Policy after_policy;
     private tools.Policy before_policy;
     private KinkyStatistics before_after;
+    private Boolean print_round;
 
-    public Simulation(String options, JSONObject dictionary) throws Exception
-    {
+    public Simulation(String options, JSONObject dictionary, Boolean print_round) throws InvalidValueError, NullPointerException, SQLException, ClassNotFoundException {
+        this.print_round = print_round;
         if (!dictionary.keySet().contains("assumptions"))
-            throw new Exception("no assumptions in json");
+            throw new NullPointerException("no assumptions in json");
         if (!dictionary.keySet().contains("before_policy"))
-            throw new Exception("no before_policy in json");
+            throw new NullPointerException("no before_policy in json");
         if (!dictionary.keySet().contains("after_policy"))
-            throw new Exception("no after_policy in json");
+            throw new NullPointerException("no after_policy in json");
         try {
             assumptions = new tools.Assumptions((JSONObject) dictionary.get("assumptions"));
             before_policy = new tools.Policy((JSONObject) dictionary.get("before_policy"), "before_policy");
             after_policy = new tools.Policy((JSONObject) dictionary.get("after_policy"), "after_policy");
-        } catch (Exception e) {
-            if (options.contains("d"))
-            {
-                System.out.println(dictionary.toString());
-            }
-            throw new Exception(e);
+        } catch (InvalidValueError invalidValueError) {
+            System.out.println(dictionary.toString());
+
+            throw invalidValueError;
         }
 
         if (options.contains("t"))
@@ -223,10 +226,12 @@ public class Simulation
         int simulation_length =  policy_change_time + assumptions.time_after_policy;
 
         JSONObject output = new JSONObject();
-        output.put("parameter", assumptions.toJson());
 
         for (int iday = 0; iday < simulation_length; iday++)
         {
+            if (print_round)
+                if ( iday % 100  == 0)
+                    System.out.print(iday + ", ");
             day.set(iday);
             auctioneer.new_round();
             if (iday < assumptions.setup_period_1)
