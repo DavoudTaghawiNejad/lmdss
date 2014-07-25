@@ -22,8 +22,12 @@ public class Policy
     public final double expat_tax_per_head;
     public final double saudi_tax_percentage;
     public final double saudi_tax_per_head;
-    public final double sauditization_percentage;
     public final int visa_length;
+    public double quota1;
+    public double quota2;
+    public double quota3;
+    public double quota4;
+    public double quota5;
 
     public HashMap<String, Double> dump_policy()
     {
@@ -34,7 +38,11 @@ public class Policy
         out.put("saudi_tax_percentage", saudi_tax_percentage);
         out.put("expat_tax_per_head", expat_tax_per_head);
         out.put("saudi_tax_per_head", saudi_tax_per_head);
-        out.put("sauditization_percentage", sauditization_percentage);
+        out.put("quota1", quota1);
+        out.put("quota2", quota2);
+        out.put("quota3", quota3);
+        out.put("quota4", quota4);
+        out.put("quota5", quota5);
         out.put("visa_length", (double) visa_length);
         return out;
     }
@@ -47,8 +55,12 @@ public class Policy
         expat_tax_per_head = 0;
         saudi_tax_percentage = 0;
         saudi_tax_per_head = 0;
-        sauditization_percentage = 0;
         visa_length = 356;
+        quota1 = 0.0;
+        quota2 = 0.14;
+        quota3 = 0.24;
+        quota4 = 0.29;
+        quota5 = 0.29;
     }
 
     public String toString()
@@ -93,8 +105,12 @@ public class Policy
         expat_tax_percentage =  parameters.getNumber("expat_tax_percentage").doubleValue();
         saudi_tax_per_head =  parameters.getTimeDouble("saudi_tax_per_head");
         expat_tax_per_head =  parameters.getTimeDouble("expat_tax_per_head");
-        sauditization_percentage =  parameters.getNumber("sauditization_percentage").doubleValue();
         visa_length =  parameters.getNumber("visa_length").intValue();
+        quota1 = parameters.getNumber("quota1").doubleValue();
+        quota2 = parameters.getNumber("quota2").doubleValue();
+        quota3 = parameters.getNumber("quota3").doubleValue();
+        quota4 = parameters.getNumber("quota4").doubleValue();
+        quota5 = parameters.getNumber("quota5").doubleValue();
         check_bounds.check_bound("saudi_minimum_wage", saudi_minimum_wage, 0, BIGGER_EQUAL);
         check_bounds.check_bound("expat_minimum_wage", expat_minimum_wage, 0, BIGGER_EQUAL);
         check_bounds.check_bound("expat_tax_percentage", expat_tax_percentage, 0, BIGGER_EQUAL);
@@ -102,7 +118,11 @@ public class Policy
         check_bounds.check_bound("saudi_tax_per_head", saudi_tax_per_head, Double.NEGATIVE_INFINITY, BIGGER);
         check_bounds.check_bound("expat_tax_per_head", expat_tax_per_head, Double.NEGATIVE_INFINITY, BIGGER);
         check_bounds.check_bound("visa_length", visa_length, 0, BIGGER);
-        check_bounds.check_bounds("sauditization_percentage", sauditization_percentage, 0, 1, BIGGER_EQUAL, SMALLER_EQUAL);
+        check_bounds.check_bounds("quota1", quota1, 0, 1, BIGGER_EQUAL, SMALLER_EQUAL);
+        check_bounds.check_bounds("quota2", quota2, 0, 1, BIGGER_EQUAL, SMALLER_EQUAL);
+        check_bounds.check_bounds("quota3", quota3, 0, 1, BIGGER_EQUAL, SMALLER_EQUAL);
+        check_bounds.check_bounds("quota4", quota4, 0, 1, BIGGER_EQUAL, SMALLER_EQUAL);
+        check_bounds.check_bounds("quota5", quota5, 0, 1, BIGGER_EQUAL, SMALLER_EQUAL);
         parameters.warn_keys_not_read(section);
     }
 

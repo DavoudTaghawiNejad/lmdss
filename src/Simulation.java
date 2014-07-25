@@ -32,6 +32,7 @@ public class Simulation
     private final boolean time_series;
     private final boolean panel_data;
     private final String sha;
+    private final double[] quotas;
     private CalibrationStatistics after_policy_calibration_statistics;
     private CalibrationStatistics before_policy_calibration_statistics;
     private tools.Policy after_policy;
@@ -39,20 +40,20 @@ public class Simulation
     private KinkyStatistics before_after;
     private Boolean print_round;
 
-    public Simulation(String options, JSONObject dictionary, Boolean print_round) throws InvalidValueError, NullPointerException, SQLException, ClassNotFoundException {
+    public Simulation(String options, JSONObject parameters, Boolean print_round) throws InvalidValueError, NullPointerException, SQLException, ClassNotFoundException {
         this.print_round = print_round;
-        if (!dictionary.keySet().contains("assumptions"))
+        if (!parameters.keySet().contains("assumptions"))
             throw new NullPointerException("no assumptions in json");
-        if (!dictionary.keySet().contains("before_policy"))
+        if (!parameters.keySet().contains("before_policy"))
             throw new NullPointerException("no before_policy in json");
-        if (!dictionary.keySet().contains("after_policy"))
+        if (!parameters.keySet().contains("after_policy"))
             throw new NullPointerException("no after_policy in json");
         try {
-            assumptions = new tools.Assumptions((JSONObject) dictionary.get("assumptions"));
-            before_policy = new tools.Policy((JSONObject) dictionary.get("before_policy"), "before_policy");
-            after_policy = new tools.Policy((JSONObject) dictionary.get("after_policy"), "after_policy");
+            assumptions = new tools.Assumptions((JSONObject) parameters.get("assumptions"));
+            before_policy = new tools.Policy((JSONObject) parameters.get("before_policy"), "before_policy");
+            after_policy = new tools.Policy((JSONObject) parameters.get("after_policy"), "after_policy");
         } catch (InvalidValueError invalidValueError) {
-            System.out.println(dictionary.toString());
+            System.out.println(parameters.toString());
 
             throw invalidValueError;
         }
@@ -120,6 +121,15 @@ public class Simulation
         apply_to_firm = new ArrayList<List<WorkerRecord>>();
         firms = new ArrayList<Firm>();
         create_firms(assumptions.num_firms, assumptions, rnd);
+
+        quotas = new double[] {
+              0.0,
+              after_policy.quota1,
+              after_policy.quota2,
+              after_policy.quota3,
+              after_policy.quota4,
+              after_policy.quota5
+        };
     }
 
     private void create_workers(
@@ -230,7 +240,7 @@ public class Simulation
         for (int iday = 0; iday < simulation_length; iday++)
         {
             if (print_round)
-                if ( iday % 100  == 0)
+                if ( iday % 10  == 0)
                     System.out.print(iday + ", ");
             day.set(iday);
             auctioneer.new_round();
@@ -280,7 +290,9 @@ public class Simulation
                 after_policy.change_policy_for_workers(workers);
                 for (Firm firm : firms)
                 {
-                    firm.set_new_policy(before_policy.dump_policy(), after_policy.dump_policy());
+                    System.out.print("new policy at ");
+                    System.out.println(iday);
+                    firm.new_policy(before_policy.dump_policy(), after_policy.dump_policy(), quotas);
                 }
             }
         }

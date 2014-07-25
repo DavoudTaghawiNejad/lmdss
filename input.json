@@ -1,11 +1,10 @@
 {
     "assumptions": {
-        "seed": 1230,
         "setup_period_1" : 1000,
         "setup_period_2" : 1000,
-        "time_after_policy": 500,
-        "time_before_policy": 500,
-        "num_firms": 69.81,
+        "time_after_policy": 189,
+        "time_before_policy": 462,
+        "num_firms": 100,
         "num_expats": 6500,
         "num_saudis": 5000,
 
@@ -45,8 +44,12 @@
         "expat_tax_percentage": 0,
         "saudi_tax_per_head_pmonth": 0,
         "expat_tax_per_head_pmonth": 0,
-        "sauditization_percentage": 0,
         "visa_length": 365
+        "quota1": 0.0,
+        "quota2": 0.0,
+        "quota3": 0.0,
+        "quota4": 0.0,
+        "quota5": 0.0,
     },
     "after_policy": {
         "saudi_minimum_wage_pmonth": 0,
@@ -55,8 +58,11 @@
         "expat_tax_percentage": 0,
         "saudi_tax_per_head_pmonth": 0,
         "expat_tax_per_head_pmonth": 0,
-        "sauditization_percentage": 0,
-        "sauditization_percentage": 0.15,
         "visa_length": 365
+        "quota1": 0.0,
+        "quota2": 0.14,
+        "quota3": 0.24,
+        "quota4": 0.29,
+        "quota5": 0.29,
     },
 }

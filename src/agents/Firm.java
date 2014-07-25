@@ -81,7 +81,6 @@ public class Firm {
         this.auctioneer = auctioneer;
         this.wage_step_expats = assumptions.wage_step_expat;
         this.wage_step_saudis = assumptions.wage_step_saudi;
-        this.sauditization_percentage = initial_policy.sauditization_percentage;
         this.day = day;
         this.price_step_increase = assumptions.price_step_increase;
         this.price_step_decrease = assumptions.price_step_decrease;
@@ -137,18 +136,14 @@ public class Firm {
     }
 
 
-    public void set_new_policy(HashMap<String, Double> before_policy, HashMap<String, Double> after_policy)
+    public void new_policy(
+            HashMap<String,
+                    Double> before_policy,
+            HashMap<String, Double> after_policy,
+            double[] quotas
+    )
     {
-
         staff.recalculate_wage(before_policy, after_policy);
-        double[] quotas;
-        quotas = new double[]{0.0,
-                0.0, // 1
-                8 / 100,  // 2
-                15 / 100, // 3
-                20 / 100, // 4
-                20 / 100 // 5
-        };
         int size = staff.getSaudis() + staff.getExpats();
         if (size < 10)
         {
