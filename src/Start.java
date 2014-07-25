@@ -13,6 +13,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.*;
 
 
 public class Start
@@ -25,8 +26,6 @@ public class Start
             print_help();
             return;
         }
-        Simulation simulation;
-
         if (args.get(0).contains("z"))
         {
             simulation_via_zmq(args, true);
@@ -42,7 +41,7 @@ public class Start
             {
                 parameters = simulation_from_file(args);
             }
-            JSONObject simulation_output = run_simulation(args, parameters, false);
+            JSONObject simulation_output = run_simulation(args, parameters, true, 25);
             System.out.print(simulation_output.toJSONString());
         }
 
@@ -93,16 +92,16 @@ public class Start
     }
 
     private static void simulation_via_zmq(List<String> args, boolean print_round) throws UnsupportedEncodingException {
-        System.out.println("simulation via zmq 0.1");
+        System.out.println("simulation via zmq 0.22");
         int address_task;
         int address_result;
         int address_kill;
         String address_prefix;
         try
         {
-            address_task = Integer.getInteger(args.get(1));
-            address_result = Integer.getInteger(args.get(2));
-            address_kill = Integer.getInteger(args.get(3));
+            address_task = Integer.parseInt(args.get(1));
+            address_result = Integer.parseInt(args.get(2));
+            address_kill = Integer.parseInt(args.get(3));
         } catch (Exception ArrayIndexOutOfBoundsException)
         {
             address_task = 5557;
@@ -116,6 +115,15 @@ public class Start
         {
             address_prefix = "tcp://localhost:";
         }
+        System.out.print("address_task: ");
+        System.out.print(address_task);
+        System.out.print(", address_result: ");
+        System.out.print(address_result);
+        System.out.print(", address_kill: ");
+        System.out.print(address_kill);
+        System.out.print(", address_prefix: ");
+        System.out.print(address_prefix);
+        System.out.println();
 
         ZMQ.Context context = ZMQ.context(1);
 
@@ -136,10 +144,15 @@ public class Start
         poller.register(controller, ZMQ.Poller.POLLIN);
 
         while (true) {
-
             System.out.println("Receiving");
             poller.poll();  //we can put a time out for shutdown of instance
-            if (poller.pollin(RECEIVER)) {
+            if (poller.pollin(RECEIVER))
+            {
+                if (args.get(0).contains("t") || args.get(0).contains("p"))
+                {
+                    File file = new File("./lmdss.sqlite3");
+                    file.delete();
+                }
                 byte[] messageb = receiver.recv();
                 String output_string;
                 String message;
@@ -165,8 +178,9 @@ public class Start
                 System.out.println("Received and Working:");
                 //System.out.println(JsonWriter.formatJson(parameters.toString()));
                 JSONObject simulation_output = null;
+                int timeout = ((Number) ((JSONObject) parameters.get("control")).get("timeout")).intValue();
                 try {
-                    simulation_output = run_simulation(args, parameters, print_round);
+                    simulation_output = run_simulation(args, parameters, print_round, timeout);
                     output_string = simulation_output.toJSONString();
                 } catch (Exception e) {
                     output_string = e.toString();
@@ -193,17 +207,42 @@ public class Start
     }
 
 
-    private static JSONObject run_simulation(List<String> args, JSONObject parameters, boolean print_round) throws SQLException, InvalidValueError, ClassNotFoundException, IOException, ParseException {
-        Simulation simulation;
-        long started = System.currentTimeMillis();
-        simulation = new Simulation(args.get(0), parameters, print_round);
-        JSONObject simulation_output = simulation.run();
-        JSONObject output = new JSONObject();
-        output.put("result", simulation_output);
-        output.put("run time", (System.currentTimeMillis() - started) / 1000.0);
-        output.put("hash", parameters.get("hash"));
-        output.put("parameters", parameters);
-        return output;
+
+    private static JSONObject run_simulation(final List<String> args1, final JSONObject parameters1, final boolean print_round1, final int timeout) throws SQLException, InvalidValueError, ClassNotFoundException, IOException, ParseException, ExecutionException, InterruptedException
+    {
+
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        final Future<JSONObject> future = executor.submit(new Callable<JSONObject>()
+        {
+
+            private final List<String> args = args1;
+            private final JSONObject parameters = parameters1;
+            private final boolean print_round = print_round1;
+
+            @Override
+            public JSONObject call() throws SQLException, InvalidValueError, ClassNotFoundException, IOException, ParseException {
+                Simulation simulation;
+                long started = System.currentTimeMillis();
+                simulation = new Simulation(args.get(0), parameters, print_round);
+                JSONObject simulation_output = simulation.run();
+                JSONObject output = new JSONObject();
+                output.put("result", simulation_output);
+                output.put("run time", (System.currentTimeMillis() - started) / 1000.0);
+                output.put("hash", parameters.get("hash"));
+                output.put("parameters", parameters);
+                return output;
+            }
+        });
+        try {
+            executor.shutdownNow();
+            return future.get(timeout, TimeUnit.MINUTES);
+        } catch (TimeoutException e) {
+            JSONObject output = new JSONObject();
+            output.put("result", "timeout");
+            executor.shutdownNow();
+            return output;
+        }
     }
+
 }
 
