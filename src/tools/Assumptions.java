@@ -48,6 +48,7 @@ public class Assumptions
     public final double initial_wage_offer_expat;
     public final double wage_step_saudi;
     public final double wage_step_expat;
+    public final double fixed_cost;
 
     public Assumptions()
     {
@@ -86,6 +87,7 @@ public class Assumptions
         initial_wage_offer_expat = 500;
         wage_step_saudi = 2.0 / 365;
         wage_step_expat = 2.0 / 365;
+        fixed_cost = 0;
 
     }
 
@@ -145,8 +147,8 @@ public class Assumptions
         reservation_wage_std_saudi =  parameters.getNumber("reservation_wage_std_saudi").doubleValue();
         reservation_wage_mean_expat =  parameters.getNumber("reservation_wage_mean_expat").doubleValue();
         reservation_wage_std_expat =  parameters.getNumber("reservation_wage_std_expat").doubleValue();
-        price_step_increase = parameters.getDirectionalTV("price_step", "increase");
-        price_step_decrease = parameters.getDirectionalTV("price_step", "decrease");
+        price_step_increase = parameters.getTimeDouble("price_step_increase");
+        price_step_decrease = parameters.getTimeDouble("price_step_decrease");
         planned_production_step_increase = parameters.getDirectionalTV("planned_production_step", "increase");
         planned_production_step_decrease = parameters.getDirectionalTV("planned_production_step", "decrease");
         initial_net_worth_mean = parameters.getNumber("initial_net_worth_mean").doubleValue();
@@ -160,6 +162,7 @@ public class Assumptions
         initial_wage_offer_expat = parameters.getTimeDouble("initial_wage_offer_expat");
         wage_step_saudi = parameters.getTimeDouble("wage_step_saudi");
         wage_step_expat = parameters.getTimeDouble("wage_step_expat");
+        fixed_cost = parameters.getTimeDouble("fixed_cost");
 
 
         check_bounds.check_bound("time_after_policy", time_after_policy, 0, BIGGER);
@@ -199,6 +202,7 @@ public class Assumptions
         check_bounds.check_bound("initial_wage_offer_expat", initial_wage_offer_expat, 0, BIGGER_EQUAL);
         check_bounds.check_bounds("wage_step_saudi", wage_step_saudi, 0, 1, BIGGER, SMALLER);
         check_bounds.check_bounds("wage_step_expat", wage_step_expat, 0, 1, BIGGER, SMALLER);
+        check_bounds.check_bound("fixed_cost", fixed_cost, 0, BIGGER_EQUAL);
         long local_seed = 0;
         try
         {
