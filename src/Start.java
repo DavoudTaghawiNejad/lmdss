@@ -29,15 +29,13 @@ public class Start
         if (args.get(0).contains("z"))
         {
             simulation_via_zmq(args, true);
-        }
-        else
+        } else
         {
             JSONObject parameters = null;
             if (args.get(1).startsWith("{"))
             {
                 parameters = (JSONObject) JSONValue.parse(args.get(1));
-            }
-            else
+            } else
             {
                 parameters = simulation_from_file(args);
             }
@@ -78,21 +76,22 @@ public class Start
 
     private static JSONObject simulation_from_file(List<String> args) throws IOException, ParseException
     {
-        JSONObject parameters;File f = new File(args.get(1));
-        if(f.exists() && !f.isDirectory())
+        JSONObject parameters;
+        File f = new File(args.get(1));
+        if (f.exists() && !f.isDirectory())
         {
             JSONParser parser = new JSONParser();
             parameters = (JSONObject) parser.parse(new FileReader(args.get(1)));
-        }
-        else
+        } else
         {
-            throw new IllegalArgumentException(args.get(1) + "not a file or JSON string" );
+            throw new IllegalArgumentException(args.get(1) + "not a file or JSON string");
         }
         return parameters;
     }
 
-    private static void simulation_via_zmq(List<String> args, boolean print_round) throws UnsupportedEncodingException {
-        System.out.println("simulation via zmq 0.22");
+    private static void simulation_via_zmq(List<String> args, boolean print_round) throws UnsupportedEncodingException
+    {
+        System.out.println("simulation via zmq version 0.23r");
         int address_task;
         int address_result;
         int address_kill;
@@ -179,10 +178,12 @@ public class Start
                 //System.out.println(JsonWriter.formatJson(parameters.toString()));
                 JSONObject simulation_output = null;
                 int timeout = ((Number) ((JSONObject) parameters.get("control")).get("timeout")).intValue();
-                try {
+                try
+                {
                     simulation_output = run_simulation(args, parameters, print_round, timeout);
                     output_string = simulation_output.toJSONString();
-                } catch (Exception e) {
+                } catch (Exception e)
+                {
                     output_string = e.toString();
                 }
                 System.out.println("Worked and Send:");
@@ -190,7 +191,8 @@ public class Start
                 sender.send(output_string, 0);
             }
             //  Any waiting controller command acts as 'KILL'
-            if (poller.pollin(CONTROLLER)) {
+            if (poller.pollin(CONTROLLER))
+            {
                 break; // Exit loop
             }
 
