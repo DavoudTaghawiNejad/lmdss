@@ -184,20 +184,24 @@ public class Simulation
     {
         for (int i = 0; i < number; i++)
         {
-            workers.add(
-                    new Worker(
-                            seed_generator.nextLong(),
-                            citizenship,
-                            newspaper_saudi,
-                            rnd.nextGaussian() * reservation_wage_std + reservation_wage,
-                            rnd.nextGaussian() * productivity_std + productivity_mean,
-                            minimum_wage,
-                            tax_percentage,
-                            tax_per_head,
-                            reapplication_probability,
-                            auctioneer
-                    )
-            );
+            double productivity = rnd.nextGaussian() * productivity_std + productivity_mean;
+            if (productivity > 0)
+            {
+                workers.add(
+                        new Worker(
+                                seed_generator.nextLong(),
+                                citizenship,
+                                newspaper_saudi,
+                                rnd.nextGaussian() * reservation_wage_std + reservation_wage,
+                                productivity,
+                                minimum_wage,
+                                tax_percentage,
+                                tax_per_head,
+                                reapplication_probability,
+                                auctioneer
+                        )
+                );
+            }
         }
     }
 
