@@ -49,6 +49,7 @@ public class Assumptions
     public final double wage_step_saudi;
     public final double wage_step_expat;
     public final double fixed_cost;
+    public final double demand_multiplier;
 
     public Assumptions()
     {
@@ -61,11 +62,11 @@ public class Assumptions
         num_expats = 7000;
         productivity_mean_saudi = 6854.24;
         productivity_mean_expat = 6854.24;
-        productivity_std_saudi = 1000;
         productivity_std_expat = 1000;
         reservation_wage_mean_saudi  = 3137.39;
         reservation_wage_mean_expat = 0;
         reservation_wage_std_expat = 1000;
+        productivity_std_saudi = 1000;
         reservation_wage_std_saudi = 1000;
         sector_spending = 10000000000.0;
         love_for_variety = 0.5;
@@ -88,6 +89,7 @@ public class Assumptions
         wage_step_saudi = 2.0 / 365;
         wage_step_expat = 2.0 / 365;
         fixed_cost = 0;
+        demand_multiplier = 2;
 
     }
 
@@ -163,6 +165,7 @@ public class Assumptions
         wage_step_saudi = parameters.getTimeDouble("wage_step_saudi");
         wage_step_expat = parameters.getTimeDouble("wage_step_expat");
         fixed_cost = parameters.getTimeDouble("fixed_cost");
+        demand_multiplier = parameters.getNumber("demand_multiplier").doubleValue();
 
 
         check_bounds.check_bound("time_after_policy", time_after_policy, 0, BIGGER);
@@ -203,6 +206,7 @@ public class Assumptions
         check_bounds.check_bounds("wage_step_saudi", wage_step_saudi, 0, 1, BIGGER, SMALLER);
         check_bounds.check_bounds("wage_step_expat", wage_step_expat, 0, 1, BIGGER, SMALLER);
         check_bounds.check_bound("fixed_cost", fixed_cost, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("demand_multiplier", demand_multiplier, 0, BIGGER_EQUAL);
         long local_seed = 0;
         try
         {

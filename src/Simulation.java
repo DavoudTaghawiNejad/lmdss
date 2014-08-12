@@ -88,7 +88,7 @@ public class Simulation
         else
             db_connection = null;
 
-        auctioneer = new Auctioneer(assumptions.love_for_variety, assumptions.sector_spending);
+        auctioneer = new Auctioneer(assumptions.love_for_variety, assumptions.sector_spending, assumptions.demand_multiplier);
 
         newspaper_saudi = new Newspaper(seed_generator.nextLong(), assumptions.initial_wage_offer_saudi);
         newspaper_expat = new Newspaper(seed_generator.nextLong(), assumptions.initial_wage_offer_expat);

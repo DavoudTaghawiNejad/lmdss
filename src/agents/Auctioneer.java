@@ -7,7 +7,8 @@ public class Auctioneer {
     public double q;
 	public double total_value_sold;
 	public double income;
-	public double market_price;
+    private final double demand_multiplier;
+    public double market_price;
 	public double total_deliverable_demand;
 	public double total_capacity;
 	public double average_price;
@@ -17,9 +18,10 @@ public class Auctioneer {
 	public java.util.LinkedHashMap<Firm, Double> quantities = new java.util.LinkedHashMap<Firm, Double>();
 	public java.util.ArrayList<FirmQuantity> demand_list = new java.util.ArrayList<FirmQuantity>();
 
-    public Auctioneer(double love_for_variety, double income) {
+    public Auctioneer(double love_for_variety, double income, double demand_multiplier) {
         this.love_for_variety = love_for_variety;
         this.income = income;
+        this.demand_multiplier = demand_multiplier;
     }
 
     public void compute_market() {
@@ -76,11 +78,9 @@ public class Auctioneer {
 		demand_list.clear();
 	}
 
-	double demand_schedule(double pi) {
-
-		return (income / q)
-				* Math.pow((q / pi), (1 / (1 - love_for_variety)));
-
+	double demand_schedule(double pi)
+    {
+		return demand_multiplier * (income / q) * Math.pow((q / pi), (1 / (1 - love_for_variety)));
 	}
 
 	void calc_q() {
