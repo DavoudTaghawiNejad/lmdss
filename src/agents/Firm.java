@@ -17,6 +17,7 @@ public class Firm {
     private final Rnd rnd;
     private final Newspaper newspaper_saudis;
     private final Newspaper newspaper_expats;
+    private final double fixed_cost;
     private int visa_length;
     private Map<Integer, Group> visa_stack = new HashMap<Integer, Group>();
     private double net_worth;
@@ -95,6 +96,7 @@ public class Firm {
         this.required_roi = assumptions.required_roi;
         this.percent_distribute = assumptions.percent_distribute;
         this.production_function_exponent = assumptions.production_function_exponent;
+        this.fixed_cost = assumptions.fixed_cost;
     }
 
     public void setSauditization_percentage(double sauditization_percentage) {
@@ -725,5 +727,10 @@ public class Firm {
     public double getMarket_price()
     {
         return market_price;
+    }
+
+    public void fix_costs()
+    {
+        net_worth -= fixed_cost;
     }
 }
