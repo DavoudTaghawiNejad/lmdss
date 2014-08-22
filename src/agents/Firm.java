@@ -61,6 +61,8 @@ public class Firm {
     public int stats_this_round_fire = 0;
     private final double wage_step_saudis;
     private final double wage_step_expats;
+    private int no_staff = 0;
+    private int time_idle;
 
     public Firm(
             int id,
@@ -97,6 +99,7 @@ public class Firm {
         this.percent_distribute = assumptions.percent_distribute;
         this.production_function_exponent = assumptions.production_function_exponent;
         this.fixed_cost = assumptions.fixed_cost;
+        this.time_idle = assumptions.time_idle;
     }
 
     public void setSauditization_percentage(double sauditization_percentage) {
@@ -624,10 +627,17 @@ public class Firm {
 
     public boolean out_of_business()
     {
-        if (net_worth <= 0)
+        if (staff.size() == 0)
         {
-            fire_staff(staff.getWorker_list());
-            return true;
+            no_staff += 1;
+        } else
+        {
+            no_staff = 0;
+        }
+        if (net_worth <= 0 || (no_staff == time_idle && rnd.uniform(1) < 0.25))
+        {
+                fire_staff(staff.getWorker_list());
+                return true;
         }
         else
         {

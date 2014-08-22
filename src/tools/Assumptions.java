@@ -50,6 +50,7 @@ public class Assumptions
     public final double wage_step_expat;
     public final double fixed_cost;
     public final double demand_multiplier;
+    public int time_idle;
 
     public Assumptions()
     {
@@ -90,6 +91,7 @@ public class Assumptions
         wage_step_expat = 2.0 / 365;
         fixed_cost = 0;
         demand_multiplier = 2;
+        time_idle = 30;
 
     }
 
@@ -166,6 +168,7 @@ public class Assumptions
         wage_step_expat = parameters.getTimeDouble("wage_step_expat");
         fixed_cost = parameters.getTimeDouble("fixed_cost");
         demand_multiplier = parameters.getNumber("demand_multiplier").doubleValue();
+        time_idle = parameters.getNumber("time_idle").intValue();
 
 
         check_bounds.check_bound("time_after_policy", time_after_policy, 0, BIGGER);
@@ -207,6 +210,7 @@ public class Assumptions
         check_bounds.check_bounds("wage_step_expat", wage_step_expat, 0, 1, BIGGER, SMALLER);
         check_bounds.check_bound("fixed_cost", fixed_cost, 0, BIGGER_EQUAL);
         check_bounds.check_bound("demand_multiplier", demand_multiplier, 0, BIGGER_EQUAL);
+        check_bounds.check_bound("time_idle", time_idle, 0, BIGGER);
         long local_seed = 0;
         try
         {
