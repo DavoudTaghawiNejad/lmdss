@@ -37,7 +37,7 @@ public class Simulation
     private CalibrationStatistics before_policy_calibration_statistics;
     private tools.Policy after_policy;
     private tools.Policy before_policy;
-    //private KinkyStatistics before_after;
+    private KinkyStatistics before_after;
     private Boolean print_round;
 
     public Simulation(String options, JSONObject parameters, Boolean print_round) throws InvalidValueError, NullPointerException, SQLException, ClassNotFoundException {
@@ -233,7 +233,7 @@ public class Simulation
     {
         after_policy_calibration_statistics = new CalibrationStatistics(firms);
         before_policy_calibration_statistics = new CalibrationStatistics(firms);
-        //before_after = new KinkyStatistics(firms);
+        before_after = new KinkyStatistics(firms);
 
 
         int policy_change_time = assumptions.setup_period_1 + assumptions.setup_period_2 + assumptions.time_before_policy;
@@ -300,18 +300,22 @@ public class Simulation
                 }
             }
         }
+        close_db();
+        output.put("before_policy", before_policy_calibration_statistics.json());
+        output.put("after_policy", after_policy_calibration_statistics.json());
+        output.put("k_saudis", before_after.saudis());
+        output.put("k_expats", before_after.expats());
+        output.put("k_sauditization", before_after.sauditization());
+        output.put("display_start_day", assumptions.setup_period_1 + assumptions.setup_period_2);
+        return output;
+    }
 
+    public void close_db() throws SQLException
+    {
         if (db_connection != null)
         {
             db_connection.close();
         }
-        output.put("before_policy", before_policy_calibration_statistics.json());
-        output.put("after_policy", after_policy_calibration_statistics.json());
-        //output.put("k_saudis", before_after.saudis());
-        //output.put("k_expats", before_after.expats());
-        //output.put("k_sauditization", before_after.sauditization());
-        output.put("display_start_day", assumptions.setup_period_1 + assumptions.setup_period_2);
-        return output;
     }
 
 
@@ -331,11 +335,11 @@ public class Simulation
 
         if (iday ==  policy_change_time - 1)
         {
-            //before_after.before();
+            before_after.before();
         }
         if (iday ==  simulation_length - 1)
         {
-            //before_after.after();
+            before_after.after();
         }
         if (iday >  policy_change_time - 200 && iday < policy_change_time)
         {
