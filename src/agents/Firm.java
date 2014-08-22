@@ -224,9 +224,11 @@ public class Firm {
             if (staff.getWage_saudis() != 0 &&
                 staff.getSaudis() != 0)
             {
-                do {
-                    add_wage_saudis = staff.getWage_saudis() / staff.getSaudis() * (1 + rnd.nextGaussian(wage_step_saudis));
-                } while (add_wage_saudis <= 0);
+                add_wage_saudis = staff.getWage_saudis() / staff.getSaudis() * (1 + rnd.nextGaussian(wage_step_saudis));
+                if (add_wage_saudis <= 0)
+                {
+                    add_wage_saudis = newspaper_saudis.getAverage_wage_offer() * (1 + rnd.nextGaussian(wage_step_saudis));
+                }
             }
             else
             {
@@ -235,16 +237,24 @@ public class Firm {
             if (staff.getWage_expats() != 0 &&
                     staff.getExpats() != 0)
             {
-                do {
-                    add_wage_expats = staff.getWage_expats() / staff.getExpats() * (1 + rnd.nextGaussian(wage_step_expats));
-                } while (add_wage_expats <= 0);
+                add_wage_expats = staff.getWage_expats() / staff.getExpats() * (1 + rnd.nextGaussian(wage_step_expats));
+                if (add_wage_expats <= 0)
+                {
+                    add_wage_expats = newspaper_expats.getAverage_wage_offer() * (1 + rnd.nextGaussian(wage_step_expats));
+                }
             }
             else
             {
              add_wage_expats = newspaper_expats.getAverage_wage_offer();
             }
-            assert add_wage_saudis > 0: add_wage_saudis;
-            assert add_wage_expats > 0 : add_wage_expats;
+            if (add_wage_saudis < 0)
+            {
+                add_wage_saudis = newspaper_saudis.getAverage_wage_offer();
+            }
+            if (add_wage_expats < 0)
+            {
+                add_wage_expats= newspaper_expats.getAverage_wage_offer();
+            }
 
 
             newspaper_saudis.place_add(new JobAdd(applications, add_wage_saudis));
