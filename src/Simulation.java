@@ -299,6 +299,10 @@ public class Simulation
                     firm.new_policy(before_policy.dump_policy(), after_policy.dump_policy(), quotas);
                 }
             }
+            if (firms.size() == 0)
+            {
+                break;
+            }
         }
         close_db();
         output.put("before_policy", before_policy_calibration_statistics.json());
@@ -318,6 +322,12 @@ public class Simulation
         }
     }
 
+    public final JSONObject return_timedout()
+    {
+        JSONObject output = new JSONObject();
+        output.put("at_timeout", new CalibrationStatistics(firms).json());
+        return output;
+    }
 
 
     private void statistics(int iday, int policy_change_time, int simulation_length) throws SQLException

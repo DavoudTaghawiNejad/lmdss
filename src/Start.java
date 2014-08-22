@@ -18,6 +18,7 @@ import java.util.concurrent.*;
 
 public class Start
 {
+    public static Simulation simulation;
     public static void main(String[] raw_args) throws Exception
     {
         List<String> args = Arrays.asList(raw_args);
@@ -84,14 +85,14 @@ public class Start
             parameters = (JSONObject) parser.parse(new FileReader(args.get(1)));
         } else
         {
-            throw new IllegalArgumentException(args.get(1) + "not a file or JSON string");
+            throw new IllegalArgumentException(args.get(1) + " not a file or JSON string");
         }
         return parameters;
     }
 
     private static void simulation_via_zmq(List<String> args, boolean print_round) throws UnsupportedEncodingException
     {
-        System.out.println("simulation via zmq version 0.23r");
+        System.out.println("simulation via zmq version 0.32");
         int address_task;
         int address_result;
         int address_kill;
@@ -214,18 +215,16 @@ public class Start
     {
 
         final ExecutorService executor = Executors.newSingleThreadExecutor();
+        simulation = new Simulation(((List<String>)args1).get(0), (JSONObject) parameters1, print_round1);
         final Future<JSONObject> future = executor.submit(new Callable<JSONObject>()
         {
 
-            private final List<String> args = args1;
             private final JSONObject parameters = parameters1;
-            private final boolean print_round = print_round1;
 
             @Override
             public JSONObject call() throws SQLException, InvalidValueError, ClassNotFoundException, IOException, ParseException {
-                Simulation simulation;
+
                 long started = System.currentTimeMillis();
-                simulation = new Simulation(args.get(0), parameters, print_round);
                 JSONObject simulation_output = simulation.run();
                 JSONObject output = new JSONObject();
                 output.put("result", simulation_output);
@@ -240,7 +239,11 @@ public class Start
             return future.get(timeout, TimeUnit.MINUTES);
         } catch (TimeoutException e) {
             JSONObject output = new JSONObject();
-            output.put("result", "timeout");
+            output.put("timeout", "timeout");
+            output.put("result", simulation.return_timedout());
+            simulation.close_db();
+            JSONObject parameters = parameters1;
+            output.put("parameters", parameters);
             executor.shutdownNow();
             return output;
         }
