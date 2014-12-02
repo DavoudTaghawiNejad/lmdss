@@ -4,8 +4,6 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.zeromq.ZMQ;
-import tools.InvalidValueError;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -46,8 +44,7 @@ public class Start
 
     }
 
-    private static void print_help()
-    {
+    private static void print_help() throws Exception {
         System.out.println();
         System.out.println("java -Djava.library.path=/usr/local/lib -jar saudifirms.jar ...");
         System.out.println("... t   \t-\tfor time series");
@@ -92,7 +89,7 @@ public class Start
 
     private static void simulation_via_zmq(List<String> args, boolean print_round) throws UnsupportedEncodingException
     {
-        System.out.println("simulation via zmq version 0.32");
+        System.out.println("simulation via zmq version 0.39");
         int address_task;
         int address_result;
         int address_kill;
@@ -127,92 +124,71 @@ public class Start
 
         ZMQ.Context context = ZMQ.context(1);
 
-        ZMQ.Socket receiver = context.socket(ZMQ.PULL);
+        ZMQ.Socket receiver = context.socket(ZMQ.REQ);
         receiver.connect(address_prefix + String.valueOf(address_task));
 
         ZMQ.Socket sender = context.socket(ZMQ.PUSH);
         sender.connect(address_prefix + String.valueOf(address_result));
 
-        ZMQ.Socket controller = context.socket(ZMQ.SUB);
-        controller.connect(address_prefix + String.valueOf(address_kill));
-        controller.subscribe("".getBytes());
-
-        ZMQ.Poller poller = new ZMQ.Poller(2);
-        final int RECEIVER = 0;
-        poller.register(receiver, ZMQ.Poller.POLLIN);
-        final int CONTROLLER = 1;
-        poller.register(controller, ZMQ.Poller.POLLIN);
 
         while (true) {
             System.out.println("Receiving");
-            poller.poll();  //we can put a time out for shutdown of instance
-            if (poller.pollin(RECEIVER))
+            receiver.send("ready");
+            byte[] messageb = receiver.recv();
+            if (args.get(0).contains("t") || args.get(0).contains("p"))
             {
-                if (args.get(0).contains("t") || args.get(0).contains("p"))
-                {
-                    File file = new File("./lmdss.sqlite3");
-                    file.delete();
-                }
-                byte[] messageb = receiver.recv();
-                String output_string;
-                String message;
-                JSONObject parameters = null;
-                try
-                {
-                    message = new String(messageb, "UTF-8");
-                } catch (Exception e)
-                {
-                    output_string = e.toString() + "                                                    ***" + messageb + "***";
-                    sender.send(output_string, 0);
-                    continue;
-                }
-                try
-                {
-                    parameters = (JSONObject) JSONValue.parse(message);
-                } catch (Exception e)
-                {
-                    output_string = e.toString() + "/n'" + message + "'";
-                    sender.send(output_string, 0);
-                    continue;
-                }
-                System.out.println("Received and Working:");
-                //System.out.println(JsonWriter.formatJson(parameters.toString()));
-                JSONObject simulation_output = null;
-                int timeout = ((Number) ((JSONObject) parameters.get("control")).get("timeout")).intValue();
-                try
-                {
-                    simulation_output = run_simulation(args, parameters, print_round, timeout);
-                    output_string = simulation_output.toJSONString();
-                } catch (Exception e)
-                {
-                    output_string = e.toString();
-                }
-                System.out.println("Worked and Send:");
-                //System.out.println(JsonWriter.formatJson(simulation_output.toString()));
-                sender.send(output_string, 0);
-            }
-            //  Any waiting controller command acts as 'KILL'
-            if (poller.pollin(CONTROLLER))
-            {
-                break; // Exit loop
+                File file = new File("./lmdss.sqlite3");
+                file.delete();
             }
 
+            String output_string;
+            String message;
+            JSONObject parameters = null;
+            try
+            {
+                message = new String(messageb, "UTF-8");
+            } catch (Exception e)
+            {
+                output_string = e.toString() + "                                                    ***" + messageb + "***";
+                sender.send(output_string, 0);
+                continue;
+            }
+            try
+            {
+                parameters = (JSONObject) JSONValue.parse(message);
+            } catch (Exception e)
+            {
+                output_string = e.toString() + "/n'" + message + "'";
+                sender.send(output_string, 0);
+                continue;
+            }
+            System.out.println("Received and Working:");
+            //System.out.println(JsonWriter.formatJson(parameters.toString()));
+            JSONObject simulation_output = null;
+            int timeout = ((Number) ((JSONObject) parameters.get("control")).get("timeout")).intValue();
+            try
+            {
+                simulation_output = run_simulation(args, parameters, print_round, timeout);
+                output_string = simulation_output.toJSONString();
+            } catch (Exception e)
+                {
+                    e.printStackTrace();
+                    output_string = e.toString();
+                System.out.println(output_string);
+            }
+            System.out.println("Worked and Send:");
+            //System.out.println(JsonWriter.formatJson(simulation_output.toString()));
+            sender.send(output_string, 0);
         }
         // Finished
-        receiver.close();
-        sender.close();
-        controller.close();
+        //receiver.close();
+        //sender.close();
         //context.term();                         Context.term() hangs, try enabling in future versions of jzmq
-        if (!(args.get(0).contains("a")))
-        {
-            //amazon.shutdown_vm()
-        }
     }
 
 
 
-    private static JSONObject run_simulation(final List<String> args1, final JSONObject parameters1, final boolean print_round1, final int timeout) throws SQLException, InvalidValueError, ClassNotFoundException, IOException, ParseException, ExecutionException, InterruptedException
-    {
+    private static JSONObject run_simulation(final List<String> args1, final JSONObject parameters1, final boolean print_round1, final int timeout) throws Exception {
 
         final ExecutorService executor = Executors.newSingleThreadExecutor();
         simulation = new Simulation(((List<String>)args1).get(0), (JSONObject) parameters1, print_round1);
@@ -222,7 +198,7 @@ public class Start
             private final JSONObject parameters = parameters1;
 
             @Override
-            public JSONObject call() throws SQLException, InvalidValueError, ClassNotFoundException, IOException, ParseException {
+            public JSONObject call() throws Exception {
 
                 long started = System.currentTimeMillis();
                 JSONObject simulation_output = simulation.run();
