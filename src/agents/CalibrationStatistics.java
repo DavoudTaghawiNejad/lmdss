@@ -68,14 +68,17 @@ public class CalibrationStatistics
         }
     }
 
-    public JSONObject json()
-    {
+    public JSONObject json() throws Exception {
+        assert samples > 0;
         convert_to_monthly();
         JSONObject calibration_statistics = new JSONObject();
         // calibration_statistics.put("samples", samples);
-        calibration_statistics.put("num_saudis",num_saudis / samples);
+        try {
+            calibration_statistics.put("net_worth",net_worth / samples);
+        } catch (Exception e) {
+            throw new Exception("zero samples, timeout?");
+        }
         calibration_statistics.put("num_expats",num_expats / samples);
-        calibration_statistics.put("net_worth",net_worth / samples);
         calibration_statistics.put("profit",profit / samples);
         calibration_statistics.put("price", price / samples / demand);
         calibration_statistics.put("demand", demand / samples);
@@ -84,6 +87,7 @@ public class CalibrationStatistics
         calibration_statistics.put("wage_saudis", wage_saudis / samples);
         calibration_statistics.put("wage_expats", wage_expats / samples);
         calibration_statistics.put("num_firms", num_firms / samples);
+        calibration_statistics.put("num_saudis",num_saudis / samples);
         return calibration_statistics;
     }
 }

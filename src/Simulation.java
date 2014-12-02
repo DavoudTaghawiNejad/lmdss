@@ -229,8 +229,7 @@ public class Simulation
         }
     }
 
-    public final JSONObject run() throws IOException, ParseException, SQLException
-    {
+    public final JSONObject run() throws Exception {
         after_policy_calibration_statistics = new CalibrationStatistics(firms);
         before_policy_calibration_statistics = new CalibrationStatistics(firms);
         before_after = new KinkyStatistics(firms);
@@ -322,8 +321,7 @@ public class Simulation
         }
     }
 
-    public final JSONObject return_timedout()
-    {
+    public final JSONObject return_timedout() throws Exception {
         JSONObject output = new JSONObject();
         output.put("at_timeout", new CalibrationStatistics(firms).json());
         return output;

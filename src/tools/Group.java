@@ -34,11 +34,12 @@ public class Group
     }
 
     public int getSaudis() {
+        assert saudis >= 0;
         return saudis;
     }
 
-
     public int getExpats() {
+        assert expats >= 0;
         return expats;
     }
 
