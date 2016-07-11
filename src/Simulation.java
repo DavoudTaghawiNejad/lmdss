@@ -321,12 +321,6 @@ public class Simulation
         }
     }
 
-    public final JSONObject return_timedout() throws Exception {
-        JSONObject output = new JSONObject();
-        output.put("at_timeout", new CalibrationStatistics(firms).json());
-        return output;
-    }
-
 
     private void statistics(int iday, int policy_change_time, int simulation_length) throws SQLException
     {

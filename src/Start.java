@@ -89,7 +89,7 @@ public class Start
 
     private static void simulation_via_zmq(List<String> args, boolean print_round) throws UnsupportedEncodingException
     {
-        System.out.println("simulation via zmq version 0.39");
+        System.out.println("simulation via zmq version 0.43");
         int address_task;
         int address_result;
         int address_kill;
@@ -216,7 +216,6 @@ public class Start
         } catch (TimeoutException e) {
             JSONObject output = new JSONObject();
             output.put("timeout", "timeout");
-            output.put("result", simulation.return_timedout());
             simulation.close_db();
             JSONObject parameters = parameters1;
             output.put("parameters", parameters);
@@ -226,4 +225,3 @@ public class Start
     }
 
 }
-

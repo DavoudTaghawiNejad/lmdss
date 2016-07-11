@@ -30,7 +30,6 @@ public class Firm {
     private List<WorkerRecord> applications;
     private Group staff = new Group(this);
     private boolean no_fake_probation = true;
-    private double sauditization_percentage;
     private Auctioneer auctioneer;
     private AtomicInteger day;
     private int distance_to_cut_off;
@@ -63,6 +62,7 @@ public class Firm {
     private final double wage_step_expats;
     private int no_staff = 0;
     private int time_idle;
+    private double[] quotas;
 
     public Firm(
             int id,
@@ -100,10 +100,7 @@ public class Firm {
         this.production_function_exponent = assumptions.production_function_exponent;
         this.fixed_cost = assumptions.fixed_cost;
         this.time_idle = assumptions.time_idle;
-    }
-
-    public void setSauditization_percentage(double sauditization_percentage) {
-        this.sauditization_percentage = sauditization_percentage;
+        this.quotas = initial_policy.getQuotas();
     }
 
     /**
@@ -149,27 +146,7 @@ public class Firm {
     )
     {
         staff.recalculate_wage(before_policy, after_policy);
-        int size = staff.getSaudis() + staff.getExpats();
-        if (size < 10)
-        {
-            sauditization_percentage = quotas[1];
-        }
-        else if (size < 50)
-        {
-            sauditization_percentage = quotas[2];
-        }
-        else if (size < 500)
-        {
-            sauditization_percentage = quotas[3];
-        }
-        else if (size < 3000)
-        {
-            sauditization_percentage = quotas[4];
-        }
-        else
-        {
-            sauditization_percentage = quotas[5];
-        }
+        this.quotas = quotas;
         visa_length = (int)Math.ceil(after_policy.get("visa_length"));
     }
 
@@ -504,6 +481,28 @@ public class Firm {
 
         double saudi = team.getSaudis();
         double expat = team.getExpats();
+        int size = staff.getSaudis() + staff.getExpats();
+        double sauditization_percentage;
+        if (size < 10)
+        {
+            sauditization_percentage = quotas[1];
+        }
+        else if (size < 50)
+        {
+            sauditization_percentage = quotas[2];
+        }
+        else if (size < 500)
+        {
+            sauditization_percentage = quotas[3];
+        }
+        else if (size < 3000)
+        {
+            sauditization_percentage = quotas[4];
+        }
+        else
+        {
+            sauditization_percentage = quotas[5];
+        }
         if (to_evaluate.getCitizenship() == Citizenship.SAUDI)
             saudi++;
         else
@@ -516,6 +515,28 @@ public class Firm {
     boolean is_admissible(Group team) {
         double saudi = team.getSaudis();
         double expat = team.getExpats();
+        int size = staff.getSaudis() + staff.getExpats();
+        double sauditization_percentage;
+        if (size < 10)
+        {
+            sauditization_percentage = quotas[1];
+        }
+        else if (size < 50)
+        {
+            sauditization_percentage = quotas[2];
+        }
+        else if (size < 500)
+        {
+            sauditization_percentage = quotas[3];
+        }
+        else if (size < 3000)
+        {
+            sauditization_percentage = quotas[4];
+        }
+        else
+        {
+            sauditization_percentage = quotas[5];
+        }
         return (saudi / (saudi + expat) >= sauditization_percentage);
 
     }
@@ -581,7 +602,9 @@ public class Firm {
         for (WorkerRecord worker : team.getWorker_list()) {
             if (staff.contains(worker)) {
                 can_be_fired.remove(worker);
-                addVisa(worker);
+                if (worker.getCitizenship() == Citizenship.EXPAT) {
+                    addVisa(worker);
+                }
             } else {
                 hire(worker);
                 update_wage(worker.getCitizenship(), worker.getWage());

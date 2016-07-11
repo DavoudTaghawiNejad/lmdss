@@ -91,7 +91,7 @@ public class Worker
             if (
             		job_add != null  // no adds in the newspaper
             		&&
-            		(job_add.getWage() / auctioneer.market_price) > wage_floor // adjust wage floor to inflation..
+            		job_add.getWage() > wage_floor // adjust wage floor to inflation..
                 )
             {
                 job_add.getFirm().add(new WorkerRecord(this, job_add.getWage(), day));

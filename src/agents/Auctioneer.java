@@ -7,7 +7,7 @@ public class Auctioneer {
     public double q;
 	public double total_value_sold;
 	public double income;
-    private final double demand_multiplier;
+    private final double demand_multiplier;  # income and demand demand_multiplier are redundant!!!
     public double market_price;
 	public double total_deliverable_demand;
 	public double total_capacity;
@@ -81,6 +81,7 @@ public class Auctioneer {
 	double demand_schedule(double pi)
     {
 		return demand_multiplier * (income / q) * Math.pow((q / pi), (1 / (1 - love_for_variety)));
+		 # income and demand demand_multiplier are redundant!!!
 	}
 
 	void calc_q() {

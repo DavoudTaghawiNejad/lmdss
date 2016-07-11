@@ -147,10 +147,10 @@ public class Assumptions
         reapplication_probability_expat =  parameters.getNumber("reapplication_probability_expat").doubleValue();
         sector_spending =  parameters.getTimeDouble("sector_spending");
         love_for_variety =  parameters.getNumber("love_for_variety").doubleValue();
-        reservation_wage_mean_saudi =  parameters.getNumber("reservation_wage_mean_saudi").doubleValue();
-        reservation_wage_std_saudi =  parameters.getNumber("reservation_wage_std_saudi").doubleValue();
-        reservation_wage_mean_expat =  parameters.getNumber("reservation_wage_mean_expat").doubleValue();
-        reservation_wage_std_expat =  parameters.getNumber("reservation_wage_std_expat").doubleValue();
+        reservation_wage_mean_saudi =  parameters.getTimeDouble("reservation_wage_mean_saudi");
+        reservation_wage_std_saudi =  parameters.getTimeDouble("reservation_wage_std_saudi");
+        reservation_wage_mean_expat =  parameters.getTimeDouble("reservation_wage_mean_expat");
+        reservation_wage_std_expat =  parameters.getTimeDouble("reservation_wage_std_expat");
         price_step_increase = parameters.getTimeDouble("price_step_increase");
         price_step_decrease = parameters.getTimeDouble("price_step_decrease");
         planned_production_step_increase = parameters.getDirectionalTV("planned_production_step", "increase");

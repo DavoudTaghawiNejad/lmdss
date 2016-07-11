@@ -140,4 +140,15 @@ public class Policy
             }
         }
     }
+
+    public double[] getQuotas()
+    {
+        double[] quotas = new double[6];
+        quotas[1] = quota1;
+        quotas[2] = quota2;
+        quotas[3] = quota3;
+        quotas[4] = quota4;
+        quotas[5] = quota5;
+        return quotas;
+    }
 }
